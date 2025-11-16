@@ -1,18 +1,3 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-// Ensure the correct path for parse_license is imported
 use crate::admin;
 use crate::auth::IAMAuth;
 use crate::config;
@@ -160,33 +145,25 @@ pub async fn start_http_server(
     let api_endpoints = format!("{protocol}://{local_ip}:{server_port}");
     let localhost_endpoint = format!("{protocol}://127.0.0.1:{server_port}");
 
-    if opt.console_enable {
-        admin::console::init_console_cfg(local_ip, server_port);
+    // 初始化 Console 配置（Console API 端点始终可用）
+    admin::console::init_console_cfg(local_ip, server_port);
 
-        info!(
-            target: "rustfs::console::startup",
-            "Console WebUI available at: {protocol}://{local_ip}:{server_port}/rustfs/console/index.html"
+    info!("   API: {}  {}", api_endpoints, localhost_endpoint);
+    println!("   API: {api_endpoints}  {localhost_endpoint}");
+    info!(
+        target: "rustfs::console::startup",
+        "Console API endpoints available at: {protocol}://{local_ip}:{server_port}/rustfs/console/*"
+    );
+    println!("   Console API: {protocol}://{local_ip}:{server_port}/rustfs/console/*");
+    
+    if DEFAULT_ACCESS_KEY.eq(&opt.access_key) && DEFAULT_SECRET_KEY.eq(&opt.secret_key) {
+        warn!(
+            "Detected default credentials '{}:{}', we recommend that you change these values with 'RUSTFS_ACCESS_KEY' and 'RUSTFS_SECRET_KEY' environment variables",
+            DEFAULT_ACCESS_KEY, DEFAULT_SECRET_KEY
         );
-        info!(
-            target: "rustfs::console::startup",
-            "Console WebUI (localhost): {protocol}://127.0.0.1:{server_port}/rustfs/console/index.html",
-
-        );
-
-        println!("Console WebUI available at: {protocol}://{local_ip}:{server_port}/rustfs/console/index.html");
-        println!("Console WebUI (localhost): {protocol}://127.0.0.1:{server_port}/rustfs/console/index.html",);
-    } else {
-        info!("   API: {}  {}", api_endpoints, localhost_endpoint);
-        println!("   API: {api_endpoints}  {localhost_endpoint}");
-        if DEFAULT_ACCESS_KEY.eq(&opt.access_key) && DEFAULT_SECRET_KEY.eq(&opt.secret_key) {
-            warn!(
-                "Detected default credentials '{}:{}', we recommend that you change these values with 'RUSTFS_ACCESS_KEY' and 'RUSTFS_SECRET_KEY' environment variables",
-                DEFAULT_ACCESS_KEY, DEFAULT_SECRET_KEY
-            );
-        }
-        info!(target: "rustfs::main::startup","For more information, visit https://rustfs.com/docs/");
-        info!(target: "rustfs::main::startup", "To enable the console, restart the server with --console-enable and a valid --console-address.");
     }
+    info!(target: "rustfs::main::startup","For more information, visit https://rustfs.com/docs/");
+    info!(target: "rustfs::main::startup", "Frontend Console runs independently. See rustfsconsole project for details.");
 
     // Setup S3 service
     // This project uses the S3S library to implement S3 services
@@ -199,7 +176,8 @@ pub async fn start_http_server(
 
         b.set_auth(IAMAuth::new(access_key, secret_key));
         b.set_access(store.clone());
-        b.set_route(admin::make_admin_route(opt.console_enable)?);
+        // Console API 端点始终启用（通过主服务器提供）
+        b.set_route(admin::make_admin_route(true)?);
 
         if !opt.server_domains.is_empty() {
             MultiDomain::new(&opt.server_domains).map_err(Error::other)?; // validate domains
@@ -234,7 +212,8 @@ pub async fn start_http_server(
         Some(cors_allowed_origins)
     };
 
-    let is_console = opt.console_enable;
+    // Console API 端点始终启用
+    let is_console = true;
     tokio::spawn(async move {
         // Create CORS layer inside the server loop closure
         let cors_layer = parse_cors_origins(cors_allowed_origins.as_ref());

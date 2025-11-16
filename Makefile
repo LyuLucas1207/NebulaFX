@@ -52,6 +52,66 @@ setup-hooks:
 	chmod +x .git/hooks/pre-commit
 	@echo "✅ Git hooks setup complete!"
 
+.PHONY: unlock
+unlock:
+	@echo "🔓 Cleaning cargo lock files..."
+	@bash -c '\
+		MY_PID=$$$$; \
+		CARGO_PIDS=$$(pgrep -x cargo 2>/dev/null || true); \
+		RUSTC_PIDS=$$(pgrep -x rustc 2>/dev/null || true); \
+		if [ -n "$$CARGO_PIDS$$RUSTC_PIDS" ]; then \
+			echo "⚠️  Warning: cargo/rustc processes detected. Waiting 3 seconds..."; \
+			sleep 3; \
+			CARGO_PIDS=$$(pgrep -x cargo 2>/dev/null || true); \
+			RUSTC_PIDS=$$(pgrep -x rustc 2>/dev/null || true); \
+			if [ -n "$$CARGO_PIDS$$RUSTC_PIDS" ]; then \
+				echo "🛑 Stopping cargo/rustc processes (excluding make)..."; \
+				for pid in $$CARGO_PIDS; do \
+					if [ "$$pid" != "$$MY_PID" ] && ! ps -p $$pid -o comm= 2>/dev/null | grep -q make; then \
+						kill $$pid 2>/dev/null || true; \
+					fi; \
+				done; \
+				for pid in $$RUSTC_PIDS; do \
+					if [ "$$pid" != "$$MY_PID" ]; then \
+						kill $$pid 2>/dev/null || true; \
+					fi; \
+				done; \
+				sleep 2; \
+				CARGO_PIDS=$$(pgrep -x cargo 2>/dev/null || true); \
+				RUSTC_PIDS=$$(pgrep -x rustc 2>/dev/null || true); \
+				if [ -n "$$CARGO_PIDS$$RUSTC_PIDS" ]; then \
+					echo "⚠️  Some processes still running, forcing kill..."; \
+					for pid in $$CARGO_PIDS; do \
+						if [ "$$pid" != "$$MY_PID" ] && ! ps -p $$pid -o comm= 2>/dev/null | grep -q make; then \
+							kill -9 $$pid 2>/dev/null || true; \
+						fi; \
+					done; \
+					for pid in $$RUSTC_PIDS; do \
+						if [ "$$pid" != "$$MY_PID" ]; then \
+							kill -9 $$pid 2>/dev/null || true; \
+						fi; \
+					done; \
+					sleep 1; \
+				fi; \
+			fi; \
+		fi'
+	@find target -name ".cargo-lock" -type f -delete 2>/dev/null || true
+	@find target -name "*.lock" -type f -path "*/incremental/*" -delete 2>/dev/null || true
+	@echo "✅ Lock files cleaned"
+
+.PHONY: run
+run: unlock
+	@echo "🚀 Running RustFS..."
+	@bash -c '\
+		source ../use-rust1.91.sh 2>/dev/null || true; \
+		export RUST_LOG="$${RUST_LOG:-rustfs=info,ecstore=info,s3s=info,iam=info}"; \
+		export RUSTFS_OBS_LOGGER_LEVEL="$${RUSTFS_OBS_LOGGER_LEVEL:-info}"; \
+		export RUSTFS_OBS_LOG_STDOUT_ENABLED="$${RUSTFS_OBS_LOG_STDOUT_ENABLED:-true}"; \
+		export RUSTFS_LOG_JSON="$${RUSTFS_LOG_JSON:-false}"; \
+		echo "📝 Log level: $$RUST_LOG"; \
+		echo "📝 Log format: $$([ "$$RUSTFS_LOG_JSON" = "true" ] && echo "JSON" || echo "Text (compact)")"; \
+		cargo run --bin rustfs -- ./deploy/data/dev{1...8} --address 0.0.0.0:9000'
+
 .PHONY: e2e-server
 e2e-server:
 	sh $(shell pwd)/scripts/run.sh
@@ -60,16 +120,16 @@ e2e-server:
 probe-e2e:
 	sh $(shell pwd)/scripts/probe.sh
 
-# Native build using build-rustfs.sh script
+# Native build using cargo
 .PHONY: build
 build:
-	@echo "🔨 Building RustFS using build-rustfs.sh script..."
-	./build-rustfs.sh
+	@echo "🔨 Building RustFS binary (release mode)..."
+	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; cargo build --release --bin rustfs'
 
 .PHONY: build-dev
 build-dev:
-	@echo "🔨 Building RustFS in development mode..."
-	./build-rustfs.sh --dev
+	@echo "🔨 Building RustFS binary (development mode)..."
+	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; cargo build --bin rustfs'
 
 # Docker-based build (alternative approach)
 # Usage: make BUILD_OS=ubuntu22.04 build-docker
@@ -84,49 +144,64 @@ build-docker:
 	$(DOCKER_CLI) buildx build -t $(SOURCE_BUILD_IMAGE_NAME) -f $(DOCKERFILE_SOURCE) .
 	$(DOCKER_CLI) run --rm --name $(SOURCE_BUILD_CONTAINER_NAME) -v $(shell pwd):/root/s3-rustfs -it $(SOURCE_BUILD_IMAGE_NAME) $(BUILD_CMD)
 
+# Cross-platform builds (optional - only if needed)
 .PHONY: build-musl
 build-musl:
 	@echo "🔨 Building rustfs for x86_64-unknown-linux-musl..."
-	@echo "💡 On macOS/Windows, use 'make build-docker' or 'make docker-dev' instead"
-	./build-rustfs.sh --platform x86_64-unknown-linux-musl
+	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; rustup target add x86_64-unknown-linux-musl; cargo build --release --bin rustfs --target x86_64-unknown-linux-musl'
 
 .PHONY: build-gnu
 build-gnu:
 	@echo "🔨 Building rustfs for x86_64-unknown-linux-gnu..."
-	@echo "💡 On macOS/Windows, use 'make build-docker' or 'make docker-dev' instead"
-	./build-rustfs.sh --platform x86_64-unknown-linux-gnu
+	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; cargo build --release --bin rustfs --target x86_64-unknown-linux-gnu'
 
 .PHONY: build-musl-arm64
 build-musl-arm64:
 	@echo "🔨 Building rustfs for aarch64-unknown-linux-musl..."
-	@echo "💡 On macOS/Windows, use 'make build-docker' or 'make docker-dev' instead"
-	./build-rustfs.sh --platform aarch64-unknown-linux-musl
+	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; rustup target add aarch64-unknown-linux-musl; cargo build --release --bin rustfs --target aarch64-unknown-linux-musl'
 
 .PHONY: build-gnu-arm64
 build-gnu-arm64:
 	@echo "🔨 Building rustfs for aarch64-unknown-linux-gnu..."
-	@echo "💡 On macOS/Windows, use 'make build-docker' or 'make docker-dev' instead"
-	./build-rustfs.sh --platform aarch64-unknown-linux-gnu
+	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; rustup target add aarch64-unknown-linux-gnu; cargo build --release --bin rustfs --target aarch64-unknown-linux-gnu'
 
-.PHONY: deploy-dev
-deploy-dev: build-musl
-	@echo "🚀 Deploying to dev server: $${IP}"
-	./scripts/dev_deploy.sh $${IP}
+# 已移除：deploy-dev（如果不需要可以删除）
+# .PHONY: deploy-dev
+# deploy-dev: build-musl
+# 	@echo "🚀 Deploying to dev server: $${IP}"
+# 	./scripts/dev_deploy.sh $${IP}
 
 # ========================================================================================
 # Docker Multi-Architecture Builds (Primary Methods)
 # ========================================================================================
 
-# Production builds using docker-buildx.sh (for CI/CD and production)
+# Production builds using docker buildx (for CI/CD and production)
+# 注意：docker-buildx.sh 已删除，使用直接 buildx 命令
 .PHONY: docker-buildx
 docker-buildx:
 	@echo "🏗️ Building multi-architecture production Docker images with buildx..."
-	./docker-buildx.sh
+	@echo "💡 Using direct buildx commands (docker-buildx.sh removed)"
+	$(DOCKER_CLI) buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--file $(DOCKERFILE_PRODUCTION) \
+		--tag rustfs:latest \
+		--tag rustfs:production-latest \
+		.
 
 .PHONY: docker-buildx-push
 docker-buildx-push:
-	@echo "🚀 Building and pushing multi-architecture production Docker images with buildx..."
-	./docker-buildx.sh --push
+	@if [ -z "$(REGISTRY)" ]; then \
+		echo "❌ Error: Please specify registry, example: make docker-buildx-push REGISTRY=ghcr.io/username"; \
+		exit 1; \
+	fi
+	@echo "🚀 Building and pushing multi-architecture production Docker images..."
+	$(DOCKER_CLI) buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--file $(DOCKERFILE_PRODUCTION) \
+		--tag $(REGISTRY)/rustfs:latest \
+		--tag $(REGISTRY)/rustfs:production-latest \
+		--push \
+		.
 
 .PHONY: docker-buildx-version
 docker-buildx-version:
@@ -135,16 +210,28 @@ docker-buildx-version:
 		exit 1; \
 	fi
 	@echo "🏗️ Building multi-architecture production Docker images (version: $(VERSION))..."
-	./docker-buildx.sh --release $(VERSION)
+	$(DOCKER_CLI) buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--file $(DOCKERFILE_PRODUCTION) \
+		--tag rustfs:$(VERSION) \
+		--tag rustfs:latest \
+		.
 
 .PHONY: docker-buildx-push-version
 docker-buildx-push-version:
-	@if [ -z "$(VERSION)" ]; then \
-		echo "❌ Error: Please specify version, example: make docker-buildx-push-version VERSION=v1.0.0"; \
+	@if [ -z "$(VERSION)" ] || [ -z "$(REGISTRY)" ]; then \
+		echo "❌ Error: Please specify version and registry"; \
+		echo "   Example: make docker-buildx-push-version VERSION=v1.0.0 REGISTRY=ghcr.io/username"; \
 		exit 1; \
 	fi
 	@echo "🚀 Building and pushing multi-architecture production Docker images (version: $(VERSION))..."
-	./docker-buildx.sh --release $(VERSION) --push
+	$(DOCKER_CLI) buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--file $(DOCKERFILE_PRODUCTION) \
+		--tag $(REGISTRY)/rustfs:$(VERSION) \
+		--tag $(REGISTRY)/rustfs:latest \
+		--push \
+		.
 
 # Development/Source builds using direct buildx commands
 .PHONY: docker-dev
@@ -234,7 +321,7 @@ dev-env-start:
 	$(DOCKER_CLI) stop $(CONTAINER_NAME) 2>/dev/null || true
 	$(DOCKER_CLI) rm $(CONTAINER_NAME) 2>/dev/null || true
 	$(DOCKER_CLI) run -d --name $(CONTAINER_NAME) \
-		-p 9010:9010 -p 9000:9000 \
+		-p 9000:9000 \
 		-v $(shell pwd):/workspace \
 		-it rustfs:dev
 
@@ -266,17 +353,20 @@ docker-inspect-multiarch:
 build-cross-all:
 	@echo "🔧 Building all target architectures..."
 	@echo "💡 On macOS/Windows, use 'make docker-dev' for reliable multi-arch builds"
-	@echo "🔨 Generating protobuf code..."
-	cargo run --bin gproto || true
-	@echo "🔨 Building x86_64-unknown-linux-gnu..."
-	./build-rustfs.sh --platform x86_64-unknown-linux-gnu
-	@echo "🔨 Building aarch64-unknown-linux-gnu..."
-	./build-rustfs.sh --platform aarch64-unknown-linux-gnu
-	@echo "🔨 Building x86_64-unknown-linux-musl..."
-	./build-rustfs.sh --platform x86_64-unknown-linux-musl
-	@echo "🔨 Building aarch64-unknown-linux-musl..."
-	./build-rustfs.sh --platform aarch64-unknown-linux-musl
-	@echo "✅ All architectures built successfully!"
+	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; \
+		echo "🔨 Building x86_64-unknown-linux-gnu..."; \
+		rustup target add x86_64-unknown-linux-gnu; \
+		cargo build --release --bin rustfs --target x86_64-unknown-linux-gnu; \
+		echo "🔨 Building aarch64-unknown-linux-gnu..."; \
+		rustup target add aarch64-unknown-linux-gnu; \
+		cargo build --release --bin rustfs --target aarch64-unknown-linux-gnu; \
+		echo "🔨 Building x86_64-unknown-linux-musl..."; \
+		rustup target add x86_64-unknown-linux-musl; \
+		cargo build --release --bin rustfs --target x86_64-unknown-linux-musl; \
+		echo "🔨 Building aarch64-unknown-linux-musl..."; \
+		rustup target add aarch64-unknown-linux-musl; \
+		cargo build --release --bin rustfs --target aarch64-unknown-linux-musl; \
+		echo "✅ All architectures built successfully!"'
 
 # ========================================================================================
 # Help and Documentation
@@ -287,7 +377,7 @@ help-build:
 	@echo "🔨 RustFS Build Help:"
 	@echo ""
 	@echo "🚀 Local Build (Recommended):"
-	@echo "  make build                               # Build RustFS binary (includes console by default)"
+	@echo "  make build                               # Build RustFS binary (frontend runs independently)"
 	@echo "  make build-dev                           # Development mode build"
 	@echo "  make build-musl                          # Build x86_64 musl version"
 	@echo "  make build-gnu                           # Build x86_64 GNU version"
@@ -301,26 +391,22 @@ help-build:
 	@echo "🏗️ Cross-architecture Build:"
 	@echo "  make build-cross-all                     # Build binaries for all architectures"
 	@echo ""
-	@echo "🔧 Direct usage of build-rustfs.sh script:"
-	@echo "  ./build-rustfs.sh --help                 # View script help"
-	@echo "  ./build-rustfs.sh --no-console           # Build without console resources"
-	@echo "  ./build-rustfs.sh --force-console-update # Force update console resources"
-	@echo "  ./build-rustfs.sh --dev                  # Development mode build"
-	@echo "  ./build-rustfs.sh --sign                 # Sign binary files"
-	@echo "  ./build-rustfs.sh --platform x86_64-unknown-linux-gnu   # Specify target platform"
-	@echo "  ./build-rustfs.sh --skip-verification    # Skip binary verification"
+	@echo "🔧 Direct cargo usage:"
+	@echo "  cargo build --release --bin rustfs       # Build release binary"
+	@echo "  cargo build --bin rustfs                 # Build debug binary"
+	@echo "  cargo run --bin rustfs                   # Build and run"
 	@echo ""
-	@echo "💡 build-rustfs.sh script provides more options, smart detection and binary verification"
+	@echo "💡 Frontend (rustfsconsole) runs independently - see rustfsconsole project"
 
 .PHONY: help-docker
 help-docker:
 	@echo "🐳 Docker Multi-architecture Build Help:"
 	@echo ""
-	@echo "🚀 Production Image Build (Recommended to use docker-buildx.sh):"
+	@echo "🚀 Production Image Build:"
 	@echo "  make docker-buildx                       # Build production multi-arch image (no push)"
-	@echo "  make docker-buildx-push                  # Build and push production multi-arch image"
+	@echo "  make docker-buildx-push REGISTRY=xxx     # Build and push production multi-arch image"
 	@echo "  make docker-buildx-version VERSION=v1.0.0        # Build specific version"
-	@echo "  make docker-buildx-push-version VERSION=v1.0.0   # Build and push specific version"
+	@echo "  make docker-buildx-push-version VERSION=v1.0.0 REGISTRY=xxx   # Build and push specific version"
 	@echo ""
 	@echo "🔧 Development/Source Image Build (Local development testing):"
 	@echo "  make docker-dev                          # Build dev multi-arch image (cannot load locally)"
@@ -350,9 +436,10 @@ help-docker:
 	@echo "  GITHUB_TOKEN          GitHub access token"
 	@echo ""
 	@echo "💡 Suggestions:"
-	@echo "  - Production use: Use docker-buildx* commands (based on precompiled binaries)"
+	@echo "  - Production use: Use docker-buildx* commands"
 	@echo "  - Local development: Use docker-dev* commands (build from source)"
 	@echo "  - Development environment: Use dev-env-* commands to manage dev containers"
+	@echo "  - Frontend: Runs independently in rustfsconsole project"
 
 .PHONY: help
 help:
@@ -369,6 +456,7 @@ help:
 	@echo "  make pre-commit                          # Run all pre-commit checks"
 	@echo ""
 	@echo "🚀 Quick Start:"
+	@echo "  make run                                 # Clean locks and run RustFS"
 	@echo "  make build                               # Build RustFS binary"
 	@echo "  make docker-dev-local                    # Build development Docker image (local)"
 	@echo "  make dev-env-start                       # Start development environment"

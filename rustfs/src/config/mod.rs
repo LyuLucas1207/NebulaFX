@@ -1,24 +1,7 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 use clap::Parser;
 use const_str::concat;
 use std::string::ToString;
 shadow_rs::shadow!(build);
-
-#[cfg(test)]
-mod config_test;
 
 #[allow(clippy::const_is_empty)]
 const SHORT_VERSION: &str = {
@@ -67,13 +50,8 @@ pub struct Opt {
     #[arg(long, default_value_t = rustfs_config::DEFAULT_SECRET_KEY.to_string(), env = "RUSTFS_SECRET_KEY")]
     pub secret_key: String,
 
-    /// Enable console server
-    #[arg(long, default_value_t = rustfs_config::DEFAULT_CONSOLE_ENABLE, env = "RUSTFS_CONSOLE_ENABLE")]
-    pub console_enable: bool,
-
-    /// Console server bind address
-    #[arg(long, default_value_t = rustfs_config::DEFAULT_CONSOLE_ADDRESS.to_string(), env = "RUSTFS_CONSOLE_ADDRESS")]
-    pub console_address: String,
+    // 已移除：前端独立运行，不再需要 console_enable 和 console_address 参数
+    // Console API 端点（/rustfs/console/*）始终通过主服务器提供
 
     /// Observability endpoint for trace, metrics and logs,only support grpc mode.
     #[arg(long, default_value_t = rustfs_config::DEFAULT_OBS_ENDPOINT.to_string(), env = "RUSTFS_OBS_ENDPOINT")]

@@ -14,12 +14,9 @@
 # limitations under the License.
 
 
-# check ./rustfs/static/index.html not exists
-if [ ! -f ./rustfs/static/index.html ]; then
-    echo "Downloading rustfs-console-latest.zip"
-    # download rustfs-console-latest.zip do not show log
-    curl -s -L "https://dl.rustfs.com/artifacts/console/rustfs-console-latest.zip" -o tempfile.zip && unzip -q -o tempfile.zip -d ./rustfs/static && rm tempfile.zip
-fi
+# 已移除：不再需要下载静态文件（前端独立运行）
+# 如果需要使用嵌入的 Console，请使用 --console-enable 参数
+# 否则，请使用独立的前端服务器（如 rustfsconsole 项目）
 
 if [ -z "$SKIP_BUILD" ]; then
     cargo build -p rustfs --bins
@@ -44,8 +41,8 @@ fi
 export RUSTFS_VOLUMES="./target/volume/test{1...4}"
 # export RUSTFS_VOLUMES="./target/volume/test"
 export RUSTFS_ADDRESS=":9000"
-export RUSTFS_CONSOLE_ENABLE=true
-export RUSTFS_CONSOLE_ADDRESS=":9001"
+# 已移除：不再需要 RUSTFS_CONSOLE_ENABLE 和 RUSTFS_CONSOLE_ADDRESS
+# Console API 端点始终通过主服务器提供
 # export RUSTFS_SERVER_DOMAINS="localhost:9000"
 # HTTPS certificate directory
 # export RUSTFS_TLS_PATH="./deploy/certs"

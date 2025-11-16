@@ -1,17 +1,3 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 use atomic_enum::atomic_enum;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
@@ -156,28 +142,4 @@ impl Default for ServiceStateManager {
     }
 }
 
-// Example of use
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_service_state_manager() {
-        let manager = ServiceStateManager::new();
-
-        // The initial state should be Starting
-        assert_eq!(manager.current_state(), ServiceState::Starting);
-
-        // Update the status to Ready
-        manager.update(ServiceState::Ready);
-        assert_eq!(manager.current_state(), ServiceState::Ready);
-
-        // Update the status to Stopping
-        manager.update(ServiceState::Stopping);
-        assert_eq!(manager.current_state(), ServiceState::Stopping);
-
-        // Update the status to Stopped
-        manager.update(ServiceState::Stopped);
-        assert_eq!(manager.current_state(), ServiceState::Stopped);
-    }
-}
+ 

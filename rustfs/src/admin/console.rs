@@ -1,17 +1,3 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 use crate::config::build;
 use crate::license::get_license;
 use axum::{
@@ -25,8 +11,8 @@ use axum::{
 use axum_extra::extract::Host;
 use axum_server::tls_rustls::RustlsConfig;
 use http::{HeaderMap, HeaderName, HeaderValue, Method, StatusCode, Uri};
-use mime_guess::from_path;
-use rust_embed::RustEmbed;
+// use mime_guess::from_path; // 已移除：不再需要 MIME 类型检测（静态文件已移除）
+// use rust_embed::RustEmbed; // 已移除：前端独立运行，不再嵌入静态文件
 use rustfs_config::{RUSTFS_TLS_CERT, RUSTFS_TLS_KEY};
 use serde::Serialize;
 use serde_json::json;
@@ -48,48 +34,8 @@ use tracing::{debug, error, info, instrument, warn};
 pub(crate) const CONSOLE_PREFIX: &str = "/rustfs/console";
 const RUSTFS_ADMIN_PREFIX: &str = "/rustfs/admin/v3";
 
-#[derive(RustEmbed)]
-#[folder = "$CARGO_MANIFEST_DIR/static"]
-struct StaticFiles;
-
-/// Static file handler
-///
-/// Serves static files embedded in the binary using rust-embed.
-/// If the requested file is not found, it serves index.html as a fallback.
-/// If index.html is also not found, it returns a 404 Not Found response.
-///
-/// Arguments:
-/// - `uri`: The request URI.
-///
-/// Returns:
-/// - An `impl IntoResponse` containing the static file content or a 404 response.
-///
-pub(crate) async fn static_handler(uri: Uri) -> impl IntoResponse {
-    let mut path = uri.path().trim_start_matches('/');
-    if path.is_empty() {
-        path = "index.html"
-    }
-    if let Some(file) = StaticFiles::get(path) {
-        let mime_type = from_path(path).first_or_octet_stream();
-        Response::builder()
-            .status(StatusCode::OK)
-            .header("Content-Type", mime_type.to_string())
-            .body(Body::from(file.data))
-            .unwrap()
-    } else if let Some(file) = StaticFiles::get("index.html") {
-        let mime_type = from_path("index.html").first_or_octet_stream();
-        Response::builder()
-            .status(StatusCode::OK)
-            .header("Content-Type", mime_type.to_string())
-            .body(Body::from(file.data))
-            .unwrap()
-    } else {
-        Response::builder()
-            .status(StatusCode::NOT_FOUND)
-            .body(Body::from(" 404 Not Found \n RustFS "))
-            .unwrap()
-    }
-}
+// 已移除静态文件嵌入功能：前端独立运行，不再嵌入到后端二进制中
+// 如果需要静态文件服务，请使用独立的前端服务器（如 Nuxt.js 开发服务器或 Nginx）
 
 #[derive(Debug, Serialize, Clone)]
 pub(crate) struct Config {
@@ -391,23 +337,23 @@ fn get_console_config_from_env() -> (bool, u32, u64, String) {
 }
 
 pub fn is_console_path(path: &str) -> bool {
-    path == "/favicon.ico" || path.starts_with(CONSOLE_PREFIX)
+    // 只检查 Console API 路径，不再提供静态文件服务
+    path.starts_with(CONSOLE_PREFIX)
 }
 
 /// Setup comprehensive middleware stack with tower-http features
+/// 注意：已移除静态文件服务，只保留 API 端点
 fn setup_console_middleware_stack(
     cors_layer: CorsLayer,
     rate_limit_enable: bool,
     rate_limit_rpm: u32,
     auth_timeout: u64,
 ) -> Router {
+    // 只注册 API 端点，不提供静态文件服务（前端独立运行）
     let mut app = Router::new()
-        .route("/favicon.ico", get(static_handler))
         .route(&format!("{CONSOLE_PREFIX}/license"), get(license_handler))
         .route(&format!("{CONSOLE_PREFIX}/config.json"), get(config_handler))
-        .route(&format!("{CONSOLE_PREFIX}/health"), get(health_check))
-        .nest(CONSOLE_PREFIX, Router::new().fallback_service(get(static_handler)))
-        .fallback_service(get(static_handler));
+        .route(&format!("{CONSOLE_PREFIX}/health"), get(health_check));
 
     // Add comprehensive middleware layers using tower-http features
     app = app

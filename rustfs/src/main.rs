@@ -1,17 +1,3 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 mod admin;
 mod auth;
 mod config;
@@ -216,20 +202,11 @@ async fn run(opt: config::Opt) -> Result<()> {
     // Update service status to Starting
     state_manager.update(ServiceState::Starting);
 
+    // 启动主 HTTP 服务器（包含 S3 API 和 Console API 端点）
+    // 前端独立运行，不再需要独立的 Console 服务器
     let s3_shutdown_tx = {
-        let mut s3_opt = opt.clone();
-        s3_opt.console_enable = false;
-        let s3_shutdown_tx = start_http_server(&s3_opt, state_manager.clone()).await?;
+        let s3_shutdown_tx = start_http_server(&opt, state_manager.clone()).await?;
         Some(s3_shutdown_tx)
-    };
-
-    let console_shutdown_tx = if opt.console_enable && !opt.console_address.is_empty() {
-        let mut console_opt = opt.clone();
-        console_opt.address = console_opt.console_address.clone();
-        let console_shutdown_tx = start_http_server(&console_opt, state_manager.clone()).await?;
-        Some(console_shutdown_tx)
-    } else {
-        None
     };
 
     set_global_endpoints(endpoint_pools.as_ref().clone());
@@ -339,11 +316,11 @@ async fn run(opt: config::Opt) -> Result<()> {
     match wait_for_shutdown().await {
         #[cfg(unix)]
         ShutdownSignal::CtrlC | ShutdownSignal::Sigint | ShutdownSignal::Sigterm => {
-            handle_shutdown(&state_manager, s3_shutdown_tx, console_shutdown_tx, ctx.clone()).await;
+            handle_shutdown(&state_manager, s3_shutdown_tx, ctx.clone()).await;
         }
         #[cfg(not(unix))]
         ShutdownSignal::CtrlC => {
-            handle_shutdown(&state_manager, s3_shutdown_tx, console_shutdown_tx, ctx.clone()).await;
+            handle_shutdown(&state_manager, s3_shutdown_tx, ctx.clone()).await;
         }
     }
 
@@ -366,7 +343,6 @@ fn parse_bool_env_var(var_name: &str, default: bool) -> bool {
 async fn handle_shutdown(
     state_manager: &ServiceStateManager,
     s3_shutdown_tx: Option<tokio::sync::broadcast::Sender<()>>,
-    console_shutdown_tx: Option<tokio::sync::broadcast::Sender<()>>,
     ctx: CancellationToken,
 ) {
     ctx.cancel();
@@ -426,9 +402,7 @@ async fn handle_shutdown(
     if let Some(s3_shutdown_tx) = s3_shutdown_tx {
         let _ = s3_shutdown_tx.send(());
     }
-    if let Some(console_shutdown_tx) = console_shutdown_tx {
-        let _ = console_shutdown_tx.send(());
-    }
+    // 已移除：不再需要独立的 Console 服务器关闭逻辑
 
     // Wait for the worker thread to complete the cleaning work
     tokio::time::sleep(SHUTDOWN_TIMEOUT).await;

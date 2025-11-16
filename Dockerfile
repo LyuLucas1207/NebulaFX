@@ -73,10 +73,8 @@ RUN addgroup -g 1000 -S rustfs && \
     chmod 0750 /data /logs
 
 ENV RUSTFS_ADDRESS=":9000" \
-    RUSTFS_CONSOLE_ADDRESS=":9001" \
     RUSTFS_ACCESS_KEY="rustfsadmin" \
     RUSTFS_SECRET_KEY="rustfsadmin" \
-    RUSTFS_CONSOLE_ENABLE="true" \
     RUSTFS_EXTERNAL_ADDRESS="" \
     RUSTFS_CORS_ALLOWED_ORIGINS="*" \
     RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS="*" \

@@ -217,28 +217,61 @@ fn init_stdout_logging(_config: &OtelConfig, logger_level: &str, is_production: 
     let env_filter = build_env_filter(logger_level, None);
     let (nb, guard) = tracing_appender::non_blocking(std::io::stdout());
     let enable_color = std::io::stdout().is_terminal();
-    let fmt_layer = tracing_subscriber::fmt::layer()
-        .with_timer(LocalTime::rfc_3339())
-        .with_target(true)
-        .with_ansi(enable_color)
-        .with_thread_names(true)
-        .with_thread_ids(true)
-        .with_file(true)
-        .with_line_number(true)
-        .with_writer(nb)
-        .json()
-        .with_current_span(true)
-        .with_span_list(true)
-        .with_span_events(if is_production { FmtSpan::CLOSE } else { FmtSpan::FULL });
-    tracing_subscriber::registry()
-        .with(env_filter)
-        .with(ErrorLayer::default())
-        .with(fmt_layer)
-        .init();
+    
+    // 检查是否使用 JSON 格式（通过环境变量控制）
+    let use_json = env::var("RUSTFS_LOG_JSON")
+        .map(|v| v == "true" || v == "1")
+        .unwrap_or(false);
+    
+    let span_event = if is_production { FmtSpan::CLOSE } else { FmtSpan::FULL };
+    
+    // 根据配置选择格式（必须在创建时就决定，不能后续修改）
+    if use_json {
+        // JSON 格式（用于生产环境或日志收集系统）
+        let fmt_layer = tracing_subscriber::fmt::layer()
+            .with_timer(LocalTime::rfc_3339())
+            .with_target(true)
+            .with_ansi(enable_color)
+            .with_writer(nb)
+            .json()
+            .with_current_span(true)
+            .with_span_list(true)
+            .with_thread_names(true)
+            .with_thread_ids(true)
+            .with_file(true)
+            .with_line_number(true)
+            .with_span_events(span_event);
+        
+        tracing_subscriber::registry()
+            .with(env_filter)
+            .with(ErrorLayer::default())
+            .with(fmt_layer)
+            .init();
+    } else {
+        // 友好的文本格式（用于开发环境）
+        // 格式: [时间] [级别] [模块] 消息
+        let fmt_layer = tracing_subscriber::fmt::layer()
+            .with_timer(LocalTime::rfc_3339())
+            .with_target(true)
+            .with_ansi(enable_color)
+            .with_writer(nb)
+            .compact() // 使用紧凑格式，更易读
+            .with_thread_names(false) // 开发环境不需要线程名
+            .with_thread_ids(false)   // 开发环境不需要线程ID
+            .with_file(false)         // 开发环境不需要文件名
+            .with_line_number(false)  // 开发环境不需要行号
+            .with_span_events(span_event);
+        
+        tracing_subscriber::registry()
+            .with(env_filter)
+            .with(ErrorLayer::default())
+            .with(fmt_layer)
+            .init();
+    }
 
     OBSERVABILITY_METRIC_ENABLED.set(false).ok();
     counter!("rustfs.start.total").increment(1);
-    info!("Init stdout logging (level: {})", logger_level);
+    info!("Init stdout logging (level: {}, format: {})", logger_level, if use_json { "json" } else { "text" });
     OtelGuard {
         tracer_provider: None,
         meter_provider: None,
@@ -473,41 +506,80 @@ fn init_observability_http(config: &OtelConfig, logger_level: &str, is_productio
         builder.build()
     };
 
-    // Tracing layer
-    let fmt_layer_opt = {
-        if config.log_stdout_enabled.unwrap_or(DEFAULT_OBS_LOG_STDOUT_ENABLED) {
-            let enable_color = std::io::stdout().is_terminal();
-            let mut layer = tracing_subscriber::fmt::layer()
+    let span_event = if is_production { FmtSpan::CLOSE } else { FmtSpan::FULL };
+
+    // 构建 subscriber，根据日志格式分别处理（因为类型不同，每个分支必须完全独立）
+    if config.log_stdout_enabled.unwrap_or(DEFAULT_OBS_LOG_STDOUT_ENABLED) {
+        let enable_color = std::io::stdout().is_terminal();
+        // 检查是否使用 JSON 格式
+        let use_json = env::var("RUSTFS_LOG_JSON")
+            .map(|v| v == "true" || v == "1")
+            .unwrap_or(false);
+        
+        if use_json {
+            // JSON 格式（用于生产环境）
+            let filter = build_env_filter(logger_level, None);
+            let tracer = tracer_provider.tracer(service_name.to_string());
+            let fmt_layer = tracing_subscriber::fmt::layer()
                 .with_timer(LocalTime::rfc_3339())
                 .with_target(true)
                 .with_ansi(enable_color)
+                .json()
+                .with_current_span(true)
+                .with_span_list(true)
                 .with_thread_names(true)
                 .with_thread_ids(true)
                 .with_file(true)
                 .with_line_number(true)
-                .json()
-                .with_current_span(true)
-                .with_span_list(true);
-            let span_event = if is_production { FmtSpan::CLOSE } else { FmtSpan::FULL };
-            layer = layer.with_span_events(span_event);
-            Some(layer.with_filter(build_env_filter(logger_level, None)))
+                .with_span_events(span_event)
+                .with_filter(build_env_filter(logger_level, None));
+            
+            tracing_subscriber::registry()
+                .with(filter)
+                .with(ErrorLayer::default())
+                .with(fmt_layer)
+                .with(OpenTelemetryLayer::new(tracer))
+                .with(OpenTelemetryTracingBridge::new(&logger_provider).with_filter(build_env_filter(logger_level, None)))
+                .with(MetricsLayer::new(meter_provider.clone()))
+                .init();
         } else {
-            None
+            // 友好的文本格式（用于开发环境）
+            let filter = build_env_filter(logger_level, None);
+            let tracer = tracer_provider.tracer(service_name.to_string());
+            let fmt_layer = tracing_subscriber::fmt::layer()
+                .with_timer(LocalTime::rfc_3339())
+                .with_target(true)
+                .with_ansi(enable_color)
+                .compact()
+                .with_thread_names(false)
+                .with_thread_ids(false)
+                .with_file(false)
+                .with_line_number(false)
+                .with_span_events(span_event)
+                .with_filter(build_env_filter(logger_level, None));
+            
+            tracing_subscriber::registry()
+                .with(filter)
+                .with(ErrorLayer::default())
+                .with(fmt_layer)
+                .with(OpenTelemetryLayer::new(tracer))
+                .with(OpenTelemetryTracingBridge::new(&logger_provider).with_filter(build_env_filter(logger_level, None)))
+                .with(MetricsLayer::new(meter_provider.clone()))
+                .init();
         }
-    };
-
-    let filter = build_env_filter(logger_level, None);
-    let otel_bridge = OpenTelemetryTracingBridge::new(&logger_provider).with_filter(build_env_filter(logger_level, None));
-    let tracer = tracer_provider.tracer(service_name.to_string());
-
-    tracing_subscriber::registry()
-        .with(filter)
-        .with(ErrorLayer::default())
-        .with(fmt_layer_opt)
-        .with(OpenTelemetryLayer::new(tracer))
-        .with(otel_bridge)
-        .with(MetricsLayer::new(meter_provider.clone()))
-        .init();
+    } else {
+        // 不使用 stdout 日志
+        let filter = build_env_filter(logger_level, None);
+        let tracer = tracer_provider.tracer(service_name.to_string());
+        
+        tracing_subscriber::registry()
+            .with(filter)
+            .with(ErrorLayer::default())
+            .with(OpenTelemetryLayer::new(tracer))
+            .with(OpenTelemetryTracingBridge::new(&logger_provider).with_filter(build_env_filter(logger_level, None)))
+            .with(MetricsLayer::new(meter_provider.clone()))
+            .init();
+    }
 
     OBSERVABILITY_METRIC_ENABLED.set(true).ok();
     counter!("rustfs.start.total").increment(1);

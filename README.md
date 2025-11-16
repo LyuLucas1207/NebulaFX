@@ -1,185 +1,170 @@
-[![RustFS](https://rustfs.com/images/rustfs-github.png)](https://rustfs.com)
+RustFS
 
-<p align="center">RustFS 是一个使用 Rust 构建的高性能分布式对象存储软件</p >
+简体中文 | English
 
-<p align="center">
-  <a href="https://github.com/rustfs/rustfs/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/rustfs/rustfs/actions/workflows/ci.yml/badge.svg" /></a>
-  <a href="https://github.com/rustfs/rustfs/actions/workflows/docker.yml"><img alt="Build and Push Docker Images" src="https://github.com/rustfs/rustfs/actions/workflows/docker.yml/badge.svg" /></a>
-  <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/rustfs/rustfs"/>
-  <img alt="Github Last Commit" src="https://img.shields.io/github/last-commit/rustfs/rustfs"/>
-  <a href="https://hellogithub.com/repository/rustfs/rustfs" target="_blank"><img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=b95bcb72bdc340b68f16fdf6790b7d5b&claim_uid=MsbvjYeLDKAH457&theme=small" alt="Featured｜HelloGitHub" /></a>
-</p >
 
-<p align="center">
-  <a href="https://docs.rustfs.com/zh/introduction.html">快速开始</a >
-  · <a href="https://docs.rustfs.com/zh/">文档</a >
-  · <a href="https://github.com/rustfs/rustfs/issues">问题报告</a >
-  · <a href="https://github.com/rustfs/rustfs/discussions">讨论</a >
-</p >
+### 概述 Overview
 
-<p align="center">
-<a href="https://github.com/rustfs/rustfs/blob/main/README.md">English</a > | 简体中文
-</p >
+- 简介: RustFS 是一个以 Rust 编写的高性能分布式对象存储系统，提供与 S3 兼容的 API、可观测性、策略与鉴权、审计、KMS 等能力，适合云原生与边缘场景。
+- Brief: RustFS is a high‑performance distributed object storage written in Rust. It offers S3‑compatible APIs, observability, IAM/policy, audit, KMS, and more for cloud‑native and edge workloads.
 
-RustFS 是一个使用 Rust（全球最受欢迎的编程语言之一）构建的高性能分布式对象存储软件。与 MinIO 一样，它具有简单性、S3
-兼容性、开源特性以及对数据湖、AI 和大数据的支持等一系列优势。此外，与其他存储系统相比，它采用 Apache
-许可证构建，拥有更好、更用户友好的开源许可证。由于以 Rust 为基础，RustFS 为高性能对象存储提供了更快的速度和更安全的分布式功能。
 
-## 特性
+### 主要特性 Key Features
 
-- **高性能**：使用 Rust 构建，确保速度和效率。
-- **分布式架构**：可扩展且容错的设计，适用于大规模部署。
-- **S3 兼容性**：与现有 S3 兼容应用程序无缝集成。
-- **数据湖支持**：针对大数据和 AI 工作负载进行了优化。
-- **开源**：采用 Apache 2.0 许可证，鼓励社区贡献和透明度。
-- **用户友好**：设计简单，易于部署和管理。
+- S3 兼容接口: 基于 `s3s`，支持常见对象/桶操作与 S3 Select。
+- 弹性纠删码存储: `ecstore` 提供端点池、纠删码布局、后台复制与修复。
+- 身份与策略: `iam` 和 `policy` 提供用户、凭证与细粒度访问控制。
+- 审计与通知: `audit`、`notify` 支持事件分发、规则配置与多目标告警。
+- 可观测性: `obs` 集成 tracing、metrics、OTLP 输出。
+- KMS: `kms` 支持本地与 Vault 后端，提供密钥管理与加解密。
+- 高性能运行时: 基于 Tokio、tower/axum、jemalloc/mimalloc；多架构构建。
 
-## RustFS vs MinIO
+- S3 compatibility: via `s3s`, including bucket/object ops and S3 Select.
+- Erasure coded storage: `ecstore` with endpoint pools, layouts, replication and heal.
+- IAM and policy: `iam` and `policy` for users, credentials and fine‑grained control.
+- Audit and notification: `audit`, `notify` with rules and multi‑target fan‑out.
+- Observability: `obs` with tracing, metrics, OTLP exporters.
+- KMS: `kms` with local/Vault backends for key management and crypto.
+- High performance runtime: Tokio, tower/axum, jemalloc/mimalloc; multi‑arch builds.
 
-压力测试服务器参数
 
-| 类型  | 参数       | 备注                                                       |
-|-----|----------|----------------------------------------------------------|
-| CPU | 2 核心     | Intel Xeon(Sapphire Rapids) Platinum 8475B , 2.7/3.2 GHz |   |
-| 内存  | 4GB      |                                                          |
-| 网络  | 15Gbp    |                                                          |
-| 驱动器 | 40GB x 4 | IOPS 3800 / 驱动器                                          |
+### 目录结构 Project Structure
 
-<https://github.com/user-attachments/assets/2e4979b5-260c-4f2c-ac12-c87fd558072a>
+```
+.
+├─ Cargo.toml                # Workspace 配置（版本/依赖/特性/构建配置）
+├─ Makefile                  # 构建、测试、Docker、多架构镜像等命令
+├─ docker-compose.yml        # 可选编排（开发/演示）
+├─ Dockerfile*               # 生产/源码构建镜像
+├─ entrypoint.sh             # 容器入口
+├─ docs/                     # 文档与示例（环境变量、性能测试、KMS 等）
+├─ scripts/                  # 启动/测试/探针/基准等脚本
+├─ rustfs/                   # 核心二进制 crate（服务入口）
+│  ├─ src/
+│  │  ├─ main.rs             # 服务器入口（S3 + Console API 端点）
+│  │  ├─ server/             # HTTP/server 组装、生命周期与优雅关闭
+│  │  ├─ storage/            # 存储相关 glue 逻辑（ECStore 集成等）
+│  │  ├─ config/             # CLI/配置解析（基于 clap）
+│  │  ├─ admin/, auth/, ...  # 管理、鉴权、版本、性能剖析等
+│  └─ Cargo.toml
+└─ crates/                   # 业务与基础能力子模块
+   ├─ ecstore/               # 纠删码存储与端点池、后台复制/修复
+   ├─ iam/                   # 身份与认证（AK/SK、STS 等）
+   ├─ policy/                # 策略引擎与授权决策
+   ├─ audit/                 # 审计系统与多目标分发
+   ├─ notify/                # 事件与目标规则（队列/主题/Lambda）
+   ├─ kms/                   # 密钥管理服务（local/vault）
+   ├─ appauth/, signer/      # 应用鉴权、客户端签名
+   ├─ s3select-api/, s3select-query/  # S3 Select 能力
+   ├─ obs/                   # 可观测性（tracing/metrics/otlp）
+   ├─ rio/, utils/, common/  # I/O、工具函数、通用结构
+   ├─ workers/, lock/        # 任务与并发、分布式锁
+   ├─ protos/                # 协议与代码生成
+   └─ ...                    # 其余能力（ahm、targets、zip、checksums 等）
+```
 
-### RustFS vs 其他对象存储
 
-| RustFS                   | 其他对象存储                              |
-|--------------------------|-------------------------------------|
-| 强大的控制台                   | 简单且无用的控制台                           |
-| 基于 Rust 语言开发，内存更安全       | 使用 Go 或 C 开发，存在内存 GC/泄漏等潜在问题        |
-| 不向第三方国家报告日志              | 向其他第三方国家报告日志可能违反国家安全法律              |
-| 采用 Apache 许可证，对商业更友好     | AGPL V3 许可证等其他许可证，污染开源和许可证陷阱，侵犯知识产权 |
-| 全面的 S3 支持，适用于国内外云提供商     | 完全支持 S3，但不支持本地云厂商                   |
-| 基于 Rust 开发，对安全和创新设备有强大支持 | 对边缘网关和安全创新设备支持较差                    |
-| 稳定的商业价格，免费社区支持           | 高昂的定价，1PiB 成本高达 $250,000            |
-| 无风险                      | 知识产权风险和禁止使用的风险                      |
+### 快速开始 Quick Start
 
-## 快速开始
+- 依赖 Dependencies: Rust ≥ workspace `rust-version` (e.g. 1.85), Docker (可选)。
+- 建议使用 Makefile：
 
-要开始使用 RustFS，请按照以下步骤操作：
+```bash
+# 代码质量
+make fmt           # 格式化
+make clippy        # 静态检查
+make test          # 单测+文档测试
 
-1. **一键脚本快速启动 (方案一)**
+# 本地构建/运行
+make build         # Release 构建二进制（rustfs）
+make build-dev     # Debug 构建
+make run           # 以开发预设运行（端口: 9000）
 
-   ```bash
-   curl -O  https://rustfs.com/install_rustfs.sh && bash install_rustfs.sh
-   ```
+# Docker 构建（单/多架构）
+make docker-build-production
+make docker-buildx
+make docker-dev-local
+```
 
-2. **Docker 快速启动（方案二）**
+最小运行示例 Minimal run:
 
-  ```bash
-   docker run -d -p 9000:9000  -v /data:/data rustfs/rustfs
-   ```
+```bash
+cargo run --bin rustfs -- ./deploy/data/dev{1...8} --address 0.0.0.0:9000
+# 或 Or
+make run
+```
 
-对于使用 Docker 安装来讲，你还可以使用 `docker compose` 来启动 rustfs 实例。在仓库的根目录下面有一个 `docker-compose.yml`
-文件。运行如下命令即可：
 
-  ```
-  docker compose --profile observability up -d
-  ```
+### 配置与环境 Configuration & Env
 
-**注意**：在使用 `docker compose` 之前，你应该仔细阅读一下 `docker-compose.yaml`，因为该文件中包含多个服务，除了 rustfs
-以外，还有 grafana、prometheus、jaeger 等，这些是为 rustfs 可观测性服务的，还有 redis 和 nginx。你想启动哪些容器，就需要用
-`--profile` 参数指定相应的 profile。
+- CLI/配置: 见 `rustfs/src/config`，常用参数包括 `--address`、`--volumes`、`--region`、`--access-key`、`--secret-key`、KMS 相关选项等。
+- 环境变量: 参考 `docs/ENVIRONMENT_VARIABLES.md`，可控制日志、可观测性、更新检查、后台服务启停等：
+  - `RUST_LOG`、`RUSTFS_OBS_LOGGER_LEVEL`、`RUSTFS_LOG_JSON`
+  - `RUSTFS_ENABLE_SCANNER`、`RUSTFS_ENABLE_HEAL`
+  - `ENV_UPDATE_CHECK`（默认启用）
 
-3. **从源码构建（方案三）- 高级用户**
+- CLI/config: See `rustfs/src/config`. Common flags: `--address`, `--volumes`, `--region`, `--access-key`, `--secret-key`, and KMS options.
+- Environment variables: See `docs/ENVIRONMENT_VARIABLES.md`. Control logging/observability, update checks, background services:
+  - `RUST_LOG`, `RUSTFS_OBS_LOGGER_LEVEL`, `RUSTFS_LOG_JSON`
+  - `RUSTFS_ENABLE_SCANNER`, `RUSTFS_ENABLE_HEAL`
+  - `ENV_UPDATE_CHECK` (enabled by default)
 
-   面向希望从源码构建支持多架构 Docker 镜像的开发者：
 
-   ```bash
-   # 本地构建多架构镜像
-   ./docker-buildx.sh --build-arg RELEASE=latest
+### KMS
 
-   # 构建并推送至镜像仓库
-   ./docker-buildx.sh --push
+- 后端 Backends: `local`（本地密钥目录）与 `vault`（HashiCorp Vault）。
+- 启用方式 How to enable: 通过 CLI 选项与环境变量配置，服务启动时自动初始化；亦支持运行时动态配置。
 
-   # 构建指定版本
-   ./docker-buildx.sh --release v1.0.0 --push
 
-   # 构建并推送到自定义镜像仓库
-   ./docker-buildx.sh --registry your-registry.com --namespace yourname --push
-   ```
+### 可观测性 Observability
 
-   `docker-buildx.sh` 脚本支持：
-    - **多架构构建**：`linux/amd64`、`linux/arm64`
-    - **自动版本检测**：可使用 git 标签或提交哈希
-    - **仓库灵活性**：支持 Docker Hub、GitHub Container Registry 等
-    - **构建优化**：包含缓存和并行构建
+- Tracing/metrics: 集成 `tracing`、`metrics`、`opentelemetry-otlp`，支持日志、指标、链路上报。
+- 配置: 通过 CLI/环境变量设置导出端点与级别。
 
-   你也可以使用 Makefile 提供的目标命令以提升便捷性：
 
-  ```bash
-  make docker-buildx                    # 本地构建
-  make docker-buildx-push               # 构建并推送
-  make docker-buildx-version VERSION=v1.0.0  # 构建指定版本
-  make help-docker                      # 显示全部 Docker 相关命令
-  ```
+### 与前端关系 Frontend
 
-   > **提示（macOS 交叉编译）**：macOS 默认的 `ulimit -n` 只有 256，使用 `cargo zigbuild` 或 `./build-rustfs.sh --platform ...` 编译 Linux 目标时容易触发 `ProcessFdQuotaExceeded` 链接错误。脚本会尝试自动提升该限制，如仍提示失败，请在构建前手动执行 `ulimit -n 4096`（或更大的值）。
+- 管理控制台前端独立运行（不再内嵌静态资源），具体见独立仓库或文档说明。
+- The admin console frontend runs independently (no embedded static files).
 
-4. **使用 Helm Chart 部署（方案四）- 云原生环境**
 
-   按照 [helm chart 说明文档](./helm/README.md) 的指引，在 Kubernetes 集群中安装 RustFS。
+### Docker 与多架构 Docker & Multi-arch
 
-5. **访问控制台**：打开 Web 浏览器并导航到 `http://localhost:9000` 以访问 RustFS 控制台，默认的用户名和密码是
-   `rustfsadmin` 。
-6. **创建存储桶**：使用控制台为您的对象创建新的存储桶。
-7. **上传对象**：您可以直接通过控制台上传文件，或使用 S3 兼容的 API 与您的 RustFS 实例交互。
+- 单架构构建: `make docker-build-production` / `make docker-build-source`。
+- 多架构构建: `make docker-buildx`（可推送 `docker-buildx-push[-version]`）。
+- 开发镜像: `make docker-dev-local`（当前平台加载），或 `make docker-dev`（多架构构建不加载）。
 
-**注意**：如果你想通过 `https` 来访问 RustFS 实例，请参考 [TLS 配置文档](https://docs.rustfs.com/zh/integration/tls-configured.html)
 
-## 文档
+### 开发建议 Development Tips
 
-有关详细文档，包括配置选项、API 参考和高级用法，请访问我们的[文档](https://docs.rustfs.com)。
+- 使用 `make help`, `make help-build`, `make help-docker` 获取命令指引。
+- 使用 `cargo-nextest`（可选）加速测试。
+- Linux 下默认启用 `jemalloc`，musl 目标启用 `mimalloc`。
 
-## 获取帮助
 
-如果您有任何问题或需要帮助，您可以：
+### 兼容性与注意事项 Compatibility & Notes
 
-- 查看[常见问题解答](https://github.com/rustfs/rustfs/discussions/categories/q-a)以获取常见问题和解决方案。
-- 加入我们的 [GitHub 讨论](https://github.com/rustfs/rustfs/discussions)来提问和分享您的经验。
-- 在我们的 [GitHub Issues](https://github.com/rustfs/rustfs/issues) 页面上开启问题，报告错误或功能请求。
+- S3 兼容由 `s3s` 提供，部分高级特性依赖后端实现（如 S3 Select）。
+- 纠删码部署请确保端点池与卷布局正确，避免单点风险。
+- 在生产环境建议开启审计、通知、KMS 与可观测组件。
 
-## 链接
 
-- [文档](https://docs.rustfs.com) - 您应该阅读的手册
-- [更新日志](https://docs.rustfs.com/changelog) - 我们破坏和修复的内容
-- [GitHub 讨论](https://github.com/rustfs/rustfs/discussions) - 社区所在地
+### 许可证 License
 
-## 联系
+- Apache-2.0（见仓库 LICENSE 或文件头声明）。
+- Apache-2.0 (see LICENSE headers and project metadata).
 
-- **错误报告**：[GitHub Issues](https://github.com/rustfs/rustfs/issues)
-- **商务合作**：<hello@rustfs.com>
-- **招聘**：<jobs@rustfs.com>
-- **一般讨论**：[GitHub 讨论](https://github.com/rustfs/rustfs/discussions)
-- **贡献**：[CONTRIBUTING.md](CONTRIBUTING.md)
 
-## 贡献者
+### 贡献 Contributing
 
-RustFS 是一个社区驱动的项目，我们感谢所有的贡献。查看[贡献者](https://github.com/rustfs/rustfs/graphs/contributors)页面，了解帮助
-RustFS 变得更好的杰出人员。
+- 欢迎通过 Issue/PR 贡献代码、文档与用例。
+- Welcome contributions via Issues and PRs. Bug reports and feature requests are appreciated.
 
-<a href="https://github.com/rustfs/rustfs/graphs/contributors">
-  <img src="https://opencollective.com/rustfs/contributors.svg?width=890&limit=500&button=false" alt="贡献者"/>
-</a >
 
-## Github 全球推荐榜
+### 参考文档 Further Reading
 
-🚀 RustFS 受到了全世界开源爱好者和企业用户的喜欢，多次登顶 Github Trending 全球榜。
+- `docs/ENVIRONMENT_VARIABLES.md`
+- `docs/PERFORMANCE_TESTING.md`
+- `docs/kms/` 与 `docs/examples/`
+- crates 内各子模块 `README`（如有）与源码注释
 
-<a href="https://trendshift.io/repositories/14181" target="_blank"><img src="https://raw.githubusercontent.com/rustfs/rustfs/refs/heads/main/docs/rustfs-trending.jpg" alt="rustfs%2Frustfs | Trendshift" /></a>
-
-## Star 历史图
-
-[![Star 历史图](https://api.star-history.com/svg?repos=rustfs/rustfs&type=date&legend=top-left)](https://www.star-history.com/#rustfs/rustfs&type=date&legend=top-left)
-
-## 许可证
-
-[Apache 2.0](https://opensource.org/licenses/Apache-2.0)
-
-**RustFS** 是 RustFS, Inc. 的商标。所有其他商标均为其各自所有者的财产。

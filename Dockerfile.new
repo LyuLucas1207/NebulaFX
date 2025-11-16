@@ -162,7 +162,6 @@ RUN chmod +x /usr/bin/rustfs /entrypoint.sh
 ENV RUSTFS_ADDRESS=":9000" \
     RUSTFS_ACCESS_KEY="rustfsadmin" \
     RUSTFS_SECRET_KEY="rustfsadmin" \
-    RUSTFS_CONSOLE_ENABLE="true" \
     RUSTFS_VOLUMES="/data" \
     RUST_LOG="warn" \
     RUSTFS_OBS_LOG_DIRECTORY="/logs" \
