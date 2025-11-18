@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::bucket::metadata_sys;
 use crate::disk::error::{Error, Result};
@@ -26,10 +14,10 @@ use crate::{
 };
 use async_trait::async_trait;
 use futures::future::join_all;
-use rustfs_common::heal_channel::{DriveState, HealItemType, HealOpts, RUSTFS_RESERVED_BUCKET};
-use rustfs_madmin::heal_commands::{HealDriveInfo, HealResultItem};
-use rustfs_protos::node_service_time_out_client;
-use rustfs_protos::proto_gen::node_service::{
+use nebulafx_common::heal_channel::{DriveState, HealItemType, HealOpts, NEUBULAFX_RESERVED_BUCKET};
+use nebulafx_madmin::heal_commands::{HealDriveInfo, HealResultItem};
+use nebulafx_protos::node_service_time_out_client;
+use nebulafx_protos::proto_gen::node_service::{
     DeleteBucketRequest, GetBucketInfoRequest, HealBucketRequest, ListBucketRequest, MakeBucketRequest,
 };
 use std::{collections::HashMap, fmt::Debug, sync::Arc};
@@ -713,7 +701,7 @@ pub async fn heal_bucket_local(bucket: &str, opts: &HealOpts) -> Result<HealResu
             bs_clone.write().await[index] = DriveState::Ok.to_string();
             as_clone.write().await[index] = DriveState::Ok.to_string();
 
-            if bucket == RUSTFS_RESERVED_BUCKET {
+            if bucket == NEUBULAFX_RESERVED_BUCKET {
                 return None;
             }
 
@@ -760,7 +748,7 @@ pub async fn heal_bucket_local(bucket: &str, opts: &HealOpts) -> Result<HealResu
         });
     }
 
-    if opts.remove && !bucket.starts_with(disk::RUSTFS_META_BUCKET) && !is_all_buckets_not_found(&errs) {
+    if opts.remove && !bucket.starts_with(disk::NEUBULAFX_META_BUCKET) && !is_all_buckets_not_found(&errs) {
         let mut futures = Vec::new();
         for disk in disks.iter() {
             let disk = disk.clone();

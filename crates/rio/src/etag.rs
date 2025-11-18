@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 /*!
 # AsyncRead Wrapper Types with ETag Support
@@ -30,9 +18,9 @@ The `EtagResolvable` trait provides a clean way to handle recursive unwrapping:
 ## Usage Examples
 
 ```rust
-use rustfs_rio::{CompressReader, EtagReader, resolve_etag_generic};
-use rustfs_rio::WarpReader;
-use rustfs_utils::compress::CompressionAlgorithm;
+use nebulafx_rio::{CompressReader, EtagReader, resolve_etag_generic};
+use nebulafx_rio::WarpReader;
+use nebulafx_utils::compress::CompressionAlgorithm;
 use tokio::io::BufReader;
 use std::io::Cursor;
 
@@ -52,7 +40,7 @@ mod tests {
     use crate::{CompressReader, EncryptReader, EtagReader, HashReader};
     use crate::{WarpReader, resolve_etag_generic};
     use md5::Md5;
-    use rustfs_utils::compress::CompressionAlgorithm;
+    use nebulafx_utils::compress::CompressionAlgorithm;
     use std::io::Cursor;
     use tokio::io::BufReader;
 

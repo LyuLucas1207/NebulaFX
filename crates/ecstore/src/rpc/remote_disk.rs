@@ -1,23 +1,11 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use std::{path::PathBuf, time::Duration};
 
 use bytes::Bytes;
 use futures::lock::Mutex;
 use http::{HeaderMap, HeaderValue, Method, header::CONTENT_TYPE};
-use rustfs_protos::{
+use nebulafx_protos::{
     node_service_time_out_client,
     proto_gen::node_service::{
         CheckPartsRequest, DeletePathsRequest, DeleteRequest, DeleteVersionRequest, DeleteVersionsRequest, DeleteVolumeRequest,
@@ -37,9 +25,9 @@ use crate::{
     disk::error::{Error, Result},
     rpc::build_auth_headers,
 };
-use rustfs_filemeta::{FileInfo, ObjectPartInfo, RawFileInfo};
-use rustfs_protos::proto_gen::node_service::RenamePartRequest;
-use rustfs_rio::{HttpReader, HttpWriter};
+use nebulafx_filemeta::{FileInfo, ObjectPartInfo, RawFileInfo};
+use nebulafx_protos::proto_gen::node_service::RenamePartRequest;
+use nebulafx_rio::{HttpReader, HttpWriter};
 use tokio::{io::AsyncWrite, net::TcpStream, time::timeout};
 use tonic::Request;
 use tracing::info;
@@ -620,7 +608,7 @@ impl DiskAPI for RemoteDisk {
         info!("walk_dir {}", self.endpoint.to_string());
 
         let url = format!(
-            "{}/rustfs/rpc/walk_dir?disk={}",
+            "{}/nebulafx/rpc/walk_dir?disk={}",
             self.endpoint.grid_host(),
             urlencoding::encode(self.endpoint.to_string().as_str()),
         );
@@ -643,7 +631,7 @@ impl DiskAPI for RemoteDisk {
         info!("read_file {}/{}", volume, path);
 
         let url = format!(
-            "{}/rustfs/rpc/read_file_stream?disk={}&volume={}&path={}&offset={}&length={}",
+            "{}/nebulafx/rpc/read_file_stream?disk={}&volume={}&path={}&offset={}&length={}",
             self.endpoint.grid_host(),
             urlencoding::encode(self.endpoint.to_string().as_str()),
             urlencoding::encode(volume),
@@ -669,7 +657,7 @@ impl DiskAPI for RemoteDisk {
         //     length
         // );
         let url = format!(
-            "{}/rustfs/rpc/read_file_stream?disk={}&volume={}&path={}&offset={}&length={}",
+            "{}/nebulafx/rpc/read_file_stream?disk={}&volume={}&path={}&offset={}&length={}",
             self.endpoint.grid_host(),
             urlencoding::encode(self.endpoint.to_string().as_str()),
             urlencoding::encode(volume),
@@ -689,7 +677,7 @@ impl DiskAPI for RemoteDisk {
         info!("append_file {}/{}", volume, path);
 
         let url = format!(
-            "{}/rustfs/rpc/put_file_stream?disk={}&volume={}&path={}&append={}&size={}",
+            "{}/nebulafx/rpc/put_file_stream?disk={}&volume={}&path={}&append={}&size={}",
             self.endpoint.grid_host(),
             urlencoding::encode(self.endpoint.to_string().as_str()),
             urlencoding::encode(volume),
@@ -715,7 +703,7 @@ impl DiskAPI for RemoteDisk {
         // );
 
         let url = format!(
-            "{}/rustfs/rpc/put_file_stream?disk={}&volume={}&path={}&append={}&size={}",
+            "{}/nebulafx/rpc/put_file_stream?disk={}&volume={}&path={}&append={}&size={}",
             self.endpoint.grid_host(),
             urlencoding::encode(self.endpoint.to_string().as_str()),
             urlencoding::encode(volume),
@@ -1056,7 +1044,7 @@ mod tests {
         let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
         let addr = listener.local_addr().unwrap();
 
-        let url = url::Url::parse(&format!("http://{}:{}/data/rustfs0", addr.ip(), addr.port())).unwrap();
+        let url = url::Url::parse(&format!("http://{}:{}/data/nebulafx0", addr.ip(), addr.port())).unwrap();
         let endpoint = Endpoint {
             url,
             is_local: false,
@@ -1085,7 +1073,7 @@ mod tests {
 
         drop(listener);
 
-        let url = url::Url::parse(&format!("http://{}:{}/data/rustfs0", ip, port)).unwrap();
+        let url = url::Url::parse(&format!("http://{}:{}/data/nebulafx0", ip, port)).unwrap();
         let endpoint = Endpoint {
             url,
             is_local: false,

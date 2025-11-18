@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 //! Integration tests that focus on surface headers/metadata emitted by the
 //! managed encryption pipeline (SSE-S3/SSE-KMS).
@@ -28,10 +16,10 @@ use tracing::info;
 
 fn assert_encryption_metadata(metadata: &HashMap<String, String>, expected_size: usize) {
     for key in [
-        "x-rustfs-encryption-key",
-        "x-rustfs-encryption-iv",
-        "x-rustfs-encryption-context",
-        "x-rustfs-encryption-original-size",
+        "x-nebulafx-encryption-key",
+        "x-nebulafx-encryption-iv",
+        "x-nebulafx-encryption-context",
+        "x-nebulafx-encryption-original-size",
     ] {
         assert!(metadata.contains_key(key), "expected managed encryption metadata '{key}' to be present");
         assert!(
@@ -41,11 +29,11 @@ fn assert_encryption_metadata(metadata: &HashMap<String, String>, expected_size:
     }
 
     let size_value = metadata
-        .get("x-rustfs-encryption-original-size")
+        .get("x-nebulafx-encryption-original-size")
         .expect("managed encryption metadata should include original size");
     let parsed_size: usize = size_value
         .parse()
-        .expect("x-rustfs-encryption-original-size should be numeric");
+        .expect("x-nebulafx-encryption-original-size should be numeric");
     assert_eq!(parsed_size, expected_size, "recorded original size should match uploaded payload length");
 }
 
@@ -95,7 +83,7 @@ async fn test_head_reports_managed_metadata_for_sse_s3() -> Result<(), Box<dyn s
     info!("Validating SSE-S3 managed encryption metadata exposure");
 
     let mut kms_env = LocalKMSTestEnvironment::new().await?;
-    let _default_key = kms_env.start_rustfs_for_local_kms().await?;
+    let _default_key = kms_env.start_nebulafx_for_local_kms().await?;
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
     let s3_client = kms_env.base_env.create_s3_client();
@@ -159,7 +147,7 @@ async fn test_head_reports_managed_metadata_for_sse_kms_and_copy() -> Result<(),
     info!("Validating SSE-KMS managed encryption metadata (including copy)");
 
     let mut kms_env = LocalKMSTestEnvironment::new().await?;
-    let default_key_id = kms_env.start_rustfs_for_local_kms().await?;
+    let default_key_id = kms_env.start_nebulafx_for_local_kms().await?;
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
     let s3_client = kms_env.base_env.create_s3_client();
@@ -269,7 +257,7 @@ async fn test_multipart_upload_writes_encrypted_data() -> Result<(), Box<dyn std
     info!("Validating ciphertext persistence for multipart SSE-KMS uploads");
 
     let mut kms_env = LocalKMSTestEnvironment::new().await?;
-    let default_key_id = kms_env.start_rustfs_for_local_kms().await?;
+    let default_key_id = kms_env.start_nebulafx_for_local_kms().await?;
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
     let s3_client = kms_env.base_env.create_s3_client();

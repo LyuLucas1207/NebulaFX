@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::data_usage::{DATA_USAGE_CACHE_NAME, DATA_USAGE_ROOT, load_data_usage_from_backend};
 use crate::error::{Error, Result};
@@ -23,11 +11,11 @@ use crate::{
 };
 
 use crate::data_usage::load_data_usage_cache;
-use rustfs_common::{globals::GLOBAL_Local_Node_Name, heal_channel::DriveState};
-use rustfs_madmin::{
+use nebulafx_common::{globals::GLOBAL_Local_Node_Name, heal_channel::DriveState};
+use nebulafx_madmin::{
     BackendDisks, Disk, ErasureSetInfo, ITEM_INITIALIZING, ITEM_OFFLINE, ITEM_ONLINE, InfoMessage, ServerProperties,
 };
-use rustfs_protos::{
+use nebulafx_protos::{
     models::{PingBody, PingBodyBuilder},
     node_service_time_out_client,
     proto_gen::node_service::{PingRequest, PingResponse},
@@ -76,7 +64,7 @@ const SERVER_PING_TIMEOUT: Duration = Duration::from_secs(1);
 //     pub max_procs: u64,
 //     pub num_cpu: u64,
 //     pub runtime_version: String,
-//     pub rustfs_env_vars: HashMap<String, String>,
+//     pub nebulafx_env_vars: HashMap<String, String>,
 // }
 
 async fn is_server_resolvable(endpoint: &Endpoint) -> Result<()> {
@@ -222,13 +210,13 @@ pub async fn get_server_info(get_pools: bool) -> InfoMessage {
     warn!("server_info end {:?}", after2 - after1);
     servers.push(local);
 
-    let mut buckets = rustfs_madmin::Buckets::default();
-    let mut objects = rustfs_madmin::Objects::default();
-    let mut versions = rustfs_madmin::Versions::default();
-    let mut delete_markers = rustfs_madmin::DeleteMarkers::default();
-    let mut usage = rustfs_madmin::Usage::default();
+    let mut buckets = nebulafx_madmin::Buckets::default();
+    let mut objects = nebulafx_madmin::Objects::default();
+    let mut versions = nebulafx_madmin::Versions::default();
+    let mut delete_markers = nebulafx_madmin::DeleteMarkers::default();
+    let mut usage = nebulafx_madmin::Usage::default();
     let mut mode = ITEM_INITIALIZING;
-    let mut backend = rustfs_madmin::ErasureBackend::default();
+    let mut backend = nebulafx_madmin::ErasureBackend::default();
     let mut pools: HashMap<i32, HashMap<i32, ErasureSetInfo>> = HashMap::new();
 
     if let Some(store) = new_object_layer_fn() {
@@ -269,8 +257,8 @@ pub async fn get_server_info(get_pools: bool) -> InfoMessage {
         let after5 = OffsetDateTime::now_utc();
 
         warn!("get_online_offline_disks_stats end {:?}", after5 - after4);
-        backend = rustfs_madmin::ErasureBackend {
-            backend_type: rustfs_madmin::BackendType::ErasureType,
+        backend = nebulafx_madmin::ErasureBackend {
+            backend_type: nebulafx_madmin::BackendType::ErasureType,
             online_disks: online_disks.sum(),
             offline_disks: offline_disks.sum(),
             standard_sc_parity: backend_info.standard_sc_parity,
@@ -286,7 +274,7 @@ pub async fn get_server_info(get_pools: bool) -> InfoMessage {
         }
     }
 
-    let services = rustfs_madmin::Services::default();
+    let services = nebulafx_madmin::Services::default();
 
     InfoMessage {
         mode: Some(mode.to_string()),

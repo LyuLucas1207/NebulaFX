@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use path_clean::PathClean;
 use serde::{Deserialize, Serialize};
@@ -899,7 +887,7 @@ impl DataUsageInfo {
     }
 
     /// Add object metadata to data usage statistics
-    pub fn add_object(&mut self, object_path: &str, meta_object: &rustfs_filemeta::MetaObject) {
+    pub fn add_object(&mut self, object_path: &str, meta_object: &nebulafx_filemeta::MetaObject) {
         // This method is kept for backward compatibility
         // For accurate version counting, use add_object_from_file_meta instead
         let bucket_name = match self.extract_bucket_from_path(object_path) {
@@ -956,7 +944,7 @@ impl DataUsageInfo {
     }
 
     /// Add object from FileMeta for accurate version counting
-    pub fn add_object_from_file_meta(&mut self, object_path: &str, file_meta: &rustfs_filemeta::FileMeta) {
+    pub fn add_object_from_file_meta(&mut self, object_path: &str, file_meta: &nebulafx_filemeta::FileMeta) {
         let bucket_name = match self.extract_bucket_from_path(object_path) {
             Ok(name) => name,
             Err(_) => return,
@@ -970,7 +958,7 @@ impl DataUsageInfo {
 
         // Process all versions to get accurate counts
         for version in &file_meta.versions {
-            match rustfs_filemeta::FileMetaVersion::try_from(version.clone()) {
+            match nebulafx_filemeta::FileMetaVersion::try_from(version.clone()) {
                 Ok(ver) => {
                     if let Some(obj) = ver.object {
                         total_size += obj.size as u64;

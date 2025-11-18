@@ -1,31 +1,19 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 mod base;
 
 use base::{LogLevel, init_logger};
-use rustfs_config::EnableState::On;
-use rustfs_config::notify::{DEFAULT_TARGET, NOTIFY_MQTT_SUB_SYS, NOTIFY_WEBHOOK_SUB_SYS};
-use rustfs_config::{
+use nebulafx_config::EnableState::On;
+use nebulafx_config::notify::{DEFAULT_TARGET, NOTIFY_MQTT_SUB_SYS, NOTIFY_WEBHOOK_SUB_SYS};
+use nebulafx_config::{
     DEFAULT_LIMIT, ENABLE_KEY, MQTT_BROKER, MQTT_PASSWORD, MQTT_QOS, MQTT_QUEUE_DIR, MQTT_QUEUE_LIMIT, MQTT_TOPIC, MQTT_USERNAME,
     WEBHOOK_AUTH_TOKEN, WEBHOOK_ENDPOINT, WEBHOOK_QUEUE_DIR, WEBHOOK_QUEUE_LIMIT,
 };
-use rustfs_ecstore::config::{Config, KV, KVS};
-use rustfs_notify::{BucketNotificationConfig, Event, NotificationError};
-use rustfs_notify::{initialize, notification_system};
-use rustfs_targets::EventName;
-use rustfs_targets::arn::TargetID;
+use nebulafx_ecstore::config::{Config, KV, KVS};
+use nebulafx_notify::{BucketNotificationConfig, Event, NotificationError};
+use nebulafx_notify::{initialize, notification_system};
+use nebulafx_targets::EventName;
+use nebulafx_targets::arn::TargetID;
 use std::sync::Arc;
 use std::time::Duration;
 use tracing::info;
@@ -45,7 +33,7 @@ async fn main() -> Result<(), NotificationError> {
 
     // --- Initial configuration (Webhook and MQTT) ---
     let mut config = Config::new();
-    let current_root = rustfs_utils::dirs::get_project_root().expect("failed to get project root");
+    let current_root = nebulafx_utils::dirs::get_project_root().expect("failed to get project root");
     println!("Current project root: {}", current_root.display());
 
     let webhook_kvs_vec = vec![
@@ -100,7 +88,7 @@ async fn main() -> Result<(), NotificationError> {
         },
         KV {
             key: MQTT_TOPIC.to_string(),
-            value: "rustfs/events".to_string(),
+            value: "nebulafx/events".to_string(),
             hidden_if_empty: false,
         },
         KV {

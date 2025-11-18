@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::bucket::metadata_sys::get_versioning_config;
 use crate::bucket::versioning::VersioningApi as _;
@@ -25,18 +13,18 @@ use crate::{
 };
 use bytes::Bytes;
 use http::{HeaderMap, HeaderValue};
-use rustfs_common::heal_channel::HealOpts;
-use rustfs_filemeta::{
+use nebulafx_common::heal_channel::HealOpts;
+use nebulafx_filemeta::{
     FileInfo, MetaCacheEntriesSorted, ObjectPartInfo, REPLICATION_RESET, REPLICATION_STATUS, ReplicateDecision, ReplicationState,
     ReplicationStatusType, VersionPurgeStatusType, replication_statuses_map, version_purge_statuses_map,
 };
-use rustfs_madmin::heal_commands::HealResultItem;
-use rustfs_rio::Checksum;
-use rustfs_rio::{DecompressReader, HashReader, LimitReader, WarpReader};
-use rustfs_utils::CompressionAlgorithm;
-use rustfs_utils::http::AMZ_STORAGE_CLASS;
-use rustfs_utils::http::headers::{AMZ_OBJECT_TAGGING, RESERVED_METADATA_PREFIX_LOWER};
-use rustfs_utils::path::decode_dir_object;
+use nebulafx_madmin::heal_commands::HealResultItem;
+use nebulafx_rio::Checksum;
+use nebulafx_rio::{DecompressReader, HashReader, LimitReader, WarpReader};
+use nebulafx_utils::CompressionAlgorithm;
+use nebulafx_utils::http::AMZ_STORAGE_CLASS;
+use nebulafx_utils::http::headers::{AMZ_OBJECT_TAGGING, RESERVED_METADATA_PREFIX_LOWER};
+use nebulafx_utils::path::decode_dir_object;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Debug;
@@ -699,7 +687,7 @@ impl ObjectInfo {
             .cloned()
             .or_else(|| Some(storageclass::STANDARD.to_string()));
 
-        // Convert parts from rustfs_filemeta::ObjectPartInfo to store_api::ObjectPartInfo
+        // Convert parts from nebulafx_filemeta::ObjectPartInfo to store_api::ObjectPartInfo
         let parts = fi
             .parts
             .iter()
@@ -939,7 +927,7 @@ impl ObjectInfo {
         // TODO: decrypt checksums
 
         if let Some(data) = &self.checksum {
-            let (checksums, is_multipart) = rustfs_rio::read_checksums(data.as_ref(), 0);
+            let (checksums, is_multipart) = nebulafx_rio::read_checksums(data.as_ref(), 0);
             return Ok((checksums, is_multipart));
         }
 
@@ -1206,9 +1194,9 @@ pub trait StorageAPI: ObjectIO + Debug {
     // Shutdown TODO:
     // NSScanner TODO:
 
-    async fn backend_info(&self) -> rustfs_madmin::BackendInfo;
-    async fn storage_info(&self) -> rustfs_madmin::StorageInfo;
-    async fn local_storage_info(&self) -> rustfs_madmin::StorageInfo;
+    async fn backend_info(&self) -> nebulafx_madmin::BackendInfo;
+    async fn storage_info(&self) -> nebulafx_madmin::StorageInfo;
+    async fn local_storage_info(&self) -> nebulafx_madmin::StorageInfo;
 
     async fn make_bucket(&self, bucket: &str, opts: &MakeBucketOptions) -> Result<()>;
     async fn get_bucket_info(&self, bucket: &str, opts: &BucketOptions) -> Result<BucketInfo>;

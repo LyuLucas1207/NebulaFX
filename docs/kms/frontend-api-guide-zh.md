@@ -1,6 +1,6 @@
-# RustFS KMS Frontend Integration Guide
+# NebulaFX KMS Frontend Integration Guide
 
-This document targets frontend engineers who need to integrate with the RustFS Key Management Service (KMS). It provides a complete API reference, usage notes, and example implementations.
+This document targets frontend engineers who need to integrate with the NebulaFX Key Management Service (KMS). It provides a complete API reference, usage notes, and example implementations.
 
 ## 📋 Contents
 
@@ -22,8 +22,8 @@ This document targets frontend engineers who need to integrate with the RustFS K
 
 | Setting | Value |
 |---------|-------|
-| **Base URL** | `http://localhost:9000/rustfs/admin/v3` (local development) |
-| **Production URL** | `https://your-rustfs-domain.com/rustfs/admin/v3` |
+| **Base URL** | `http://localhost:9000/nebulafx/admin/v3` (local development) |
+| **Production URL** | `https://your-nebulafx-domain.com/nebulafx/admin/v3` |
 | **Request format** | `application/json` |
 | **Response format** | `application/json` |
 | **Authentication** | AWS Signature Version 4 |
@@ -240,7 +240,7 @@ Response contains `plaintext_key` (Base64) and `ciphertext_blob` (Base64).
 
 ## Bucket Encryption Configuration APIs
 
-RustFS exposes S3-compatible endpoints via the AWS SDK.
+NebulaFX exposes S3-compatible endpoints via the AWS SDK.
 
 ### 1. List buckets
 
@@ -346,7 +346,7 @@ Example composable and helper utilities are provided in the original Chinese doc
 
 The original guide included extensive code samples covering bucket encryption flows, Vue/React composables, and full application scaffolding. The key patterns are:
 
-1. **Signed requests** – Use AWS SigV4 (via AWS SDK or manual signing) to call `/rustfs/admin/v3` endpoints.
+1. **Signed requests** – Use AWS SigV4 (via AWS SDK or manual signing) to call `/nebulafx/admin/v3` endpoints.
 2. **Multipart encryption flow** – Request a data key, encrypt data locally, upload ciphertext, and store the encrypted key blob.
 3. **Bucket encryption lifecycle** – Use the S3 SDK to configure default SSE policies, optionally provisioning dedicated KMS keys per bucket.
 4. **Health monitoring** – Periodically poll `/kms/status` or `/kms/config` to ensure the service is healthy and cache hit ratios remain acceptable.

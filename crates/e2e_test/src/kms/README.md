@@ -1,6 +1,6 @@
 # KMS End-to-End Tests
 
-This directory contains the integration suites used to validate the full RustFS KMS (Key Management Service) workflow.
+This directory contains the integration suites used to validate the full NebulaFX KMS (Key Management Service) workflow.
 
 ## 📁 Test Overview
 
@@ -57,7 +57,7 @@ Broad integration tests that exercise:
    pip install awscurl
    ```
 
-2. **Build RustFS**
+2. **Build NebulaFX**
    ```bash
    cargo build
    ```
@@ -107,8 +107,8 @@ cargo test kms -- --nocapture --test-threads=1
 
 ### Environment variables
 ```bash
-# Optional: custom RustFS port (default 9050)
-export RUSTFS_TEST_PORT=9050
+# Optional: custom NebulaFX port (default 9050)
+export NEUBULAFX_TEST_PORT=9050
 
 # Optional: custom Vault port (default 8200)
 export VAULT_TEST_PORT=8200
@@ -120,7 +120,7 @@ export RUST_LOG=debug
 ### Required binaries
 
 Tests look for:
-- `../../target/debug/rustfs` – RustFS server
+- `../../target/debug/nebulafx` – NebulaFX server
 - `vault` – Vault CLI (must be on PATH)
 - `/Users/dandan/Library/Python/3.9/bin/awscurl` – AWS SigV4 helper
 
@@ -128,7 +128,7 @@ Tests look for:
 
 ### Local backend
 1. **Prepare environment** – create temporary directories and key storage paths
-2. **Start RustFS** – launch the server with KMS enabled
+2. **Start NebulaFX** – launch the server with KMS enabled
 3. **Wait for readiness** – confirm the port listener and S3 API
 4. **Configure KMS** – send configuration via awscurl to the admin API
 5. **Start KMS** – activate the KMS service
@@ -142,9 +142,9 @@ Tests look for:
 1. **Launch Vault** – start the dev-mode server
 2. **Configure Vault**
    - Enable the transit secrets engine
-   - Create the `rustfs-master-key`
-3. **Start RustFS** – run the server with KMS enabled
-4. **Configure KMS** – point RustFS at Vault (address, token, transit config, key path)
+   - Create the `nebulafx-master-key`
+3. **Start NebulaFX** – run the server with KMS enabled
+4. **Configure KMS** – point NebulaFX at Vault (address, token, transit config, key path)
 5. **Exercise functionality** – complete the encryption/decryption workflow
 6. **Cleanup** – stop all services
 
@@ -152,7 +152,7 @@ Tests look for:
 
 ### Common issues
 
-**Q: `RustFS server failed to become ready`**
+**Q: `NebulaFX server failed to become ready`**
 ```bash
 lsof -i :9050
 kill -9 <PID>  # Free the port if necessary
@@ -181,7 +181,7 @@ RUST_LOG=debug cargo test test_local_kms_end_to_end -- --nocapture
 
 1. **Enable verbose logs**
    ```bash
-   RUST_LOG=rustfs_kms=debug,rustfs=info cargo test -- --nocapture
+   RUST_LOG=nebulafx_kms=debug,nebulafx=info cargo test -- --nocapture
    ```
 
 2. **Keep temporary files** – comment out cleanup logic to inspect generated configs

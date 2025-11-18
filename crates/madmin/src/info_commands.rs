@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use std::{collections::HashMap, time::SystemTime};
 
@@ -205,7 +193,7 @@ pub struct ServerProperties {
     pub max_procs: u64,
     pub num_cpu: u64,
     pub runtime_version: String,
-    pub rustfs_env_vars: HashMap<String, String>,
+    pub nebulafx_env_vars: HashMap<String, String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -720,7 +708,7 @@ mod tests {
         assert_eq!(server_props.max_procs, 0);
         assert_eq!(server_props.num_cpu, 0);
         assert!(server_props.runtime_version.is_empty());
-        assert!(server_props.rustfs_env_vars.is_empty());
+        assert!(server_props.nebulafx_env_vars.is_empty());
     }
 
     #[test]
@@ -730,8 +718,8 @@ mod tests {
         network.insert("ip".to_string(), "192.168.1.100".to_string());
 
         let mut env_vars = HashMap::new();
-        env_vars.insert("RUSTFS_ROOT_USER".to_string(), "admin".to_string());
-        env_vars.insert("RUSTFS_ROOT_PASSWORD".to_string(), "password".to_string());
+        env_vars.insert("NEUBULAFX_ROOT_USER".to_string(), "admin".to_string());
+        env_vars.insert("NEUBULAFX_ROOT_PASSWORD".to_string(), "password".to_string());
 
         let server_props = ServerProperties {
             state: "online".to_string(),
@@ -754,7 +742,7 @@ mod tests {
             max_procs: 8,
             num_cpu: 4,
             runtime_version: "1.70.0".to_string(),
-            rustfs_env_vars: env_vars,
+            nebulafx_env_vars: env_vars,
         };
 
         assert_eq!(server_props.state, "online");
@@ -768,7 +756,7 @@ mod tests {
         assert_eq!(server_props.mem_stats.alloc, 1024000);
         assert_eq!(server_props.max_procs, 8);
         assert_eq!(server_props.num_cpu, 4);
-        assert_eq!(server_props.rustfs_env_vars.len(), 2);
+        assert_eq!(server_props.nebulafx_env_vars.len(), 2);
     }
 
     #[test]

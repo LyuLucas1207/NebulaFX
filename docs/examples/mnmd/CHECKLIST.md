@@ -1,6 +1,6 @@
 # MNMD Deployment Checklist
 
-This checklist provides step-by-step verification for deploying RustFS in MNMD (Multi-Node Multi-Drive) mode using
+This checklist provides step-by-step verification for deploying NebulaFX in MNMD (Multi-Node Multi-Drive) mode using
 Docker.
 
 ## Pre-Deployment Checks
@@ -74,7 +74,7 @@ chmod +x wait-and-start.sh  # If needed
 ### 1. Start the Cluster
 
 - [ ] Navigate to the example directory
-- [ ] Pull the latest RustFS image
+- [ ] Pull the latest NebulaFX image
 - [ ] Start the cluster
 
 ```bash
@@ -94,7 +94,7 @@ docker-compose up -d
 docker-compose logs -f
 
 # Watch specific node
-docker-compose logs -f rustfs-node1
+docker-compose logs -f nebulafx-node1
 
 # Look for successful startup messages
 docker-compose logs | grep -i "ready\|listening\|started"
@@ -138,15 +138,15 @@ curl http://localhost:9031/health
 
 - [ ] Data directories exist
 - [ ] Directories have correct permissions
-- [ ] RustFS process is running
+- [ ] NebulaFX process is running
 
 ```bash
 # Check node1
-docker exec rustfs-node1 ls -la /data/
-docker exec rustfs-node1 ps aux | grep rustfs
+docker exec nebulafx-node1 ls -la /data/
+docker exec nebulafx-node1 ps aux | grep nebulafx
 
 # Verify all 4 data directories exist
-docker exec rustfs-node1 ls -d /data/rustfs{1..4}
+docker exec nebulafx-node1 ls -d /data/nebulafx{1..4}
 ```
 
 ### 2. DNS and Network Validation
@@ -156,30 +156,30 @@ docker exec rustfs-node1 ls -d /data/rustfs{1..4}
 
 ```bash
 # DNS resolution test
-docker exec rustfs-node1 nslookup rustfs-node2
-docker exec rustfs-node1 nslookup rustfs-node3
-docker exec rustfs-node1 nslookup rustfs-node4
+docker exec nebulafx-node1 nslookup nebulafx-node2
+docker exec nebulafx-node1 nslookup nebulafx-node3
+docker exec nebulafx-node1 nslookup nebulafx-node4
 
 # Connectivity test (using nc if available)
-docker exec rustfs-node1 nc -zv rustfs-node2 9000
-docker exec rustfs-node1 nc -zv rustfs-node3 9000
-docker exec rustfs-node1 nc -zv rustfs-node4 9000
+docker exec nebulafx-node1 nc -zv nebulafx-node2 9000
+docker exec nebulafx-node1 nc -zv nebulafx-node3 9000
+docker exec nebulafx-node1 nc -zv nebulafx-node4 9000
 
 # Or using telnet/curl
-docker exec rustfs-node1 curl -v http://rustfs-node2:9000/health
+docker exec nebulafx-node1 curl -v http://nebulafx-node2:9000/health
 ```
 
 ### 3. Volume Configuration Validation
 
-- [ ] RUSTFS_VOLUMES environment variable is correct
+- [ ] NEUBULAFX_VOLUMES environment variable is correct
 - [ ] All 16 endpoints are configured (4 nodes × 4 drives)
 
 ```bash
 # Check environment variable
-docker exec rustfs-node1 env | grep RUSTFS_VOLUMES
+docker exec nebulafx-node1 env | grep NEUBULAFX_VOLUMES
 
 # Expected output:
-# RUSTFS_VOLUMES=http://rustfs-node{1...4}:9000/data/rustfs{1...4}
+# NEUBULAFX_VOLUMES=http://nebulafx-node{1...4}:9000/data/nebulafx{1...4}
 ```
 
 ### 4. Cluster Functionality
@@ -191,8 +191,8 @@ docker exec rustfs-node1 env | grep RUSTFS_VOLUMES
 
 ```bash
 # Configure AWS CLI or s3cmd
-export AWS_ACCESS_KEY_ID=rustfsadmin
-export AWS_SECRET_ACCESS_KEY=rustfsadmin
+export AWS_ACCESS_KEY_ID=nebulafxadmin
+export AWS_SECRET_ACCESS_KEY=nebulafxadmin
 
 # Using AWS CLI (if installed)
 aws --endpoint-url http://localhost:9000 s3 mb s3://test-bucket
@@ -206,7 +206,7 @@ cat downloaded.txt
 # Or using curl
 curl -X PUT http://localhost:9000/test-bucket \
   -H "Host: localhost:9000" \
-  --user rustfsadmin:rustfsadmin
+  --user nebulafxadmin:nebulafxadmin
 ```
 
 ### 5. Healthcheck Verification
@@ -216,15 +216,15 @@ curl -X PUT http://localhost:9000/test-bucket \
 
 ```bash
 # Check Docker health status
-docker inspect rustfs-node1 --format='{{.State.Health.Status}}'
-docker inspect rustfs-node2 --format='{{.State.Health.Status}}'
-docker inspect rustfs-node3 --format='{{.State.Health.Status}}'
-docker inspect rustfs-node4 --format='{{.State.Health.Status}}'
+docker inspect nebulafx-node1 --format='{{.State.Health.Status}}'
+docker inspect nebulafx-node2 --format='{{.State.Health.Status}}'
+docker inspect nebulafx-node3 --format='{{.State.Health.Status}}'
+docker inspect nebulafx-node4 --format='{{.State.Health.Status}}'
 
 # All should return "healthy"
 
 # Test healthcheck command manually
-docker exec rustfs-node1 nc -z localhost 9000
+docker exec nebulafx-node1 nc -z localhost 9000
 echo $?  # Should be 0
 ```
 
@@ -233,15 +233,15 @@ echo $?  # Should be 0
 ### If VolumeNotFound Error Occurs
 
 - [ ] Verify volume indexing starts at 1, not 0
-- [ ] Check that RUSTFS_VOLUMES matches mounted paths
-- [ ] Ensure all /data/rustfs{1..4} directories exist
+- [ ] Check that NEUBULAFX_VOLUMES matches mounted paths
+- [ ] Ensure all /data/nebulafx{1..4} directories exist
 
 ```bash
 # Check mounted volumes
-docker inspect rustfs-node1 | jq '.[].Mounts'
+docker inspect nebulafx-node1 | jq '.[].Mounts'
 
 # Verify directories in container
-docker exec rustfs-node1 ls -la /data/
+docker exec nebulafx-node1 ls -la /data/
 ```
 
 ### If Healthcheck Fails
@@ -252,13 +252,13 @@ docker exec rustfs-node1 ls -la /data/
 
 ```bash
 # Check if nc is available
-docker exec rustfs-node1 which nc
+docker exec nebulafx-node1 which nc
 
 # Test healthcheck manually
-docker exec rustfs-node1 nc -z localhost 9000
+docker exec nebulafx-node1 nc -z localhost 9000
 
 # Check logs for errors
-docker-compose logs rustfs-node1 | grep -i error
+docker-compose logs nebulafx-node1 | grep -i error
 ```
 
 ### If Startup Takes Too Long
@@ -269,10 +269,10 @@ docker-compose logs rustfs-node1 | grep -i error
 
 ```bash
 # Check startup logs
-docker-compose logs rustfs-node1 | grep -i "waiting\|peer\|timeout"
+docker-compose logs nebulafx-node1 | grep -i "waiting\|peer\|timeout"
 
 # Check network
-docker network inspect mnmd_rustfs-mnmd
+docker network inspect mnmd_nebulafx-mnmd
 ```
 
 ### If Containers Crash or Restart
@@ -283,7 +283,7 @@ docker network inspect mnmd_rustfs-mnmd
 
 ```bash
 # View last crash logs
-docker-compose logs --tail=100 rustfs-node1
+docker-compose logs --tail=100 nebulafx-node1
 
 # Check resource usage
 docker stats --no-stream
@@ -305,7 +305,7 @@ When done testing:
 
 Before deploying to production:
 
-- [ ] Change default credentials (RUSTFS_ACCESS_KEY, RUSTFS_SECRET_KEY)
+- [ ] Change default credentials (NEUBULAFX_ACCESS_KEY, NEUBULAFX_SECRET_KEY)
 - [ ] Configure TLS certificates
 - [ ] Set up proper logging and monitoring
 - [ ] Configure backups for volumes

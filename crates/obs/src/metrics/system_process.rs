@@ -1,23 +1,11 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 #![allow(dead_code)]
 
 /// Process related metric descriptors
 ///
 /// This module defines various system process metrics used for monitoring
-/// the RustFS process performance, resource usage, and system integration.
+/// the NebulaFX process performance, resource usage, and system integration.
 /// Metrics are implemented using std::sync::LazyLock for thread-safe lazy initialization.
 use crate::{MetricDescriptor, MetricName, new_counter_md, new_gauge_md, subsystems};
 use std::sync::LazyLock;
@@ -102,41 +90,41 @@ pub static PROCESS_IO_WRITE_BYTES_MD: LazyLock<MetricDescriptor> = LazyLock::new
     )
 });
 
-/// Start time for RustFS process in seconds since Unix epoch
+/// Start time for NebulaFX process in seconds since Unix epoch
 pub static PROCESS_START_TIME_SECONDS_MD: LazyLock<MetricDescriptor> = LazyLock::new(|| {
     new_gauge_md(
         MetricName::ProcessStartTimeSeconds,
-        "Start time for RustFS process in seconds since Unix epoch",
+        "Start time for NebulaFX process in seconds since Unix epoch",
         &[],
         subsystems::SYSTEM_PROCESS,
     )
 });
 
-/// Uptime for RustFS process in seconds
+/// Uptime for NebulaFX process in seconds
 pub static PROCESS_UPTIME_SECONDS_MD: LazyLock<MetricDescriptor> = LazyLock::new(|| {
     new_gauge_md(
         MetricName::ProcessUptimeSeconds,
-        "Uptime for RustFS process in seconds",
+        "Uptime for NebulaFX process in seconds",
         &[],
         subsystems::SYSTEM_PROCESS,
     )
 });
 
-/// Limit on total number of open file descriptors for the RustFS Server process
+/// Limit on total number of open file descriptors for the NebulaFX Server process
 pub static PROCESS_FILE_DESCRIPTOR_LIMIT_TOTAL_MD: LazyLock<MetricDescriptor> = LazyLock::new(|| {
     new_gauge_md(
         MetricName::ProcessFileDescriptorLimitTotal,
-        "Limit on total number of open file descriptors for the RustFS Server process",
+        "Limit on total number of open file descriptors for the NebulaFX Server process",
         &[],
         subsystems::SYSTEM_PROCESS,
     )
 });
 
-/// Total number of open file descriptors by the RustFS Server process
+/// Total number of open file descriptors by the NebulaFX Server process
 pub static PROCESS_FILE_DESCRIPTOR_OPEN_TOTAL_MD: LazyLock<MetricDescriptor> = LazyLock::new(|| {
     new_gauge_md(
         MetricName::ProcessFileDescriptorOpenTotal,
-        "Total number of open file descriptors by the RustFS Server process",
+        "Total number of open file descriptors by the NebulaFX Server process",
         &[],
         subsystems::SYSTEM_PROCESS,
     )

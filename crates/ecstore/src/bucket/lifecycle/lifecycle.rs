@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(unused_mut)]
@@ -43,7 +31,7 @@ const _ERR_XML_NOT_WELL_FORMED: &str =
 const ERR_LIFECYCLE_BUCKET_LOCKED: &str =
     "ExpiredObjectAllVersions element and DelMarkerExpiration action cannot be used on an retention bucket";
 
-pub use rustfs_common::metrics::IlmAction;
+pub use nebulafx_common::metrics::IlmAction;
 
 #[async_trait::async_trait]
 pub trait RuleValidate {
@@ -633,7 +621,7 @@ pub fn expected_expiry_time(mod_time: OffsetDateTime, days: i32) -> OffsetDateTi
         .to_offset(offset!(-0:00:00))
         .saturating_add(Duration::days(days as i64));
     let mut hour = 3600;
-    if let Ok(env_ilm_hour) = env::var("_RUSTFS_ILM_PROCESS_TIME") {
+    if let Ok(env_ilm_hour) = env::var("_NEUBULAFX_ILM_PROCESS_TIME") {
         if let Ok(num_hour) = env_ilm_hour.parse::<usize>() {
             hour = num_hour;
         }

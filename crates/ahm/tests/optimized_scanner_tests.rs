@@ -1,24 +1,12 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 
-use rustfs_ahm::heal::manager::HealConfig;
-use rustfs_ahm::scanner::{
+
+use nebulafx_ahm::heal::manager::HealConfig;
+use nebulafx_ahm::scanner::{
     Scanner,
     data_scanner::ScanMode,
     node_scanner::{LoadLevel, NodeScanner, NodeScannerConfig},
 };
-use rustfs_ecstore::{
+use nebulafx_ecstore::{
     StorageAPI,
     disk::endpoint::Endpoint,
     endpoints::{EndpointServerPools, Endpoints, PoolEndpoints},
@@ -40,7 +28,7 @@ async fn prepare_test_env(test_dir: Option<&str>, port: Option<u16>) -> (Vec<std
     }
 
     // create temp dir as 4 disks
-    let test_base_dir = test_dir.unwrap_or("/tmp/rustfs_ahm_optimized_test");
+    let test_base_dir = test_dir.unwrap_or("/tmp/nebulafx_ahm_optimized_test");
     let temp_dir = std::path::PathBuf::from(test_base_dir);
     if temp_dir.exists() {
         fs::remove_dir_all(&temp_dir).unwrap();
@@ -82,7 +70,7 @@ async fn prepare_test_env(test_dir: Option<&str>, port: Option<u16>) -> (Vec<std
     let endpoint_pools = EndpointServerPools(vec![pool_endpoints]);
 
     // format disks
-    rustfs_ecstore::store::init_local_disks(endpoint_pools.clone()).await.unwrap();
+    nebulafx_ecstore::store::init_local_disks(endpoint_pools.clone()).await.unwrap();
 
     // create ECStore with dynamic port
     let port = port.unwrap_or(9000);
@@ -93,14 +81,14 @@ async fn prepare_test_env(test_dir: Option<&str>, port: Option<u16>) -> (Vec<std
 
     // init bucket metadata system
     let buckets_list = ecstore
-        .list_bucket(&rustfs_ecstore::store_api::BucketOptions {
+        .list_bucket(&nebulafx_ecstore::store_api::BucketOptions {
             no_metadata: true,
             ..Default::default()
         })
         .await
         .unwrap();
     let buckets = buckets_list.into_iter().map(|v| v.name).collect();
-    rustfs_ecstore::bucket::metadata_sys::init_bucket_metadata_sys(ecstore.clone(), buckets).await;
+    nebulafx_ecstore::bucket::metadata_sys::init_bucket_metadata_sys(ecstore.clone(), buckets).await;
 
     // Store in global cache
     let _ = GLOBAL_TEST_ENV.set((disk_paths.clone(), ecstore.clone()));
@@ -112,13 +100,13 @@ async fn prepare_test_env(test_dir: Option<&str>, port: Option<u16>) -> (Vec<std
 #[ignore = "Please run it manually."]
 #[serial]
 async fn test_optimized_scanner_basic_functionality() {
-    const TEST_DIR_BASIC: &str = "/tmp/rustfs_ahm_optimized_test_basic";
+    const TEST_DIR_BASIC: &str = "/tmp/nebulafx_ahm_optimized_test_basic";
     let (disk_paths, ecstore) = prepare_test_env(Some(TEST_DIR_BASIC), Some(9101)).await;
 
     // create some test data
     let bucket_name = "test-bucket";
     let object_name = "test-object";
-    let test_data = b"Hello, Optimized RustFS!";
+    let test_data = b"Hello, Optimized NebulaFX!";
 
     // create bucket and verify
     let bucket_opts = MakeBucketOptions::default();
@@ -129,14 +117,14 @@ async fn test_optimized_scanner_basic_functionality() {
 
     // check bucket really exists
     let buckets = ecstore
-        .list_bucket(&rustfs_ecstore::store_api::BucketOptions::default())
+        .list_bucket(&nebulafx_ecstore::store_api::BucketOptions::default())
         .await
         .unwrap();
     assert!(buckets.iter().any(|b| b.name == bucket_name), "bucket not found after creation");
 
     // write object
     let mut put_reader = PutObjReader::from_vec(test_data.to_vec());
-    let object_opts = rustfs_ecstore::store_api::ObjectOptions::default();
+    let object_opts = nebulafx_ecstore::store_api::ObjectOptions::default();
     ecstore
         .put_object(bucket_name, object_name, &mut put_reader, &object_opts)
         .await
@@ -206,7 +194,7 @@ async fn test_optimized_scanner_basic_functionality() {
 #[ignore = "Please run it manually."]
 #[serial]
 async fn test_optimized_scanner_usage_stats() {
-    const TEST_DIR_USAGE_STATS: &str = "/tmp/rustfs_ahm_optimized_test_usage_stats";
+    const TEST_DIR_USAGE_STATS: &str = "/tmp/nebulafx_ahm_optimized_test_usage_stats";
     let (_, ecstore) = prepare_test_env(Some(TEST_DIR_USAGE_STATS), Some(9102)).await;
 
     // prepare test bucket and object
@@ -252,7 +240,7 @@ async fn test_optimized_scanner_usage_stats() {
 #[ignore = "Please run it manually."]
 #[serial]
 async fn test_optimized_volume_healing_functionality() {
-    const TEST_DIR_VOLUME_HEAL: &str = "/tmp/rustfs_ahm_optimized_test_volume_heal";
+    const TEST_DIR_VOLUME_HEAL: &str = "/tmp/nebulafx_ahm_optimized_test_volume_heal";
     let (disk_paths, ecstore) = prepare_test_env(Some(TEST_DIR_VOLUME_HEAL), Some(9103)).await;
 
     // Create test buckets
@@ -310,7 +298,7 @@ async fn test_optimized_volume_healing_functionality() {
 #[ignore = "Please run it manually."]
 #[serial]
 async fn test_optimized_performance_characteristics() {
-    const TEST_DIR_PERF: &str = "/tmp/rustfs_ahm_optimized_test_perf";
+    const TEST_DIR_PERF: &str = "/tmp/nebulafx_ahm_optimized_test_perf";
     let (_, ecstore) = prepare_test_env(Some(TEST_DIR_PERF), Some(9104)).await;
 
     // Create test bucket with multiple objects
@@ -322,7 +310,7 @@ async fn test_optimized_performance_characteristics() {
         let object_name = format!("perf-object-{i}");
         let test_data = vec![b'A' + (i % 26) as u8; 1024 * (i + 1)]; // Variable size objects
         let mut put_reader = PutObjReader::from_vec(test_data);
-        let object_opts = rustfs_ecstore::store_api::ObjectOptions::default();
+        let object_opts = nebulafx_ecstore::store_api::ObjectOptions::default();
         ecstore
             .put_object(bucket_name, &object_name, &mut put_reader, &object_opts)
             .await
@@ -420,7 +408,7 @@ async fn test_optimized_load_balancing_and_throttling() {
 
         // Get throttling decision
         let _current_metrics = io_monitor.get_current_metrics().await;
-        let metrics_snapshot = rustfs_ahm::scanner::io_throttler::MetricsSnapshot {
+        let metrics_snapshot = nebulafx_ahm::scanner::io_throttler::MetricsSnapshot {
             iops: 100 + qps / 10,
             latency,
             cpu_usage: std::cmp::min(50 + (qps / 20) as u8, 100),
@@ -464,7 +452,7 @@ async fn test_optimized_load_balancing_and_throttling() {
 #[ignore = "Please run it manually."]
 #[serial]
 async fn test_optimized_scanner_detect_missing_data_parts() {
-    const TEST_DIR_MISSING_PARTS: &str = "/tmp/rustfs_ahm_optimized_test_missing_parts";
+    const TEST_DIR_MISSING_PARTS: &str = "/tmp/nebulafx_ahm_optimized_test_missing_parts";
     let (disk_paths, ecstore) = prepare_test_env(Some(TEST_DIR_MISSING_PARTS), Some(9105)).await;
 
     // Create test bucket
@@ -476,7 +464,7 @@ async fn test_optimized_scanner_detect_missing_data_parts() {
     // Create a 20MB object to ensure it has multiple parts
     let large_data = vec![b'A'; 20 * 1024 * 1024]; // 20MB of 'A' characters
     let mut put_reader = PutObjReader::from_vec(large_data);
-    let object_opts = rustfs_ecstore::store_api::ObjectOptions::default();
+    let object_opts = nebulafx_ecstore::store_api::ObjectOptions::default();
 
     println!("=== Creating 20MB object ===");
     ecstore
@@ -500,7 +488,7 @@ async fn test_optimized_scanner_detect_missing_data_parts() {
     println!("Object has {} parts", obj_info.parts.len());
 
     // Create HealManager and optimized Scanner
-    let heal_storage = Arc::new(rustfs_ahm::heal::storage::ECStoreHealStorage::new(ecstore.clone()));
+    let heal_storage = Arc::new(nebulafx_ahm::heal::storage::ECStoreHealStorage::new(ecstore.clone()));
     let heal_config = HealConfig {
         enable_auto_heal: true,
         heal_interval: Duration::from_millis(100),
@@ -508,7 +496,7 @@ async fn test_optimized_scanner_detect_missing_data_parts() {
         task_timeout: Duration::from_secs(300),
         queue_size: 1000,
     };
-    let heal_manager = Arc::new(rustfs_ahm::heal::HealManager::new(heal_storage, Some(heal_config)));
+    let heal_manager = Arc::new(nebulafx_ahm::heal::HealManager::new(heal_storage, Some(heal_config)));
     heal_manager.start().await.unwrap();
     let scanner = Scanner::new(None, Some(heal_manager.clone()));
 
@@ -606,7 +594,7 @@ async fn test_optimized_scanner_detect_missing_data_parts() {
 #[ignore = "Please run it manually."]
 #[serial]
 async fn test_optimized_scanner_detect_missing_xl_meta() {
-    const TEST_DIR_MISSING_META: &str = "/tmp/rustfs_ahm_optimized_test_missing_meta";
+    const TEST_DIR_MISSING_META: &str = "/tmp/nebulafx_ahm_optimized_test_missing_meta";
     let (disk_paths, ecstore) = prepare_test_env(Some(TEST_DIR_MISSING_META), Some(9106)).await;
 
     // Create test bucket
@@ -618,7 +606,7 @@ async fn test_optimized_scanner_detect_missing_xl_meta() {
     // Create a test object
     let test_data = vec![b'B'; 5 * 1024 * 1024]; // 5MB of 'B' characters
     let mut put_reader = PutObjReader::from_vec(test_data);
-    let object_opts = rustfs_ecstore::store_api::ObjectOptions::default();
+    let object_opts = nebulafx_ecstore::store_api::ObjectOptions::default();
 
     println!("=== Creating test object ===");
     ecstore
@@ -627,7 +615,7 @@ async fn test_optimized_scanner_detect_missing_xl_meta() {
         .expect("put_object failed");
 
     // Create HealManager and optimized Scanner
-    let heal_storage = Arc::new(rustfs_ahm::heal::storage::ECStoreHealStorage::new(ecstore.clone()));
+    let heal_storage = Arc::new(nebulafx_ahm::heal::storage::ECStoreHealStorage::new(ecstore.clone()));
     let heal_config = HealConfig {
         enable_auto_heal: true,
         heal_interval: Duration::from_millis(100),
@@ -635,7 +623,7 @@ async fn test_optimized_scanner_detect_missing_xl_meta() {
         task_timeout: Duration::from_secs(300),
         queue_size: 1000,
     };
-    let heal_manager = Arc::new(rustfs_ahm::heal::HealManager::new(heal_storage, Some(heal_config)));
+    let heal_manager = Arc::new(nebulafx_ahm::heal::HealManager::new(heal_storage, Some(heal_config)));
     heal_manager.start().await.unwrap();
     let scanner = Scanner::new(None, Some(heal_manager.clone()));
 
@@ -718,13 +706,13 @@ async fn test_optimized_scanner_detect_missing_xl_meta() {
 #[ignore = "Please run it manually."]
 #[serial]
 async fn test_optimized_scanner_healthy_objects_not_marked_corrupted() {
-    const TEST_DIR_HEALTHY: &str = "/tmp/rustfs_ahm_optimized_test_healthy_objects";
+    const TEST_DIR_HEALTHY: &str = "/tmp/nebulafx_ahm_optimized_test_healthy_objects";
     let (_, ecstore) = prepare_test_env(Some(TEST_DIR_HEALTHY), Some(9107)).await;
 
     // Create heal manager for this test
     let heal_config = HealConfig::default();
-    let heal_storage = Arc::new(rustfs_ahm::heal::storage::ECStoreHealStorage::new(ecstore.clone()));
-    let heal_manager = Arc::new(rustfs_ahm::heal::manager::HealManager::new(heal_storage, Some(heal_config)));
+    let heal_storage = Arc::new(nebulafx_ahm::heal::storage::ECStoreHealStorage::new(ecstore.clone()));
+    let heal_manager = Arc::new(nebulafx_ahm::heal::manager::HealManager::new(heal_storage, Some(heal_config)));
     heal_manager.start().await.unwrap();
 
     // Create optimized scanner with healing enabled
@@ -744,7 +732,7 @@ async fn test_optimized_scanner_healthy_objects_not_marked_corrupted() {
         ("large-object-opt", vec![123u8; 10240]), // 10KB
     ];
 
-    let object_opts = rustfs_ecstore::store_api::ObjectOptions::default();
+    let object_opts = nebulafx_ecstore::store_api::ObjectOptions::default();
 
     // Write all test objects
     for (object_name, test_data) in &test_objects {

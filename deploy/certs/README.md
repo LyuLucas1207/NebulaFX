@@ -34,15 +34,15 @@ openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -node
 ```text
 cd deploy/certs/ 
 ls -la
-  ├── rustfs_cert.pem        // Default｜fallback certificate
-  ├── rustfs_key.pem         // Default｜fallback private key
-  ├── rustfs.com/    // certificate directory of specific domain names
-  │   ├── rustfs_cert.pem
-  │   └── rustfs_key.pem
-  ├── api.rustfs.com/
-  │   ├── rustfs_cert.pem
-  │   └── rustfs_key.pem
-  └── cdn.rustfs.com/
-      ├── rustfs_cert.pem
-      └── rustfs_key.pem
+  ├── nebulafx_cert.pem        // Default｜fallback certificate
+  ├── nebulafx_key.pem         // Default｜fallback private key
+  ├── nebulafx.com/    // certificate directory of specific domain names
+  │   ├── nebulafx_cert.pem
+  │   └── nebulafx_key.pem
+  ├── api.nebulafx.com/
+  │   ├── nebulafx_cert.pem
+  │   └── nebulafx_key.pem
+  └── cdn.nebulafx.com/
+      ├── nebulafx_cert.pem
+      └── nebulafx_key.pem
 ```

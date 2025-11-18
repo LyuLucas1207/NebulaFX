@@ -1,4 +1,4 @@
-//  Copyright 2024 RustFS Team
+//  Copyright 2024 NebulaFX Team
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -12,15 +12,15 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-use rustfs_audit::*;
-use rustfs_ecstore::config::{Config, KVS};
+use nebulafx_audit::*;
+use nebulafx_ecstore::config::{Config, KVS};
 use std::collections::HashMap;
 
 #[tokio::test]
 async fn test_audit_system_creation() {
     let system = AuditSystem::new();
     let state = system.get_state().await;
-    assert_eq!(state, rustfs_audit::system::AuditSystemState::Stopped);
+    assert_eq!(state, nebulafx_audit::system::AuditSystemState::Stopped);
 }
 
 #[tokio::test]
@@ -67,7 +67,7 @@ async fn test_config_parsing_webhook() {
 
 #[test]
 fn test_event_name_parsing() {
-    use rustfs_targets::EventName;
+    use nebulafx_targets::EventName;
 
     // Test basic event name parsing
     let event = EventName::parse("s3:ObjectCreated:Put").unwrap();

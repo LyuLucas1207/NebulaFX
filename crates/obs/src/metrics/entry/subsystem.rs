@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::entry::path_utils::format_path_to_metric_name;
 
@@ -226,21 +214,21 @@ mod tests {
             MetricType::Counter,
             "Test help".to_string(),
             vec!["label1".to_string(), "label2".to_string()],
-            MetricNamespace::RustFS,
+            MetricNamespace::NebulaFX,
             MetricSubsystem::ApiRequests,
         );
 
-        assert_eq!(md.get_full_metric_name(), "counter.rustfs_api_requests_total");
+        assert_eq!(md.get_full_metric_name(), "counter.nebulafx_api_requests_total");
 
         let custom_md = MetricDescriptor::new(
             MetricName::Custom("test_metric".to_string()),
             MetricType::Gauge,
             "Test help".to_string(),
             vec!["label1".to_string()],
-            MetricNamespace::RustFS,
+            MetricNamespace::NebulaFX,
             MetricSubsystem::new("/custom/path-with-dash"),
         );
 
-        assert_eq!(custom_md.get_full_metric_name(), "gauge.rustfs_custom_path_with_dash_test_metric");
+        assert_eq!(custom_md.get_full_metric_name(), "gauge.nebulafx_custom_path_with_dash_test_metric");
     }
 }

@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
@@ -26,8 +14,8 @@ pub enum TierType {
     Unsupported,
     #[serde(rename = "s3")]
     S3,
-    #[serde(rename = "rustfs")]
-    RustFS,
+    #[serde(rename = "nebulafx")]
+    NebulaFX,
     #[serde(rename = "minio")]
     MinIO,
     #[serde(rename = "aliyun")]
@@ -50,8 +38,8 @@ impl Display for TierType {
             TierType::S3 => {
                 write!(f, "S3")
             }
-            TierType::RustFS => {
-                write!(f, "RustFS")
+            TierType::NebulaFX => {
+                write!(f, "NebulaFX")
             }
             TierType::MinIO => {
                 write!(f, "MinIO")
@@ -85,7 +73,7 @@ impl TierType {
     pub fn new(sc_type: &str) -> Self {
         match sc_type {
             "S3" => TierType::S3,
-            "RustFS" => TierType::RustFS,
+            "NebulaFX" => TierType::NebulaFX,
             "MinIO" => TierType::MinIO,
             "Aliyun" => TierType::Aliyun,
             "Tencent" => TierType::Tencent,
@@ -100,7 +88,7 @@ impl TierType {
     pub fn as_lowercase(&self) -> String {
         match self {
             TierType::S3 => "s3".to_string(),
-            TierType::RustFS => "rustfs".to_string(),
+            TierType::NebulaFX => "nebulafx".to_string(),
             TierType::MinIO => "minio".to_string(),
             TierType::Aliyun => "aliyun".to_string(),
             TierType::Tencent => "tencent".to_string(),
@@ -136,8 +124,8 @@ pub struct TierConfig {
     pub gcs: Option<TierGCS>,
     #[serde(rename = "r2", skip_serializing_if = "Option::is_none")]
     pub r2: Option<TierR2>,
-    #[serde(rename = "rustfs", skip_serializing_if = "Option::is_none")]
-    pub rustfs: Option<TierRustFS>,
+    #[serde(rename = "nebulafx", skip_serializing_if = "Option::is_none")]
+    pub nebulafx: Option<TierNebulaFX>,
     #[serde(rename = "minio", skip_serializing_if = "Option::is_none")]
     pub minio: Option<TierMinIO>,
 }
@@ -159,8 +147,8 @@ impl Clone for TierConfig {
                 s3_.secret_key = "REDACTED".to_string();
                 s3 = Some(s3_);
             }
-            TierType::RustFS => {
-                let mut r_ = self.rustfs.as_ref().expect("err").clone();
+            TierType::NebulaFX => {
+                let mut r_ = self.nebulafx.as_ref().expect("err").clone();
                 r_.secret_key = "REDACTED".to_string();
                 r = Some(r_);
             }
@@ -206,7 +194,7 @@ impl Clone for TierConfig {
             tier_type: self.tier_type.clone(),
             name: self.name.clone(),
             s3,
-            rustfs: r,
+            nebulafx: r,
             minio: m,
             aliyun,
             tencent,
@@ -223,7 +211,7 @@ impl TierConfig {
     fn endpoint(&self) -> String {
         match self.tier_type {
             TierType::S3 => self.s3.as_ref().expect("err").endpoint.clone(),
-            TierType::RustFS => self.rustfs.as_ref().expect("err").endpoint.clone(),
+            TierType::NebulaFX => self.nebulafx.as_ref().expect("err").endpoint.clone(),
             TierType::MinIO => self.minio.as_ref().expect("err").endpoint.clone(),
             TierType::Aliyun => self.aliyun.as_ref().expect("err").endpoint.clone(),
             TierType::Tencent => self.tencent.as_ref().expect("err").endpoint.clone(),
@@ -241,7 +229,7 @@ impl TierConfig {
     fn bucket(&self) -> String {
         match self.tier_type {
             TierType::S3 => self.s3.as_ref().expect("err").bucket.clone(),
-            TierType::RustFS => self.rustfs.as_ref().expect("err").bucket.clone(),
+            TierType::NebulaFX => self.nebulafx.as_ref().expect("err").bucket.clone(),
             TierType::MinIO => self.minio.as_ref().expect("err").bucket.clone(),
             TierType::Aliyun => self.aliyun.as_ref().expect("err").bucket.clone(),
             TierType::Tencent => self.tencent.as_ref().expect("err").bucket.clone(),
@@ -259,7 +247,7 @@ impl TierConfig {
     fn prefix(&self) -> String {
         match self.tier_type {
             TierType::S3 => self.s3.as_ref().expect("err").prefix.clone(),
-            TierType::RustFS => self.rustfs.as_ref().expect("err").prefix.clone(),
+            TierType::NebulaFX => self.nebulafx.as_ref().expect("err").prefix.clone(),
             TierType::MinIO => self.minio.as_ref().expect("err").prefix.clone(),
             TierType::Aliyun => self.aliyun.as_ref().expect("err").prefix.clone(),
             TierType::Tencent => self.tencent.as_ref().expect("err").prefix.clone(),
@@ -277,7 +265,7 @@ impl TierConfig {
     fn region(&self) -> String {
         match self.tier_type {
             TierType::S3 => self.s3.as_ref().expect("err").region.clone(),
-            TierType::RustFS => self.rustfs.as_ref().expect("err").region.clone(),
+            TierType::NebulaFX => self.nebulafx.as_ref().expect("err").region.clone(),
             TierType::MinIO => self.minio.as_ref().expect("err").region.clone(),
             TierType::Aliyun => self.aliyun.as_ref().expect("err").region.clone(),
             TierType::Tencent => self.tencent.as_ref().expect("err").region.clone(),
@@ -364,7 +352,7 @@ impl TierS3 {
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
 #[serde(default)]
-pub struct TierRustFS {
+pub struct TierNebulaFX {
     pub name: String,
     pub endpoint: String,
     #[serde(rename = "accessKey")]

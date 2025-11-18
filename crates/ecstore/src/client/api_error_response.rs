@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(unused_mut)]
@@ -26,7 +14,7 @@ use std::fmt::Display;
 use s3s::Body;
 use s3s::S3ErrorCode;
 
-const _REPORT_ISSUE: &str = "Please report this issue at https://github.com/rustfs/rustfs/issues.";
+const _REPORT_ISSUE: &str = "Please report this issue at https://github.com/nebulafx/nebulafx/issues.";
 
 #[derive(Serialize, Deserialize, Debug, Clone, thiserror::Error, PartialEq, Eq)]
 #[serde(default, rename_all = "PascalCase")]
@@ -268,7 +256,7 @@ pub fn err_invalid_argument(message: &str) -> ErrorResponse {
         status_code: StatusCode::BAD_REQUEST,
         code: S3ErrorCode::InvalidArgument,
         message: message.to_string(),
-        request_id: "rustfs".to_string(),
+        request_id: "nebulafx".to_string(),
         ..Default::default()
     }
 }
@@ -278,7 +266,7 @@ pub fn err_api_not_supported(message: &str) -> ErrorResponse {
         status_code: StatusCode::NOT_IMPLEMENTED,
         code: S3ErrorCode::Custom("APINotSupported".into()),
         message: message.to_string(),
-        request_id: "rustfs".to_string(),
+        request_id: "nebulafx".to_string(),
         ..Default::default()
     }
 }

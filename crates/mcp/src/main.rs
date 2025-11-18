@@ -1,21 +1,9 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use anyhow::{Context, Result};
 use clap::Parser;
 use rmcp::ServiceExt;
-use rustfs_mcp::{Config, RustfsMcpServer};
+use nebulafx_mcp::{Config, NEUBULAFXMcpServer};
 use std::env;
 use tokio::io::{stdin, stdout};
 use tracing::{Level, error, info};
@@ -27,7 +15,7 @@ async fn main() -> Result<()> {
 
     init_tracing(&config)?;
 
-    info!("Starting RustFS MCP Server v{}", env!("CARGO_PKG_VERSION"));
+    info!("Starting NebulaFX MCP Server v{}", env!("CARGO_PKG_VERSION"));
 
     if let Err(e) = config.validate() {
         error!("Configuration validation failed: {}", e);
@@ -42,14 +30,14 @@ async fn main() -> Result<()> {
         std::process::exit(1);
     }
 
-    info!("RustFS MCP Server shutdown complete");
+    info!("NebulaFX MCP Server shutdown complete");
     Ok(())
 }
 
 async fn run_server(config: Config) -> Result<()> {
-    info!("Initializing RustFS MCP Server");
+    info!("Initializing NebulaFX MCP Server");
 
-    let server = RustfsMcpServer::new(config).await?;
+    let server = NEUBULAFXMcpServer::new(config).await?;
 
     info!("Starting MCP server with stdio transport");
 
@@ -85,20 +73,20 @@ fn init_tracing(config: &Config) -> Result<()> {
 
 fn print_usage_help() {
     eprintln!();
-    eprintln!("RustFS MCP Server - Model Context Protocol server for S3 operations");
+    eprintln!("NebulaFX MCP Server - Model Context Protocol server for S3 operations");
     eprintln!();
-    eprintln!("For more help, run: rustfs-mcp --help");
+    eprintln!("For more help, run: nebulafx-mcp --help");
     eprintln!();
     eprintln!("QUICK START:");
     eprintln!("  # Using command-line arguments");
-    eprintln!("  rustfs-mcp --access-key-id YOUR_KEY --secret-access-key YOUR_SECRET");
+    eprintln!("  nebulafx-mcp --access-key-id YOUR_KEY --secret-access-key YOUR_SECRET");
     eprintln!();
     eprintln!("  # Using environment variables");
     eprintln!("  export AWS_ACCESS_KEY_ID=YOUR_KEY");
     eprintln!("  export AWS_SECRET_ACCESS_KEY=YOUR_SECRET");
-    eprintln!("  rustfs-mcp");
+    eprintln!("  nebulafx-mcp");
     eprintln!();
-    eprintln!("  # For local development with RustFS");
-    eprintln!("  rustfs-mcp --access-key-id minioadmin --secret-access-key minioadmin --endpoint-url http://localhost:9000");
+    eprintln!("  # For local development with NebulaFX");
+    eprintln!("  nebulafx-mcp --access-key-id minioadmin --secret-access-key minioadmin --endpoint-url http://localhost:9000");
     eprintln!();
 }

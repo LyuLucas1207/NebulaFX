@@ -1,16 +1,16 @@
-# RustFS MNMD (Multi-Node Multi-Drive) Docker Example
+# NebulaFX MNMD (Multi-Node Multi-Drive) Docker Example
 
-This directory contains a complete, ready-to-use MNMD deployment example for RustFS with 4 nodes and 4 drives per node (
+This directory contains a complete, ready-to-use MNMD deployment example for NebulaFX with 4 nodes and 4 drives per node (
 4x4 configuration).
 
 ## Overview
 
 This example addresses common deployment issues including:
 
-- **VolumeNotFound errors** - Fixed by using correct disk indexing (`/data/rustfs{1...4}` instead of
-  `/data/rustfs{0...3}`)
+- **VolumeNotFound errors** - Fixed by using correct disk indexing (`/data/nebulafx{1...4}` instead of
+  `/data/nebulafx{0...3}`)
 - **Startup race conditions** - Solved with a simple `sleep` command in each service.
-- **Service discovery** - Uses Docker service names (`rustfs-node{1..4}`) instead of hard-coded IPs
+- **Service discovery** - Uses Docker service names (`nebulafx-node{1..4}`) instead of hard-coded IPs
 - **Health checks** - Implements proper health monitoring with `nc` (with alternatives documented)
 
 ## Quick Start
@@ -48,17 +48,17 @@ docker-compose down -v
 The example uses the following volume configuration:
 
 ```bash
-RUSTFS_VOLUMES=http://rustfs-node{1...4}:9000/data/rustfs{1...4}
+NEUBULAFX_VOLUMES=http://nebulafx-node{1...4}:9000/data/nebulafx{1...4}
 ```
 
 This expands to 16 endpoints (4 nodes × 4 drives):
 
-- Node 1: `/data/rustfs1`, `/data/rustfs2`, `/data/rustfs3`, `/data/rustfs4`
-- Node 2: `/data/rustfs1`, `/data/rustfs2`, `/data/rustfs3`, `/data/rustfs4`
-- Node 3: `/data/rustfs1`, `/data/rustfs2`, `/data/rustfs3`, `/data/rustfs4`
-- Node 4: `/data/rustfs1`, `/data/rustfs2`, `/data/rustfs3`, `/data/rustfs4`
+- Node 1: `/data/nebulafx1`, `/data/nebulafx2`, `/data/nebulafx3`, `/data/nebulafx4`
+- Node 2: `/data/nebulafx1`, `/data/nebulafx2`, `/data/nebulafx3`, `/data/nebulafx4`
+- Node 3: `/data/nebulafx1`, `/data/nebulafx2`, `/data/nebulafx3`, `/data/nebulafx4`
+- Node 4: `/data/nebulafx1`, `/data/nebulafx2`, `/data/nebulafx3`, `/data/nebulafx4`
 
-**Important:** Disk indexing starts at 1 to match the mounted paths (`/data/rustfs1..4`).
+**Important:** Disk indexing starts at 1 to match the mounted paths (`/data/nebulafx1..4`).
 
 ### Port Mappings
 
@@ -72,7 +72,7 @@ This expands to 16 endpoints (4 nodes × 4 drives):
 ### Startup Coordination
 
 To prevent race conditions during startup where nodes might not find each other, a simple `sleep 3` command is added to
-each service's command. This provides a brief delay, allowing the network and other services to initialize before RustFS
+each service's command. This provides a brief delay, allowing the network and other services to initialize before NebulaFX
 starts. For more complex scenarios, a more robust health-check dependency or an external entrypoint script might be
 required.
 
@@ -121,16 +121,16 @@ If your Docker Compose runtime doesn't support brace expansion (`{1...4}`), repl
 
 ```yaml
 environment:
-  - RUSTFS_VOLUMES=http://rustfs-node1:9000/data/rustfs1,http://rustfs-node1:9000/data/rustfs2,http://rustfs-node1:9000/data/rustfs3,http://rustfs-node1:9000/data/rustfs4,http://rustfs-node2:9000/data/rustfs1,http://rustfs-node2:9000/data/rustfs2,http://rustfs-node2:9000/data/rustfs3,http://rustfs-node2:9000/data/rustfs4,http://rustfs-node3:9000/data/rustfs1,http://rustfs-node3:9000/data/rustfs2,http://rustfs-node3:9000/data/rustfs3,http://rustfs-node3:9000/data/rustfs4,http://rustfs-node4:9000/data/rustfs1,http://rustfs-node4:9000/data/rustfs2,http://rustfs-node4:9000/data/rustfs3,http://rustfs-node4:9000/data/rustfs4
+  - NEUBULAFX_VOLUMES=http://nebulafx-node1:9000/data/nebulafx1,http://nebulafx-node1:9000/data/nebulafx2,http://nebulafx-node1:9000/data/nebulafx3,http://nebulafx-node1:9000/data/nebulafx4,http://nebulafx-node2:9000/data/nebulafx1,http://nebulafx-node2:9000/data/nebulafx2,http://nebulafx-node2:9000/data/nebulafx3,http://nebulafx-node2:9000/data/nebulafx4,http://nebulafx-node3:9000/data/nebulafx1,http://nebulafx-node3:9000/data/nebulafx2,http://nebulafx-node3:9000/data/nebulafx3,http://nebulafx-node3:9000/data/nebulafx4,http://nebulafx-node4:9000/data/nebulafx1,http://nebulafx-node4:9000/data/nebulafx2,http://nebulafx-node4:9000/data/nebulafx3,http://nebulafx-node4:9000/data/nebulafx4
 ```
 
-## Using RUSTFS_CMD
+## Using NEUBULAFX_CMD
 
-The `RUSTFS_CMD` environment variable provides a fallback when no command is specified:
+The `NEUBULAFX_CMD` environment variable provides a fallback when no command is specified:
 
 ```yaml
 environment:
-  - RUSTFS_CMD=rustfs  # Default fallback command
+  - NEUBULAFX_CMD=nebulafx  # Default fallback command
 ```
 
 This allows the entrypoint to execute the correct command when Docker doesn't provide one.
@@ -177,19 +177,19 @@ for port in 9001 9011 9021 9031; do
 done
 
 # 4. Check inter-node connectivity
-docker exec rustfs-node1 nc -zv rustfs-node2 9000
-docker exec rustfs-node1 nc -zv rustfs-node3 9000
-docker exec rustfs-node1 nc -zv rustfs-node4 9000
+docker exec nebulafx-node1 nc -zv nebulafx-node2 9000
+docker exec nebulafx-node1 nc -zv nebulafx-node3 9000
+docker exec nebulafx-node1 nc -zv nebulafx-node4 9000
 ```
 
 ## Troubleshooting
 
 ### VolumeNotFound Error
 
-**Symptom:** Error message about `/data/rustfs0` not found.
+**Symptom:** Error message about `/data/nebulafx0` not found.
 
-**Solution:** This example uses `/data/rustfs{1...4}` indexing to match the mounted Docker volumes. Ensure your
-`RUSTFS_VOLUMES` configuration starts at index 1, not 0.
+**Solution:** This example uses `/data/nebulafx{1...4}` indexing to match the mounted Docker volumes. Ensure your
+`NEUBULAFX_VOLUMES` configuration starts at index 1, not 0.
 
 ### Health Check Failures
 
@@ -197,7 +197,7 @@ docker exec rustfs-node1 nc -zv rustfs-node4 9000
 
 **Solutions:**
 
-1. Check if `nc` is available: `docker exec rustfs-node1 which nc`
+1. Check if `nc` is available: `docker exec nebulafx-node1 which nc`
 2. Use alternative health checks (curl/wget) as documented above
 3. Increase `start_period` if nodes need more time to initialize
 
@@ -207,15 +207,15 @@ docker exec rustfs-node1 nc -zv rustfs-node4 9000
 
 **Solutions:**
 
-1. Check logs: `docker-compose logs rustfs-node1`
-2. Verify network connectivity: `docker-compose exec rustfs-node1 ping rustfs-node2`
+1. Check logs: `docker-compose logs nebulafx-node1`
+2. Verify network connectivity: `docker-compose exec nebulafx-node1 ping nebulafx-node2`
 3. Consider increasing the `sleep` duration in the `docker-compose.yml` `command` directive if a longer delay is needed.
 
 ### Permission Issues
 
 **Symptom:** Cannot create directories or write data.
 
-**Solution:** Ensure volumes have correct permissions or set `RUSTFS_UID` and `RUSTFS_GID` environment variables.
+**Solution:** Ensure volumes have correct permissions or set `NEUBULAFX_UID` and `NEUBULAFX_GID` environment variables.
 
 ## Advanced Configuration
 
@@ -225,8 +225,8 @@ Replace default credentials in production:
 
 ```yaml
 environment:
-  - RUSTFS_ACCESS_KEY=your_access_key
-  - RUSTFS_SECRET_KEY=your_secret_key
+  - NEUBULAFX_ACCESS_KEY=your_access_key
+  - NEUBULAFX_SECRET_KEY=your_secret_key
 ```
 
 ### TLS Configuration
@@ -237,7 +237,7 @@ Add TLS certificates:
 volumes:
   - ./certs:/opt/tls:ro
 environment:
-  - RUSTFS_TLS_PATH=/opt/tls
+  - NEUBULAFX_TLS_PATH=/opt/tls
 ```
 
 ### Resource Limits
@@ -260,9 +260,9 @@ deploy:
 - [CHECKLIST.md](./CHECKLIST.md) - Step-by-step verification guide
 - [../../console-separation.md](../../console-separation.md) - Console & endpoint service separation guide
 - [../../../examples/docker-comprehensive.yml](../../../examples/docker-comprehensive.yml) - More deployment examples
-- [Issue #618](https://github.com/rustfs/rustfs/issues/618) - Original VolumeNotFound issue
+- [Issue #618](https://github.com/nebulafx/nebulafx/issues/618) - Original VolumeNotFound issue
 
 ## References
 
-- RustFS Documentation: https://rustfs.io
+- NebulaFX Documentation: https://nebulafx.io
 - Docker Compose Documentation: https://docs.docker.com/compose/

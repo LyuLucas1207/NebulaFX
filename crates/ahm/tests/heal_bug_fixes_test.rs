@@ -1,18 +1,6 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 
-use rustfs_ahm::heal::{
+
+use nebulafx_ahm::heal::{
     event::{HealEvent, Severity},
     task::{HealPriority, HealType},
     utils,
@@ -20,7 +8,7 @@ use rustfs_ahm::heal::{
 
 #[test]
 fn test_heal_event_to_heal_request_no_panic() {
-    use rustfs_ecstore::disk::endpoint::Endpoint;
+    use nebulafx_ecstore::disk::endpoint::Endpoint;
 
     // Test that invalid pool/set indices don't cause panic
     // Create endpoint using try_from or similar method
@@ -45,7 +33,7 @@ fn test_heal_event_to_heal_request_no_panic() {
 
 #[test]
 fn test_heal_event_to_heal_request_valid_indices() {
-    use rustfs_ecstore::disk::endpoint::Endpoint;
+    use nebulafx_ecstore::disk::endpoint::Endpoint;
 
     // Test that valid indices work correctly
     let endpoint_result = Endpoint::try_from("http://localhost:9000");
@@ -73,7 +61,7 @@ fn test_heal_event_object_corruption() {
         bucket: "test-bucket".to_string(),
         object: "test-object".to_string(),
         version_id: None,
-        corruption_type: rustfs_ahm::heal::event::CorruptionType::DataCorruption,
+        corruption_type: nebulafx_ahm::heal::event::CorruptionType::DataCorruption,
         severity: Severity::High,
     };
 
@@ -119,7 +107,7 @@ fn test_format_set_disk_id_from_i32_valid() {
 
 #[test]
 fn test_resume_state_timestamp_handling() {
-    use rustfs_ahm::heal::resume::ResumeState;
+    use nebulafx_ahm::heal::resume::ResumeState;
 
     // Test that ResumeState creation doesn't panic even if system time is before epoch
     // This is a theoretical test - in practice, system time should never be before epoch
@@ -139,7 +127,7 @@ fn test_resume_state_timestamp_handling() {
 
 #[test]
 fn test_resume_checkpoint_timestamp_handling() {
-    use rustfs_ahm::heal::resume::ResumeCheckpoint;
+    use nebulafx_ahm::heal::resume::ResumeCheckpoint;
 
     // Test that ResumeCheckpoint creation doesn't panic
     let checkpoint = ResumeCheckpoint::new("test-task".to_string());
@@ -162,8 +150,8 @@ fn test_path_to_str_helper() {
 
 #[test]
 fn test_heal_task_status_atomic_update() {
-    use rustfs_ahm::heal::storage::HealStorageAPI;
-    use rustfs_ahm::heal::task::{HealOptions, HealRequest, HealTask, HealTaskStatus};
+    use nebulafx_ahm::heal::storage::HealStorageAPI;
+    use nebulafx_ahm::heal::task::{HealOptions, HealRequest, HealTask, HealTaskStatus};
     use std::sync::Arc;
 
     // Mock storage for testing
@@ -174,49 +162,49 @@ fn test_heal_task_status_atomic_update() {
             &self,
             _bucket: &str,
             _object: &str,
-        ) -> rustfs_ahm::Result<Option<rustfs_ecstore::store_api::ObjectInfo>> {
+        ) -> nebulafx_ahm::Result<Option<nebulafx_ecstore::store_api::ObjectInfo>> {
             Ok(None)
         }
-        async fn get_object_data(&self, _bucket: &str, _object: &str) -> rustfs_ahm::Result<Option<Vec<u8>>> {
+        async fn get_object_data(&self, _bucket: &str, _object: &str) -> nebulafx_ahm::Result<Option<Vec<u8>>> {
             Ok(None)
         }
-        async fn put_object_data(&self, _bucket: &str, _object: &str, _data: &[u8]) -> rustfs_ahm::Result<()> {
+        async fn put_object_data(&self, _bucket: &str, _object: &str, _data: &[u8]) -> nebulafx_ahm::Result<()> {
             Ok(())
         }
-        async fn delete_object(&self, _bucket: &str, _object: &str) -> rustfs_ahm::Result<()> {
+        async fn delete_object(&self, _bucket: &str, _object: &str) -> nebulafx_ahm::Result<()> {
             Ok(())
         }
-        async fn verify_object_integrity(&self, _bucket: &str, _object: &str) -> rustfs_ahm::Result<bool> {
+        async fn verify_object_integrity(&self, _bucket: &str, _object: &str) -> nebulafx_ahm::Result<bool> {
             Ok(true)
         }
-        async fn ec_decode_rebuild(&self, _bucket: &str, _object: &str) -> rustfs_ahm::Result<Vec<u8>> {
+        async fn ec_decode_rebuild(&self, _bucket: &str, _object: &str) -> nebulafx_ahm::Result<Vec<u8>> {
             Ok(vec![])
         }
         async fn get_disk_status(
             &self,
-            _endpoint: &rustfs_ecstore::disk::endpoint::Endpoint,
-        ) -> rustfs_ahm::Result<rustfs_ahm::heal::storage::DiskStatus> {
-            Ok(rustfs_ahm::heal::storage::DiskStatus::Ok)
+            _endpoint: &nebulafx_ecstore::disk::endpoint::Endpoint,
+        ) -> nebulafx_ahm::Result<nebulafx_ahm::heal::storage::DiskStatus> {
+            Ok(nebulafx_ahm::heal::storage::DiskStatus::Ok)
         }
-        async fn format_disk(&self, _endpoint: &rustfs_ecstore::disk::endpoint::Endpoint) -> rustfs_ahm::Result<()> {
+        async fn format_disk(&self, _endpoint: &nebulafx_ecstore::disk::endpoint::Endpoint) -> nebulafx_ahm::Result<()> {
             Ok(())
         }
-        async fn get_bucket_info(&self, _bucket: &str) -> rustfs_ahm::Result<Option<rustfs_ecstore::store_api::BucketInfo>> {
+        async fn get_bucket_info(&self, _bucket: &str) -> nebulafx_ahm::Result<Option<nebulafx_ecstore::store_api::BucketInfo>> {
             Ok(None)
         }
-        async fn heal_bucket_metadata(&self, _bucket: &str) -> rustfs_ahm::Result<()> {
+        async fn heal_bucket_metadata(&self, _bucket: &str) -> nebulafx_ahm::Result<()> {
             Ok(())
         }
-        async fn list_buckets(&self) -> rustfs_ahm::Result<Vec<rustfs_ecstore::store_api::BucketInfo>> {
+        async fn list_buckets(&self) -> nebulafx_ahm::Result<Vec<nebulafx_ecstore::store_api::BucketInfo>> {
             Ok(vec![])
         }
-        async fn object_exists(&self, _bucket: &str, _object: &str) -> rustfs_ahm::Result<bool> {
+        async fn object_exists(&self, _bucket: &str, _object: &str) -> nebulafx_ahm::Result<bool> {
             Ok(false)
         }
-        async fn get_object_size(&self, _bucket: &str, _object: &str) -> rustfs_ahm::Result<Option<u64>> {
+        async fn get_object_size(&self, _bucket: &str, _object: &str) -> nebulafx_ahm::Result<Option<u64>> {
             Ok(None)
         }
-        async fn get_object_checksum(&self, _bucket: &str, _object: &str) -> rustfs_ahm::Result<Option<String>> {
+        async fn get_object_checksum(&self, _bucket: &str, _object: &str) -> nebulafx_ahm::Result<Option<String>> {
             Ok(None)
         }
         async fn heal_object(
@@ -224,28 +212,28 @@ fn test_heal_task_status_atomic_update() {
             _bucket: &str,
             _object: &str,
             _version_id: Option<&str>,
-            _opts: &rustfs_common::heal_channel::HealOpts,
-        ) -> rustfs_ahm::Result<(rustfs_madmin::heal_commands::HealResultItem, Option<rustfs_ahm::Error>)> {
-            Ok((rustfs_madmin::heal_commands::HealResultItem::default(), None))
+            _opts: &nebulafx_common::heal_channel::HealOpts,
+        ) -> nebulafx_ahm::Result<(nebulafx_madmin::heal_commands::HealResultItem, Option<nebulafx_ahm::Error>)> {
+            Ok((nebulafx_madmin::heal_commands::HealResultItem::default(), None))
         }
         async fn heal_bucket(
             &self,
             _bucket: &str,
-            _opts: &rustfs_common::heal_channel::HealOpts,
-        ) -> rustfs_ahm::Result<rustfs_madmin::heal_commands::HealResultItem> {
-            Ok(rustfs_madmin::heal_commands::HealResultItem::default())
+            _opts: &nebulafx_common::heal_channel::HealOpts,
+        ) -> nebulafx_ahm::Result<nebulafx_madmin::heal_commands::HealResultItem> {
+            Ok(nebulafx_madmin::heal_commands::HealResultItem::default())
         }
         async fn heal_format(
             &self,
             _dry_run: bool,
-        ) -> rustfs_ahm::Result<(rustfs_madmin::heal_commands::HealResultItem, Option<rustfs_ahm::Error>)> {
-            Ok((rustfs_madmin::heal_commands::HealResultItem::default(), None))
+        ) -> nebulafx_ahm::Result<(nebulafx_madmin::heal_commands::HealResultItem, Option<nebulafx_ahm::Error>)> {
+            Ok((nebulafx_madmin::heal_commands::HealResultItem::default(), None))
         }
-        async fn list_objects_for_heal(&self, _bucket: &str, _prefix: &str) -> rustfs_ahm::Result<Vec<String>> {
+        async fn list_objects_for_heal(&self, _bucket: &str, _prefix: &str) -> nebulafx_ahm::Result<Vec<String>> {
             Ok(vec![])
         }
-        async fn get_disk_for_resume(&self, _set_disk_id: &str) -> rustfs_ahm::Result<rustfs_ecstore::disk::DiskStore> {
-            Err(rustfs_ahm::Error::other("Not implemented in mock"))
+        async fn get_disk_for_resume(&self, _set_disk_id: &str) -> nebulafx_ahm::Result<nebulafx_ecstore::disk::DiskStore> {
+            Err(nebulafx_ahm::Error::other("Not implemented in mock"))
         }
     }
 

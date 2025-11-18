@@ -1,17 +1,5 @@
 #![allow(unused_imports)]
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 #![allow(unused_variables)]
 #![allow(unused_mut)]
 #![allow(unused_assignments)]
@@ -33,7 +21,7 @@ use crate::tier::{
     warm_backend_huaweicloud::WarmBackendHuaweicloud,
     warm_backend_minio::WarmBackendMinIO,
     warm_backend_r2::WarmBackendR2,
-    warm_backend_rustfs::WarmBackendRustFS,
+    warm_backend_nebulafx::WarmBackendNebulaFX,
     warm_backend_s3::WarmBackendS3,
     warm_backend_tencent::WarmBackendTencent,
 };
@@ -70,7 +58,7 @@ pub trait WarmBackend {
 pub async fn check_warm_backend(w: Option<&WarmBackendImpl>) -> Result<(), AdminError> {
     let w = w.expect("err");
     let remote_version_id = w
-        .put(PROBE_OBJECT, ReaderImpl::Body(Bytes::from("RustFS".as_bytes().to_vec())), 5)
+        .put(PROBE_OBJECT, ReaderImpl::Body(Bytes::from("NebulaFX".as_bytes().to_vec())), 5)
         .await;
     if let Err(err) = remote_version_id {
         return Err(ERR_TIER_PERM_ERR.clone());
@@ -103,19 +91,19 @@ pub async fn new_warm_backend(tier: &TierConfig, probe: bool) -> Result<WarmBack
             if let Err(err) = dd {
                 warn!("{}", err);
                 return Err(AdminError {
-                    code: "XRustFSAdminTierInvalidConfig".to_string(),
+                    code: "XNebulaFXAdminTierInvalidConfig".to_string(),
                     message: format!("Unable to setup remote tier, check tier configuration: {}", err.to_string()),
                     status_code: StatusCode::BAD_REQUEST,
                 });
             }
             d = Some(Box::new(dd.expect("err")));
         }
-        TierType::RustFS => {
-            let dd = WarmBackendRustFS::new(tier.rustfs.as_ref().expect("err"), &tier.name).await;
+        TierType::NebulaFX => {
+            let dd = WarmBackendNebulaFX::new(tier.nebulafx.as_ref().expect("err"), &tier.name).await;
             if let Err(err) = dd {
                 warn!("{}", err);
                 return Err(AdminError {
-                    code: "XRustFSAdminTierInvalidConfig".to_string(),
+                    code: "XNebulaFXAdminTierInvalidConfig".to_string(),
                     message: format!("Unable to setup remote tier, check tier configuration: {}", err.to_string()),
                     status_code: StatusCode::BAD_REQUEST,
                 });
@@ -127,7 +115,7 @@ pub async fn new_warm_backend(tier: &TierConfig, probe: bool) -> Result<WarmBack
             if let Err(err) = dd {
                 warn!("{}", err);
                 return Err(AdminError {
-                    code: "XRustFSAdminTierInvalidConfig".to_string(),
+                    code: "XNebulaFXAdminTierInvalidConfig".to_string(),
                     message: format!("Unable to setup remote tier, check tier configuration: {}", err.to_string()),
                     status_code: StatusCode::BAD_REQUEST,
                 });
@@ -139,7 +127,7 @@ pub async fn new_warm_backend(tier: &TierConfig, probe: bool) -> Result<WarmBack
             if let Err(err) = dd {
                 warn!("{}", err);
                 return Err(AdminError {
-                    code: "XRustFSAdminTierInvalidConfig".to_string(),
+                    code: "XNebulaFXAdminTierInvalidConfig".to_string(),
                     message: format!("Unable to setup remote tier, check tier configuration: {}", err.to_string()),
                     status_code: StatusCode::BAD_REQUEST,
                 });
@@ -151,7 +139,7 @@ pub async fn new_warm_backend(tier: &TierConfig, probe: bool) -> Result<WarmBack
             if let Err(err) = dd {
                 warn!("{}", err);
                 return Err(AdminError {
-                    code: "XRustFSAdminTierInvalidConfig".to_string(),
+                    code: "XNebulaFXAdminTierInvalidConfig".to_string(),
                     message: format!("Unable to setup remote tier, check tier configuration: {}", err.to_string()),
                     status_code: StatusCode::BAD_REQUEST,
                 });
@@ -163,7 +151,7 @@ pub async fn new_warm_backend(tier: &TierConfig, probe: bool) -> Result<WarmBack
             if let Err(err) = dd {
                 warn!("{}", err);
                 return Err(AdminError {
-                    code: "XRustFSAdminTierInvalidConfig".to_string(),
+                    code: "XNebulaFXAdminTierInvalidConfig".to_string(),
                     message: format!("Unable to setup remote tier, check tier configuration: {}", err.to_string()),
                     status_code: StatusCode::BAD_REQUEST,
                 });
@@ -175,7 +163,7 @@ pub async fn new_warm_backend(tier: &TierConfig, probe: bool) -> Result<WarmBack
             if let Err(err) = dd {
                 warn!("{}", err);
                 return Err(AdminError {
-                    code: "XRustFSAdminTierInvalidConfig".to_string(),
+                    code: "XNebulaFXAdminTierInvalidConfig".to_string(),
                     message: format!("Unable to setup remote tier, check tier configuration: {}", err.to_string()),
                     status_code: StatusCode::BAD_REQUEST,
                 });
@@ -187,7 +175,7 @@ pub async fn new_warm_backend(tier: &TierConfig, probe: bool) -> Result<WarmBack
             if let Err(err) = dd {
                 warn!("{}", err);
                 return Err(AdminError {
-                    code: "XRustFSAdminTierInvalidConfig".to_string(),
+                    code: "XNebulaFXAdminTierInvalidConfig".to_string(),
                     message: format!("Unable to setup remote tier, check tier configuration: {}", err.to_string()),
                     status_code: StatusCode::BAD_REQUEST,
                 });
@@ -199,7 +187,7 @@ pub async fn new_warm_backend(tier: &TierConfig, probe: bool) -> Result<WarmBack
             if let Err(err) = dd {
                 warn!("{}", err);
                 return Err(AdminError {
-                    code: "XRustFSAdminTierInvalidConfig".to_string(),
+                    code: "XNebulaFXAdminTierInvalidConfig".to_string(),
                     message: format!("Unable to setup remote tier, check tier configuration: {}", err.to_string()),
                     status_code: StatusCode::BAD_REQUEST,
                 });

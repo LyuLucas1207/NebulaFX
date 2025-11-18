@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use convert_case::{Case, Casing};
 use std::collections::HashMap;
@@ -145,36 +133,36 @@ pub const AMZ_META_NAME: &str = "X-Amz-Meta-Name";
 pub const AMZ_META_UNENCRYPTED_CONTENT_LENGTH: &str = "X-Amz-Meta-X-Amz-Unencrypted-Content-Length";
 pub const AMZ_META_UNENCRYPTED_CONTENT_MD5: &str = "X-Amz-Meta-X-Amz-Unencrypted-Content-Md5";
 
-pub const RESERVED_METADATA_PREFIX: &str = "X-RustFS-Internal-";
-pub const RESERVED_METADATA_PREFIX_LOWER: &str = "x-rustfs-internal-";
+pub const RESERVED_METADATA_PREFIX: &str = "X-NebulaFX-Internal-";
+pub const RESERVED_METADATA_PREFIX_LOWER: &str = "x-nebulafx-internal-";
 
-pub const RUSTFS_HEALING: &str = "X-Rustfs-Internal-healing";
-// pub const RUSTFS_DATA_MOVE: &str = "X-Rustfs-Internal-data-mov";
+pub const NEUBULAFX_HEALING: &str = "X-NEUBULAFX-Internal-healing";
+// pub const NEUBULAFX_DATA_MOVE: &str = "X-NEUBULAFX-Internal-data-mov";
 
-// pub const X_RUSTFS_INLINE_DATA: &str = "x-rustfs-inline-data";
+// pub const X_NEUBULAFX_INLINE_DATA: &str = "x-nebulafx-inline-data";
 
-pub const VERSION_PURGE_STATUS_KEY: &str = "X-Rustfs-Internal-purgestatus";
+pub const VERSION_PURGE_STATUS_KEY: &str = "X-NEUBULAFX-Internal-purgestatus";
 
-pub const X_RUSTFS_HEALING: &str = "X-Rustfs-Internal-healing";
-pub const X_RUSTFS_DATA_MOV: &str = "X-Rustfs-Internal-data-mov";
+pub const X_NEUBULAFX_HEALING: &str = "X-NEUBULAFX-Internal-healing";
+pub const X_NEUBULAFX_DATA_MOV: &str = "X-NEUBULAFX-Internal-data-mov";
 
 pub const AMZ_TAGGING_DIRECTIVE: &str = "X-Amz-Tagging-Directive";
 
-pub const RUSTFS_DATA_MOVE: &str = "X-Rustfs-Internal-data-mov";
+pub const NEUBULAFX_DATA_MOVE: &str = "X-NEUBULAFX-Internal-data-mov";
 
-pub const RUSTFS_FORCE_DELETE: &str = "X-Rustfs-Force-Delete";
+pub const NEUBULAFX_FORCE_DELETE: &str = "X-NEUBULAFX-Force-Delete";
 
-pub const RUSTFS_REPLICATION_RESET_STATUS: &str = "X-Rustfs-Replication-Reset-Status";
-pub const RUSTFS_REPLICATION_AUTUAL_OBJECT_SIZE: &str = "X-Rustfs-Replication-Actual-Object-Size";
+pub const NEUBULAFX_REPLICATION_RESET_STATUS: &str = "X-NEUBULAFX-Replication-Reset-Status";
+pub const NEUBULAFX_REPLICATION_AUTUAL_OBJECT_SIZE: &str = "X-NEUBULAFX-Replication-Actual-Object-Size";
 
-pub const RUSTFS_BUCKET_SOURCE_VERSION_ID: &str = "X-Rustfs-Source-Version-Id";
-pub const RUSTFS_BUCKET_SOURCE_MTIME: &str = "X-Rustfs-Source-Mtime";
-pub const RUSTFS_BUCKET_SOURCE_ETAG: &str = "X-Rustfs-Source-Etag";
-pub const RUSTFS_BUCKET_REPLICATION_DELETE_MARKER: &str = "X-Rustfs-Source-DeleteMarker";
-pub const RUSTFS_BUCKET_REPLICATION_PROXY_REQUEST: &str = "X-Rustfs-Source-Proxy-Request";
-pub const RUSTFS_BUCKET_REPLICATION_REQUEST: &str = "X-Rustfs-Source-Replication-Request";
-pub const RUSTFS_BUCKET_REPLICATION_CHECK: &str = "X-Rustfs-Source-Replication-Check";
-pub const RUSTFS_BUCKET_REPLICATION_SSEC_CHECKSUM: &str = "X-Rustfs-Source-Replication-Ssec-Crc";
+pub const NEUBULAFX_BUCKET_SOURCE_VERSION_ID: &str = "X-NEUBULAFX-Source-Version-Id";
+pub const NEUBULAFX_BUCKET_SOURCE_MTIME: &str = "X-NEUBULAFX-Source-Mtime";
+pub const NEUBULAFX_BUCKET_SOURCE_ETAG: &str = "X-NEUBULAFX-Source-Etag";
+pub const NEUBULAFX_BUCKET_REPLICATION_DELETE_MARKER: &str = "X-NEUBULAFX-Source-DeleteMarker";
+pub const NEUBULAFX_BUCKET_REPLICATION_PROXY_REQUEST: &str = "X-NEUBULAFX-Source-Proxy-Request";
+pub const NEUBULAFX_BUCKET_REPLICATION_REQUEST: &str = "X-NEUBULAFX-Source-Replication-Request";
+pub const NEUBULAFX_BUCKET_REPLICATION_CHECK: &str = "X-NEUBULAFX-Source-Replication-Check";
+pub const NEUBULAFX_BUCKET_REPLICATION_SSEC_CHECKSUM: &str = "X-NEUBULAFX-Source-Replication-Ssec-Crc";
 
 // SSEC encryption header constants
 pub const SSEC_ALGORITHM_HEADER: &str = "x-amz-server-side-encryption-customer-algorithm";
@@ -267,8 +255,8 @@ pub fn is_amz_header(header_key: &str) -> bool {
         || key.starts_with("x-amz-checksum-")
 }
 
-pub fn is_rustfs_header(header_key: &str) -> bool {
-    header_key.to_lowercase().starts_with("x-rustfs-")
+pub fn is_nebulafx_header(header_key: &str) -> bool {
+    header_key.to_lowercase().starts_with("x-nebulafx-")
 }
 
 pub fn is_minio_header(header_key: &str) -> bool {

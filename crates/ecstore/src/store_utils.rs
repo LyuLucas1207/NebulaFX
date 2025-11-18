@@ -1,22 +1,10 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::config::storageclass::STANDARD;
-use crate::disk::RUSTFS_META_BUCKET;
+use crate::disk::NEUBULAFX_META_BUCKET;
 use regex::Regex;
-use rustfs_utils::http::headers::AMZ_OBJECT_TAGGING;
-use rustfs_utils::http::headers::AMZ_STORAGE_CLASS;
+use nebulafx_utils::http::headers::AMZ_OBJECT_TAGGING;
+use nebulafx_utils::http::headers::AMZ_STORAGE_CLASS;
 use std::collections::HashMap;
 use std::io::{Error, Result};
 
@@ -39,12 +27,12 @@ pub fn clean_metadata_keys(metadata: &mut HashMap<String, String>, key_names: &[
 
 // Check whether the bucket is the metadata bucket
 fn is_meta_bucket(bucket_name: &str) -> bool {
-    bucket_name == RUSTFS_META_BUCKET
+    bucket_name == NEUBULAFX_META_BUCKET
 }
 
 // Check whether the bucket is reserved
 fn is_reserved_bucket(bucket_name: &str) -> bool {
-    bucket_name == "rustfs"
+    bucket_name == "nebulafx"
 }
 
 // Check whether the bucket name is reserved or invalid

@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::error::{Error, Result, is_err_config_not_found};
 use crate::sys::get_claims_from_token_with_secret;
@@ -23,9 +11,9 @@ use crate::{
         UpdateServiceAccountOpts,
     },
 };
-use rustfs_ecstore::global::get_global_action_cred;
-use rustfs_madmin::{AccountStatus, AddOrUpdateUserReq, GroupDesc};
-use rustfs_policy::{
+use nebulafx_ecstore::global::get_global_action_cred;
+use nebulafx_madmin::{AccountStatus, AddOrUpdateUserReq, GroupDesc};
+use nebulafx_policy::{
     arn::ARN,
     auth::{self, Credentials, UserIdentity, is_secret_key_valid, jwt_sign},
     format::Format,
@@ -33,7 +21,7 @@ use rustfs_policy::{
         EMBEDDED_POLICY_TYPE, INHERITED_POLICY_TYPE, Policy, PolicyDoc, default::DEFAULT_POLICIES, iam_policy_claim_name_sa,
     },
 };
-use rustfs_utils::path::path_join_buf;
+use nebulafx_utils::path::path_join_buf;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{
@@ -109,7 +97,7 @@ where
         self.clone().load().await?;
 
         // Check if environment variable is set
-        let skip_background_task = std::env::var("RUSTFS_SKIP_BACKGROUND_TASK").is_ok();
+        let skip_background_task = std::env::var("NEUBULAFX_SKIP_BACKGROUND_TASK").is_ok();
 
         if !skip_background_task {
             // Background thread starts periodic updates or receives signal updates
@@ -929,7 +917,7 @@ where
         Ok(OffsetDateTime::now_utc())
     }
 
-    pub async fn get_user_info(&self, name: &str) -> Result<rustfs_madmin::UserInfo> {
+    pub async fn get_user_info(&self, name: &str) -> Result<nebulafx_madmin::UserInfo> {
         let users = self.cache.users.load();
         let policies = self.cache.user_policies.load();
         let group_members = self.cache.user_group_memberships.load();
@@ -943,7 +931,7 @@ where
             return Err(Error::IAMActionNotAllowed);
         }
 
-        let mut uinfo = rustfs_madmin::UserInfo {
+        let mut uinfo = nebulafx_madmin::UserInfo {
             status: if u.credentials.is_valid() {
                 AccountStatus::Enabled
             } else {
@@ -966,7 +954,7 @@ where
     }
 
     // returns all users (not STS or service accounts)
-    pub async fn get_users(&self) -> Result<HashMap<String, rustfs_madmin::UserInfo>> {
+    pub async fn get_users(&self) -> Result<HashMap<String, nebulafx_madmin::UserInfo>> {
         let mut m = HashMap::new();
 
         let users = self.cache.users.load();
@@ -978,7 +966,7 @@ where
                 continue;
             }
 
-            let mut u = rustfs_madmin::UserInfo {
+            let mut u = nebulafx_madmin::UserInfo {
                 status: if v.credentials.is_valid() {
                     AccountStatus::Enabled
                 } else {
@@ -1002,7 +990,7 @@ where
 
         Ok(m)
     }
-    pub async fn get_bucket_users(&self, bucket_name: &str) -> Result<HashMap<String, rustfs_madmin::UserInfo>> {
+    pub async fn get_bucket_users(&self, bucket_name: &str) -> Result<HashMap<String, nebulafx_madmin::UserInfo>> {
         let users = self.cache.users.load();
         let policies_cache = self.cache.user_policies.load();
         let group_members = self.cache.user_group_memberships.load();
@@ -1033,7 +1021,7 @@ where
                 continue;
             }
 
-            let mut u = rustfs_madmin::UserInfo {
+            let mut u = nebulafx_madmin::UserInfo {
                 policy_name: Some(matched_policies),
                 status: if v.credentials.is_valid() {
                     AccountStatus::Enabled
@@ -1766,7 +1754,7 @@ fn filter_policies(cache: &Cache, policy_name: &str, bucket_name: &str) -> (Stri
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rustfs_policy::policy::{Policy, PolicyDoc};
+    use nebulafx_policy::policy::{Policy, PolicyDoc};
     use serde_json::json;
     use std::collections::HashMap;
 

@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::{
     bucket::lifecycle::bucket_lifecycle_ops::LifecycleSys,
@@ -21,7 +9,7 @@ use crate::{
     tier::tier::TierConfigMgr,
 };
 use lazy_static::lazy_static;
-use rustfs_policy::auth::Credentials;
+use nebulafx_policy::auth::Credentials;
 use std::{
     collections::HashMap,
     sync::{Arc, OnceLock},
@@ -37,7 +25,7 @@ pub const DISK_FILL_FRACTION: f64 = 0.99;
 pub const DISK_RESERVE_FRACTION: f64 = 0.15;
 
 lazy_static! {
-    static ref GLOBAL_RUSTFS_PORT: OnceLock<u16> = OnceLock::new();
+    static ref GLOBAL_NEUBULAFX_PORT: OnceLock<u16> = OnceLock::new();
     static ref globalDeploymentIDPtr: OnceLock<Uuid> = OnceLock::new();
     pub static ref GLOBAL_OBJECT_API: OnceLock<Arc<ECStore>> = OnceLock::new();
     pub static ref GLOBAL_LOCAL_DISK: Arc<RwLock<Vec<Option<DiskStore>>>> = Arc::new(RwLock::new(Vec::new()));
@@ -53,7 +41,7 @@ lazy_static! {
     pub static ref GLOBAL_EventNotifier: Arc<RwLock<EventNotifier>> = EventNotifier::new();
     pub static ref GLOBAL_BOOT_TIME: OnceCell<SystemTime> = OnceCell::new();
     pub static ref GLOBAL_LocalNodeName: String = "127.0.0.1:9000".to_string();
-    pub static ref GLOBAL_LocalNodeNameHex: String = rustfs_utils::crypto::hex(GLOBAL_LocalNodeName.as_bytes());
+    pub static ref GLOBAL_LocalNodeNameHex: String = nebulafx_utils::crypto::hex(GLOBAL_LocalNodeName.as_bytes());
     pub static ref GLOBAL_NodeNamesHex: HashMap<String, ()> = HashMap::new();
     pub static ref GLOBAL_REGION: OnceLock<String> = OnceLock::new();
 }
@@ -78,7 +66,7 @@ pub fn init_global_action_credentials(ak: Option<String>, sk: Option<String>) {
         if let Some(k) = ak {
             k
         } else {
-            rustfs_utils::string::gen_access_key(20).unwrap_or_default()
+            nebulafx_utils::string::gen_access_key(20).unwrap_or_default()
         }
     };
 
@@ -86,7 +74,7 @@ pub fn init_global_action_credentials(ak: Option<String>, sk: Option<String>) {
         if let Some(k) = sk {
             k
         } else {
-            rustfs_utils::string::gen_secret_key(32).unwrap_or_default()
+            nebulafx_utils::string::gen_secret_key(32).unwrap_or_default()
         }
     };
 
@@ -104,28 +92,28 @@ pub fn get_global_action_cred() -> Option<Credentials> {
     GLOBAL_ACTIVE_CRED.get().cloned()
 }
 
-/// Get the global rustfs port
+/// Get the global nebulafx port
 ///
 /// # Returns
-/// * `u16` - The global rustfs port
+/// * `u16` - The global nebulafx port
 ///
-pub fn global_rustfs_port() -> u16 {
-    if let Some(p) = GLOBAL_RUSTFS_PORT.get() {
+pub fn global_nebulafx_port() -> u16 {
+    if let Some(p) = GLOBAL_NEUBULAFX_PORT.get() {
         *p
     } else {
-        rustfs_config::DEFAULT_PORT
+        nebulafx_config::DEFAULT_PORT
     }
 }
 
-/// Set the global rustfs port
+/// Set the global nebulafx port
 ///
 /// # Arguments
 /// * `value` - The port value to set globally
 ///
 /// # Returns
 /// * None
-pub fn set_global_rustfs_port(value: u16) {
-    GLOBAL_RUSTFS_PORT.set(value).expect("set_global_rustfs_port fail");
+pub fn set_global_nebulafx_port(value: u16) {
+    GLOBAL_NEUBULAFX_PORT.set(value).expect("set_global_nebulafx_port fail");
 }
 
 /// Set the global deployment id

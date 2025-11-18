@@ -1,17 +1,5 @@
 #!/bin/bash
-# Copyright 2024 RustFS Team
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+
 
 # test-deployment.sh - Quick test script for MNMD deployment
 # Usage: ./test-deployment.sh
@@ -25,7 +13,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 echo "========================================="
-echo "RustFS MNMD Deployment Test"
+echo "NebulaFX MNMD Deployment Test"
 echo "========================================="
 echo ""
 
@@ -44,7 +32,7 @@ echo ""
 # Test 2: Check health status
 echo "Test 2: Checking health status..."
 HEALTHY=0
-for node in rustfs-node1 rustfs-node2 rustfs-node3 rustfs-node4; do
+for node in nebulafx-node1 nebulafx-node2 nebulafx-node3 nebulafx-node4; do
   STATUS=$(docker inspect "$node" --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
   if [ "$STATUS" = "healthy" ]; then
     echo -e "  ${GREEN}✓ $node is healthy${NC}"
@@ -109,8 +97,8 @@ echo ""
 # Test 5: Check inter-node connectivity
 echo "Test 5: Testing inter-node connectivity..."
 CONN_SUCCESS=0
-for node in rustfs-node2 rustfs-node3 rustfs-node4; do
-  if docker exec rustfs-node1 nc -z "$node" 9000 2>/dev/null; then
+for node in nebulafx-node2 nebulafx-node3 nebulafx-node4; do
+  if docker exec nebulafx-node1 nc -z "$node" 9000 2>/dev/null; then
     echo -e "  ${GREEN}✓ node1 → $node connection OK${NC}"
     CONN_SUCCESS=$((CONN_SUCCESS + 1))
   else
@@ -129,10 +117,10 @@ echo ""
 echo "Test 6: Verifying data directories..."
 DIR_SUCCESS=0
 for i in {1..4}; do
-  if docker exec rustfs-node1 test -d "/data/rustfs${i}"; then
+  if docker exec nebulafx-node1 test -d "/data/nebulafx${i}"; then
     DIR_SUCCESS=$((DIR_SUCCESS + 1))
   else
-    echo -e "  ${RED}✗ /data/rustfs${i} not found in node1${NC}"
+    echo -e "  ${RED}✗ /data/nebulafx${i} not found in node1${NC}"
   fi
 done
 

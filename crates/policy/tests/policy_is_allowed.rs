@@ -1,20 +1,8 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 
-use rustfs_policy::policy::Effect::*;
-use rustfs_policy::policy::action::S3Action::*;
-use rustfs_policy::policy::*;
+
+use nebulafx_policy::policy::Effect::*;
+use nebulafx_policy::policy::action::S3Action::*;
+use nebulafx_policy::policy::*;
 use serde_json::Value;
 use std::collections::HashMap;
 use test_case::test_case;
@@ -36,9 +24,9 @@ struct ArgsBuilder {
     Policy{
         version: DEFAULT_VERSION.into(),
         statements: vec![
-            rustfs_policy::policy::Statement{
+            nebulafx_policy::policy::Statement{
                     effect: Allow,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(PutObjectAction), rustfs_policy::policy::action::Action::S3Action(GetBucketLocationAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(PutObjectAction), nebulafx_policy::policy::action::Action::S3Action(GetBucketLocationAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::*".try_into().unwrap()].into_iter().collect()),
                     ..Default::default()
             }
@@ -59,7 +47,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Allow,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(PutObjectAction), rustfs_policy::policy::action::Action::S3Action(GetBucketLocationAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(PutObjectAction), nebulafx_policy::policy::action::Action::S3Action(GetBucketLocationAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::*".try_into().unwrap()].into_iter().collect()),
                     ..Default::default()
             }
@@ -86,7 +74,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Allow,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(PutObjectAction), rustfs_policy::policy::action::Action::S3Action(GetBucketLocationAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(PutObjectAction), nebulafx_policy::policy::action::Action::S3Action(GetBucketLocationAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::*".try_into().unwrap()].into_iter().collect()),
                     ..Default::default()
             }
@@ -108,7 +96,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Allow,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(PutObjectAction), rustfs_policy::policy::action::Action::S3Action(GetBucketLocationAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(PutObjectAction), nebulafx_policy::policy::action::Action::S3Action(GetBucketLocationAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::*".try_into().unwrap()].into_iter().collect()),
                     ..Default::default()
             }
@@ -129,7 +117,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Allow,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(PutObjectAction), rustfs_policy::policy::action::Action::S3Action(GetBucketLocationAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(PutObjectAction), nebulafx_policy::policy::action::Action::S3Action(GetBucketLocationAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::*".try_into().unwrap()].into_iter().collect()),
                     ..Default::default()
             }
@@ -157,7 +145,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Allow,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(PutObjectAction), rustfs_policy::policy::action::Action::S3Action(GetBucketLocationAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(PutObjectAction), nebulafx_policy::policy::action::Action::S3Action(GetBucketLocationAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::*".try_into().unwrap()].into_iter().collect()),
                     ..Default::default()
             }
@@ -179,7 +167,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Allow,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(GetObjectAction), rustfs_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(GetObjectAction), nebulafx_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::mybucket/myobject*".try_into().unwrap()].into_iter().collect()),
                     ..Default::default()
             }
@@ -200,7 +188,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Allow,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(GetObjectAction), rustfs_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(GetObjectAction), nebulafx_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::mybucket/myobject*".try_into().unwrap()].into_iter().collect()),
                     ..Default::default()
             }
@@ -228,7 +216,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Allow,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(GetObjectAction), rustfs_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(GetObjectAction), nebulafx_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::mybucket/myobject*".try_into().unwrap()].into_iter().collect()),
                     ..Default::default()
             }
@@ -250,7 +238,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Allow,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(GetObjectAction), rustfs_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(GetObjectAction), nebulafx_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::mybucket/myobject*".try_into().unwrap()].into_iter().collect()),
                     ..Default::default()
             }
@@ -271,7 +259,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Allow,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(GetObjectAction), rustfs_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(GetObjectAction), nebulafx_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::mybucket/myobject*".try_into().unwrap()].into_iter().collect()),
                     ..Default::default()
             }
@@ -299,7 +287,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Allow,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(GetObjectAction), rustfs_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(GetObjectAction), nebulafx_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::mybucket/myobject*".try_into().unwrap()].into_iter().collect()),
                     ..Default::default()
             }
@@ -321,7 +309,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Allow,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(GetObjectAction), rustfs_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(GetObjectAction), nebulafx_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::mybucket/myobject*".try_into().unwrap()].into_iter().collect()),
                     conditions: serde_json::from_str(r#"{"IpAddress": {"aws:SourceIp": "192.168.1.0/24"}}"#).unwrap(),
                     ..Default::default()
@@ -343,7 +331,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Allow,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(GetObjectAction), rustfs_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(GetObjectAction), nebulafx_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::mybucket/myobject*".try_into().unwrap()].into_iter().collect()),
                     conditions: serde_json::from_str(r#"{"IpAddress": {"aws:SourceIp": "192.168.1.0/24"}}"#).unwrap(),
                     ..Default::default()
@@ -372,7 +360,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Allow,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(GetObjectAction), rustfs_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(GetObjectAction), nebulafx_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::mybucket/myobject*".try_into().unwrap()].into_iter().collect()),
                     conditions: serde_json::from_str(r#"{"IpAddress": {"aws:SourceIp": "192.168.1.0/24"}}"#).unwrap(),
                     ..Default::default()
@@ -395,7 +383,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Allow,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(GetObjectAction), rustfs_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(GetObjectAction), nebulafx_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::mybucket/myobject*".try_into().unwrap()].into_iter().collect()),
                     conditions: serde_json::from_str(r#"{"IpAddress": {"aws:SourceIp": "192.168.1.0/24"}}"#).unwrap(),
                     ..Default::default()
@@ -417,7 +405,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Allow,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(GetObjectAction), rustfs_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(GetObjectAction), nebulafx_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::mybucket/myobject*".try_into().unwrap()].into_iter().collect()),
                     conditions: serde_json::from_str(r#"{"IpAddress": {"aws:SourceIp": "192.168.1.0/24"}}"#).unwrap(),
                     ..Default::default()
@@ -446,7 +434,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Allow,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(GetObjectAction), rustfs_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(GetObjectAction), nebulafx_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::mybucket/myobject*".try_into().unwrap()].into_iter().collect()),
                     conditions: serde_json::from_str(r#"{"IpAddress": {"aws:SourceIp": "192.168.1.0/24"}}"#).unwrap(),
                     ..Default::default()
@@ -469,7 +457,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Deny,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(GetObjectAction), rustfs_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(GetObjectAction), nebulafx_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::mybucket/myobject*".try_into().unwrap()].into_iter().collect()),
                     conditions: serde_json::from_str(r#"{"IpAddress": {"aws:SourceIp": "192.168.1.0/24"}}"#).unwrap(),
                     ..Default::default()
@@ -491,7 +479,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Deny,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(GetObjectAction), rustfs_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(GetObjectAction), nebulafx_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::mybucket/myobject*".try_into().unwrap()].into_iter().collect()),
                     conditions: serde_json::from_str(r#"{"IpAddress": {"aws:SourceIp": "192.168.1.0/24"}}"#).unwrap(),
                     ..Default::default()
@@ -520,7 +508,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Deny,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(GetObjectAction), rustfs_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(GetObjectAction), nebulafx_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::mybucket/myobject*".try_into().unwrap()].into_iter().collect()),
                     conditions: serde_json::from_str(r#"{"IpAddress": {"aws:SourceIp": "192.168.1.0/24"}}"#).unwrap(),
                     ..Default::default()
@@ -543,7 +531,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Deny,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(GetObjectAction), rustfs_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(GetObjectAction), nebulafx_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::mybucket/myobject*".try_into().unwrap()].into_iter().collect()),
                     conditions: serde_json::from_str(r#"{"IpAddress": {"aws:SourceIp": "192.168.1.0/24"}}"#).unwrap(),
                     ..Default::default()
@@ -565,7 +553,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Deny,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(GetObjectAction), rustfs_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(GetObjectAction), nebulafx_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::mybucket/myobject*".try_into().unwrap()].into_iter().collect()),
                     conditions: serde_json::from_str(r#"{"IpAddress": {"aws:SourceIp": "192.168.1.0/24"}}"#).unwrap(),
                     ..Default::default()
@@ -594,7 +582,7 @@ struct ArgsBuilder {
         statements: vec![
             Statement{
                     effect: Deny,
-                    actions: ActionSet(vec![rustfs_policy::policy::action::Action::S3Action(GetObjectAction), rustfs_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
+                    actions: ActionSet(vec![nebulafx_policy::policy::action::Action::S3Action(GetObjectAction), nebulafx_policy::policy::action::Action::S3Action(PutObjectAction)].into_iter().collect()),
                     resources: ResourceSet(vec!["arn:aws:s3:::mybucket/myobject*".try_into().unwrap()].into_iter().collect()),
                     conditions: serde_json::from_str(r#"{"IpAddress": {"aws:SourceIp": "192.168.1.0/24"}}"#).unwrap(),
                     ..Default::default()

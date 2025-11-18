@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 //! API types for KMS dynamic configuration
 
@@ -277,7 +265,7 @@ impl ConfigureVaultKmsRequest {
                 namespace: self.namespace.clone(),
                 mount_path: self.mount_path.clone().unwrap_or_else(|| "transit".to_string()),
                 kv_mount: self.kv_mount.clone().unwrap_or_else(|| "secret".to_string()),
-                key_path_prefix: self.key_path_prefix.clone().unwrap_or_else(|| "rustfs/kms/keys".to_string()),
+                key_path_prefix: self.key_path_prefix.clone().unwrap_or_else(|| "nebulafx/kms/keys".to_string()),
                 tls: if self.skip_tls_verify.unwrap_or(false) {
                     Some(crate::config::TlsConfig {
                         ca_cert_path: None,

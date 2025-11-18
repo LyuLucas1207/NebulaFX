@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::error::Error as IamError;
 use crate::error::is_err_no_such_account;
@@ -24,19 +12,19 @@ use crate::store::MappedPolicy;
 use crate::store::Store;
 use crate::store::UserType;
 use crate::utils::extract_claims;
-use rustfs_ecstore::global::get_global_action_cred;
-use rustfs_ecstore::notification_sys::get_global_notification_sys;
-use rustfs_madmin::AddOrUpdateUserReq;
-use rustfs_madmin::GroupDesc;
-use rustfs_policy::arn::ARN;
-use rustfs_policy::auth::Credentials;
-use rustfs_policy::auth::{
+use nebulafx_ecstore::global::get_global_action_cred;
+use nebulafx_ecstore::notification_sys::get_global_notification_sys;
+use nebulafx_madmin::AddOrUpdateUserReq;
+use nebulafx_madmin::GroupDesc;
+use nebulafx_policy::arn::ARN;
+use nebulafx_policy::auth::Credentials;
+use nebulafx_policy::auth::{
     ACCOUNT_ON, UserIdentity, contains_reserved_chars, create_new_credentials_with_metadata, generate_credentials,
     is_access_key_valid, is_secret_key_valid,
 };
-use rustfs_policy::policy::Args;
-use rustfs_policy::policy::opa;
-use rustfs_policy::policy::{EMBEDDED_POLICY_TYPE, INHERITED_POLICY_TYPE, Policy, PolicyDoc, iam_policy_claim_name_sa};
+use nebulafx_policy::policy::Args;
+use nebulafx_policy::policy::opa;
+use nebulafx_policy::policy::{EMBEDDED_POLICY_TYPE, INHERITED_POLICY_TYPE, Policy, PolicyDoc, iam_policy_claim_name_sa};
 use serde_json::Value;
 use serde_json::json;
 use std::collections::HashMap;
@@ -55,9 +43,9 @@ pub const POLICYNAME: &str = "policy";
 pub const SESSION_POLICY_NAME: &str = "sessionPolicy";
 pub const SESSION_POLICY_NAME_EXTRACTED: &str = "sessionPolicy-extracted";
 
-static POLICY_PLUGIN_CLIENT: OnceLock<Arc<RwLock<Option<rustfs_policy::policy::opa::AuthZPlugin>>>> = OnceLock::new();
+static POLICY_PLUGIN_CLIENT: OnceLock<Arc<RwLock<Option<nebulafx_policy::policy::opa::AuthZPlugin>>>> = OnceLock::new();
 
-fn get_policy_plugin_client() -> Arc<RwLock<Option<rustfs_policy::policy::opa::AuthZPlugin>>> {
+fn get_policy_plugin_client() -> Arc<RwLock<Option<nebulafx_policy::policy::opa::AuthZPlugin>>> {
     POLICY_PLUGIN_CLIENT.get_or_init(|| Arc::new(RwLock::new(None))).clone()
 }
 
@@ -91,13 +79,13 @@ impl<T: Store> IamSys<T> {
         self.store.api.has_watcher()
     }
 
-    pub async fn set_policy_plugin_client(client: rustfs_policy::policy::opa::AuthZPlugin) {
+    pub async fn set_policy_plugin_client(client: nebulafx_policy::policy::opa::AuthZPlugin) {
         let policy_plugin_client = get_policy_plugin_client();
         let mut guard = policy_plugin_client.write().await;
         *guard = Some(client);
     }
 
-    pub async fn get_policy_plugin_client() -> Option<rustfs_policy::policy::opa::AuthZPlugin> {
+    pub async fn get_policy_plugin_client() -> Option<nebulafx_policy::policy::opa::AuthZPlugin> {
         let policy_plugin_client = get_policy_plugin_client();
         let guard = policy_plugin_client.read().await;
         guard.clone()
@@ -159,12 +147,12 @@ impl<T: Store> IamSys<T> {
         Ok(())
     }
 
-    pub async fn info_policy(&self, name: &str) -> Result<rustfs_madmin::PolicyInfo> {
+    pub async fn info_policy(&self, name: &str) -> Result<nebulafx_madmin::PolicyInfo> {
         let d = self.store.get_policy_doc(name).await?;
 
         let pdata = serde_json::to_string(&d.policy)?;
 
-        Ok(rustfs_madmin::PolicyInfo {
+        Ok(nebulafx_madmin::PolicyInfo {
             policy_name: name.to_string(),
             policy: json!(pdata),
             create_date: d.create_date,
@@ -269,11 +257,11 @@ impl<T: Store> IamSys<T> {
         self.store.merge_policies(name).await.0
     }
 
-    pub async fn list_bucket_users(&self, bucket_name: &str) -> Result<HashMap<String, rustfs_madmin::UserInfo>> {
+    pub async fn list_bucket_users(&self, bucket_name: &str) -> Result<HashMap<String, nebulafx_madmin::UserInfo>> {
         self.store.get_bucket_users(bucket_name).await
     }
 
-    pub async fn list_users(&self) -> Result<HashMap<String, rustfs_madmin::UserInfo>> {
+    pub async fn list_users(&self) -> Result<HashMap<String, nebulafx_madmin::UserInfo>> {
         self.store.get_users().await
     }
 
@@ -307,11 +295,11 @@ impl<T: Store> IamSys<T> {
         }
     }
 
-    pub async fn get_user_info(&self, name: &str) -> Result<rustfs_madmin::UserInfo> {
+    pub async fn get_user_info(&self, name: &str) -> Result<nebulafx_madmin::UserInfo> {
         self.store.get_user_info(name).await
     }
 
-    pub async fn set_user_status(&self, name: &str, status: rustfs_madmin::AccountStatus) -> Result<OffsetDateTime> {
+    pub async fn set_user_status(&self, name: &str, status: nebulafx_madmin::AccountStatus) -> Result<OffsetDateTime> {
         let updated_at = self.store.set_user_status(name, status).await?;
 
         self.notify_for_user(name, false).await;

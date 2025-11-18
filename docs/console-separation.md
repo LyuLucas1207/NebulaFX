@@ -1,6 +1,6 @@
-# RustFS Console & Endpoint Service Separation Guide
+# NebulaFX Console & Endpoint Service Separation Guide
 
-This document provides comprehensive guidance on RustFS's console and endpoint service separation architecture, enabling independent deployment of the web management interface and S3 API service with enterprise-grade security, monitoring, and Docker deployment standards.
+This document provides comprehensive guidance on NebulaFX's console and endpoint service separation architecture, enabling independent deployment of the web management interface and S3 API service with enterprise-grade security, monitoring, and Docker deployment standards.
 
 ## Table of Contents
 
@@ -18,7 +18,7 @@ This document provides comprehensive guidance on RustFS's console and endpoint s
 
 ## Overview
 
-RustFS implements complete separation between the console web interface and the S3 API endpoint service, enabling:
+NebulaFX implements complete separation between the console web interface and the S3 API endpoint service, enabling:
 
 - **Independent Port Management**: Console (`:9001`) and API (`:9000`) run on separate ports
 - **Enhanced Security**: Different CORS policies, TLS configurations, and access controls
@@ -32,13 +32,13 @@ RustFS implements complete separation between the console web interface and the 
 
 - **S3 API Endpoint** (Port 9000)
   - Handles all S3-compatible API requests
-  - Independent CORS configuration via `RUSTFS_CORS_ALLOWED_ORIGINS`
+  - Independent CORS configuration via `NEUBULAFX_CORS_ALLOWED_ORIGINS`
   - Health check endpoint: `GET /health`
   - Production-ready with comprehensive error handling
 
 - **Console Interface** (Port 9001)
-  - Web-based management dashboard at `/rustfs/console/`
-  - Independent CORS configuration via `RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS` 
+  - Web-based management dashboard at `/nebulafx/console/`
+  - Independent CORS configuration via `NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS` 
   - TLS support using shared certificate infrastructure
   - Rate limiting and authentication timeout controls
   - Health check endpoint: `GET /health`
@@ -49,10 +49,10 @@ RustFS implements complete separation between the console web interface and the 
 Browser → Console (9001) → API Endpoint (9000) → Storage Backend
                 ↓
         External Address Configuration
-        (RUSTFS_EXTERNAL_ADDRESS)
+        (NEUBULAFX_EXTERNAL_ADDRESS)
 ```
 
-The console communicates with the API endpoint using the `RUSTFS_EXTERNAL_ADDRESS` parameter, which is critical for Docker deployments with port mapping.
+The console communicates with the API endpoint using the `NEUBULAFX_EXTERNAL_ADDRESS` parameter, which is critical for Docker deployments with port mapping.
 
 ## Quick Start
 
@@ -60,11 +60,11 @@ The console communicates with the API endpoint using the `RUSTFS_EXTERNAL_ADDRES
 
 ```bash
 # Start with default configuration
-rustfs /data/volume
+nebulafx /data/volume
 
 # Access points:
 # API: http://localhost:9000
-# Console: http://localhost:9001/rustfs/console/
+# Console: http://localhost:9001/nebulafx/console/
 ```
 
 ### Docker Quick Start
@@ -72,14 +72,14 @@ rustfs /data/volume
 ```bash
 # Basic Docker deployment
 docker run -d \
-  --name rustfs \
+  --name nebulafx \
   -p 9020:9000 -p 9021:9001 \
-  -e RUSTFS_EXTERNAL_ADDRESS=":9020" \
-  rustfs/rustfs:latest
+  -e NEUBULAFX_EXTERNAL_ADDRESS=":9020" \
+  nebulafx/nebulafx:latest
 
 # Access points:
 # API: http://localhost:9020  
-# Console: http://localhost:9021/rustfs/console/
+# Console: http://localhost:9021/nebulafx/console/
 ```
 
 ### Production Quick Start
@@ -100,52 +100,52 @@ Use our enhanced deployment script for production-ready setup:
 
 | Parameter | Environment Variable | Default | Description |
 |-----------|---------------------|---------|-------------|
-| `address` | `RUSTFS_ADDRESS` | `:9000` | S3 API endpoint bind address |
-| `console_address` | `RUSTFS_CONSOLE_ADDRESS` | `:9001` | Console service bind address |
-| `console_enable` | `RUSTFS_CONSOLE_ENABLE` | `true` | Enable/disable console service |
-| `external_address` | `RUSTFS_EXTERNAL_ADDRESS` | `:9000` | External endpoint address for console→API communication |
+| `address` | `NEUBULAFX_ADDRESS` | `:9000` | S3 API endpoint bind address |
+| `console_address` | `NEUBULAFX_CONSOLE_ADDRESS` | `:9001` | Console service bind address |
+| `console_enable` | `NEUBULAFX_CONSOLE_ENABLE` | `true` | Enable/disable console service |
+| `external_address` | `NEUBULAFX_EXTERNAL_ADDRESS` | `:9000` | External endpoint address for console→API communication |
 
 ### CORS Configuration
 
 | Parameter | Environment Variable | Default | Description |
 |-----------|---------------------|---------|-------------|
-| `cors_allowed_origins` | `RUSTFS_CORS_ALLOWED_ORIGINS` | `*` | Comma-separated allowed origins for endpoint CORS |
-| `console_cors_allowed_origins` | `RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS` | `*` | Comma-separated allowed origins for console CORS |
+| `cors_allowed_origins` | `NEUBULAFX_CORS_ALLOWED_ORIGINS` | `*` | Comma-separated allowed origins for endpoint CORS |
+| `console_cors_allowed_origins` | `NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS` | `*` | Comma-separated allowed origins for console CORS |
 
 ### Security Configuration
 
 | Parameter | Environment Variable | Default | Description |
 |-----------|---------------------|---------|-------------|
-| `tls_path` | `RUSTFS_TLS_PATH` | - | TLS certificate directory path (shared by both services) |
-| `console_rate_limit_enable` | `RUSTFS_CONSOLE_RATE_LIMIT_ENABLE` | `false` | Enable rate limiting for console access |
-| `console_rate_limit_rpm` | `RUSTFS_CONSOLE_RATE_LIMIT_RPM` | `100` | Console rate limit (requests per minute) |
-| `console_auth_timeout` | `RUSTFS_CONSOLE_AUTH_TIMEOUT` | `3600` | Console authentication timeout (seconds) |
+| `tls_path` | `NEUBULAFX_TLS_PATH` | - | TLS certificate directory path (shared by both services) |
+| `console_rate_limit_enable` | `NEUBULAFX_CONSOLE_RATE_LIMIT_ENABLE` | `false` | Enable rate limiting for console access |
+| `console_rate_limit_rpm` | `NEUBULAFX_CONSOLE_RATE_LIMIT_RPM` | `100` | Console rate limit (requests per minute) |
+| `console_auth_timeout` | `NEUBULAFX_CONSOLE_AUTH_TIMEOUT` | `3600` | Console authentication timeout (seconds) |
 
 ### Authentication Configuration
 
 | Parameter | Environment Variable | Default | Description |
 |-----------|---------------------|---------|-------------|
-| `access_key` | `RUSTFS_ACCESS_KEY` | `rustfsadmin` | Administrative access key |
-| `secret_key` | `RUSTFS_SECRET_KEY` | `rustfsadmin` | Administrative secret key |
+| `access_key` | `NEUBULAFX_ACCESS_KEY` | `nebulafxadmin` | Administrative access key |
+| `secret_key` | `NEUBULAFX_SECRET_KEY` | `nebulafxadmin` | Administrative secret key |
 
 ### Important Notes
 
 - **External Address**: Critical for Docker deployments. Must match the host-mapped API port.
-- **TLS Configuration**: Console uses shared TLS certificates from `RUSTFS_TLS_PATH` (no separate cert config needed).
+- **TLS Configuration**: Console uses shared TLS certificates from `NEUBULAFX_TLS_PATH` (no separate cert config needed).
 - **Environment Priority**: Console security settings are read directly from environment variables.
 
 ## Docker Deployment
 
 ### Prerequisites
 
-Ensure Docker is installed and the RustFS image is available:
+Ensure Docker is installed and the NebulaFX image is available:
 
 ```bash
-# Pull the latest RustFS image
-docker pull rustfs/rustfs:latest
+# Pull the latest NebulaFX image
+docker pull nebulafx/nebulafx:latest
 
 # Or build from source
-docker build -t rustfs/rustfs:latest .
+docker build -t nebulafx/nebulafx:latest .
 ```
 
 ### Basic Docker Deployment
@@ -154,17 +154,17 @@ Simple deployment with port mapping:
 
 ```bash
 docker run -d \
-  --name rustfs-basic \
+  --name nebulafx-basic \
   -p 9020:9000 \  # API: host 9020 → container 9000
   -p 9021:9001 \  # Console: host 9021 → container 9001
-  -e RUSTFS_EXTERNAL_ADDRESS=":9020" \  # Critical: must match host API port
-  -e RUSTFS_CORS_ALLOWED_ORIGINS="http://localhost:9021" \
-  -v rustfs-data:/data \
-  rustfs/rustfs:latest
+  -e NEUBULAFX_EXTERNAL_ADDRESS=":9020" \  # Critical: must match host API port
+  -e NEUBULAFX_CORS_ALLOWED_ORIGINS="http://localhost:9021" \
+  -v nebulafx-data:/data \
+  nebulafx/nebulafx:latest
 
 # Access:
 # API: http://localhost:9020
-# Console: http://localhost:9021/rustfs/console/
+# Console: http://localhost:9021/nebulafx/console/
 ```
 
 ### Docker Compose Deployment
@@ -182,8 +182,8 @@ docker-compose --profile observability up -d # With monitoring stack
 
 The compose configuration provides:
 
-- **Production Service** (`rustfs`): Ports 9000:9000 and 9001:9001
-- **Development Service** (`rustfs-dev`): Ports 9010:9000 and 9011:9001  
+- **Production Service** (`nebulafx`): Ports 9000:9000 and 9001:9001
+- **Development Service** (`nebulafx-dev`): Ports 9010:9000 and 9011:9001  
 - **Observability Stack**: Grafana, Prometheus, Jaeger, and OpenTelemetry
 - **Reverse Proxy**: Nginx configuration for production deployments
 
@@ -221,47 +221,47 @@ The compose configuration provides:
 
 ```bash
 docker run -d \
-  --name rustfs-dev \
+  --name nebulafx-dev \
   -p 9000:9000 -p 9001:9001 \
-  -e RUSTFS_EXTERNAL_ADDRESS=":9000" \
-  -e RUSTFS_CORS_ALLOWED_ORIGINS="*" \
-  -e RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS="*" \
-  -e RUSTFS_ACCESS_KEY="dev-admin" \
-  -e RUSTFS_SECRET_KEY="dev-secret" \
+  -e NEUBULAFX_EXTERNAL_ADDRESS=":9000" \
+  -e NEUBULAFX_CORS_ALLOWED_ORIGINS="*" \
+  -e NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS="*" \
+  -e NEUBULAFX_ACCESS_KEY="dev-admin" \
+  -e NEUBULAFX_SECRET_KEY="dev-secret" \
   -e RUST_LOG="debug" \
-  -v rustfs-dev-data:/data \
-  rustfs/rustfs:latest
+  -v nebulafx-dev-data:/data \
+  nebulafx/nebulafx:latest
 ```
 
 #### Production with TLS and Security
 
 ```bash
 docker run -d \
-  --name rustfs-production \
+  --name nebulafx-production \
   -p 9443:9001 -p 9000:9000 \
   -v /path/to/certs:/certs:ro \
   -v /path/to/data:/data \
-  -e RUSTFS_TLS_PATH="/certs" \
-  -e RUSTFS_CONSOLE_RATE_LIMIT_ENABLE="true" \
-  -e RUSTFS_CONSOLE_RATE_LIMIT_RPM="60" \
-  -e RUSTFS_CONSOLE_AUTH_TIMEOUT="1800" \
-  -e RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS="https://admin.yourdomain.com" \
-  -e RUSTFS_CORS_ALLOWED_ORIGINS="https://api.yourdomain.com" \
-  -e RUSTFS_ACCESS_KEY="$(openssl rand -hex 16)" \
-  -e RUSTFS_SECRET_KEY="$(openssl rand -hex 32)" \
-  rustfs/rustfs:latest
+  -e NEUBULAFX_TLS_PATH="/certs" \
+  -e NEUBULAFX_CONSOLE_RATE_LIMIT_ENABLE="true" \
+  -e NEUBULAFX_CONSOLE_RATE_LIMIT_RPM="60" \
+  -e NEUBULAFX_CONSOLE_AUTH_TIMEOUT="1800" \
+  -e NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS="https://admin.yourdomain.com" \
+  -e NEUBULAFX_CORS_ALLOWED_ORIGINS="https://api.yourdomain.com" \
+  -e NEUBULAFX_ACCESS_KEY="$(openssl rand -hex 16)" \
+  -e NEUBULAFX_SECRET_KEY="$(openssl rand -hex 32)" \
+  nebulafx/nebulafx:latest
 ```
 
 #### Console-Disabled API-Only Deployment
 
 ```bash
 docker run -d \
-  --name rustfs-api-only \
+  --name nebulafx-api-only \
   -p 9000:9000 \
-  -e RUSTFS_CONSOLE_ENABLE="false" \
-  -e RUSTFS_CORS_ALLOWED_ORIGINS="https://your-app.com" \
-  -v rustfs-api-data:/data \
-  rustfs/rustfs:latest
+  -e NEUBULAFX_CONSOLE_ENABLE="false" \
+  -e NEUBULAFX_CORS_ALLOWED_ORIGINS="https://your-app.com" \
+  -v nebulafx-api-data:/data \
+  nebulafx/nebulafx:latest
 
 # Only API available: http://localhost:9000
 ```
@@ -282,7 +282,7 @@ Check container health:
 docker ps --format "table {{.Names}}\t{{.Status}}"
 
 # View detailed health check logs
-docker inspect rustfs --format='{{json .State.Health}}' | jq
+docker inspect nebulafx --format='{{json .State.Health}}' | jq
 ```
 
 ## Kubernetes Deployment
@@ -293,37 +293,37 @@ docker inspect rustfs --format='{{json .State.Health}}' | jq
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rustfs
+  name: nebulafx
   labels:
-    app: rustfs
+    app: nebulafx
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: rustfs
+      app: nebulafx
   template:
     metadata:
       labels:
-        app: rustfs
+        app: nebulafx
     spec:
       containers:
-      - name: rustfs
-        image: rustfs/rustfs:latest
+      - name: nebulafx
+        image: nebulafx/nebulafx:latest
         ports:
         - containerPort: 9000
           name: api
         - containerPort: 9001
           name: console
         env:
-        - name: RUSTFS_ADDRESS
+        - name: NEUBULAFX_ADDRESS
           value: "0.0.0.0:9000"
-        - name: RUSTFS_CONSOLE_ADDRESS
+        - name: NEUBULAFX_CONSOLE_ADDRESS
           value: "0.0.0.0:9001"
-        - name: RUSTFS_EXTERNAL_ADDRESS
+        - name: NEUBULAFX_EXTERNAL_ADDRESS
           value: ":9000"
-        - name: RUSTFS_CORS_ALLOWED_ORIGINS
+        - name: NEUBULAFX_CORS_ALLOWED_ORIGINS
           value: "*"
-        - name: RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS
+        - name: NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS
           value: "*"
         livenessProbe:
           httpGet:
@@ -343,16 +343,16 @@ spec:
       volumes:
       - name: data
         persistentVolumeClaim:
-          claimName: rustfs-data
+          claimName: nebulafx-data
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: rustfs-service
+  name: nebulafx-service
 spec:
   selector:
-    app: rustfs
+    app: nebulafx
   ports:
   - name: api
     port: 9000
@@ -366,7 +366,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: rustfs-data
+  name: nebulafx-data
 spec:
   accessModes:
   - ReadWriteOnce
@@ -381,38 +381,38 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rustfs-production
+  name: nebulafx-production
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: rustfs-production
+      app: nebulafx-production
   template:
     metadata:
       labels:
-        app: rustfs-production
+        app: nebulafx-production
     spec:
       containers:
-      - name: rustfs
-        image: rustfs/rustfs:latest
+      - name: nebulafx
+        image: nebulafx/nebulafx:latest
         env:
-        - name: RUSTFS_TLS_PATH
+        - name: NEUBULAFX_TLS_PATH
           value: "/certs"
-        - name: RUSTFS_CONSOLE_RATE_LIMIT_ENABLE
+        - name: NEUBULAFX_CONSOLE_RATE_LIMIT_ENABLE
           value: "true"
-        - name: RUSTFS_CONSOLE_RATE_LIMIT_RPM
+        - name: NEUBULAFX_CONSOLE_RATE_LIMIT_RPM
           value: "100"
-        - name: RUSTFS_CONSOLE_AUTH_TIMEOUT
+        - name: NEUBULAFX_CONSOLE_AUTH_TIMEOUT
           value: "1800"
-        - name: RUSTFS_ACCESS_KEY
+        - name: NEUBULAFX_ACCESS_KEY
           valueFrom:
             secretKeyRef:
-              name: rustfs-credentials
+              name: nebulafx-credentials
               key: access-key
-        - name: RUSTFS_SECRET_KEY
+        - name: NEUBULAFX_SECRET_KEY
           valueFrom:
             secretKeyRef:
-              name: rustfs-credentials
+              name: nebulafx-credentials
               key: secret-key
         volumeMounts:
         - name: certs
@@ -423,16 +423,16 @@ spec:
       volumes:
       - name: certs
         secret:
-          secretName: rustfs-tls
+          secretName: nebulafx-tls
       - name: data
         persistentVolumeClaim:
-          claimName: rustfs-production-data
+          claimName: nebulafx-production-data
 
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: rustfs-credentials
+  name: nebulafx-credentials
 type: Opaque
 stringData:
   access-key: "your-secure-access-key"
@@ -445,7 +445,7 @@ stringData:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: rustfs-ingress
+  name: nebulafx-ingress
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/cors-allow-origin: "https://admin.yourdomain.com"
@@ -454,7 +454,7 @@ spec:
   - hosts:
     - api.yourdomain.com
     - admin.yourdomain.com
-    secretName: rustfs-tls-ingress
+    secretName: nebulafx-tls-ingress
   rules:
   - host: api.yourdomain.com
     http:
@@ -463,7 +463,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: rustfs-service
+            name: nebulafx-service
             port:
               number: 9000
   - host: admin.yourdomain.com
@@ -473,7 +473,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: rustfs-service
+            name: nebulafx-service
             port:
               number: 9001
 ```
@@ -482,7 +482,7 @@ spec:
 
 ### TLS Configuration
 
-RustFS console uses shared TLS certificate infrastructure. Place certificates in a directory and configure via `RUSTFS_TLS_PATH`:
+NebulaFX console uses shared TLS certificate infrastructure. Place certificates in a directory and configure via `NEUBULAFX_TLS_PATH`:
 
 #### Certificate Requirements
 
@@ -502,7 +502,7 @@ openssl req -x509 -newkey rsa:4096 \
   -keyout ./certs/key.pem \
   -out ./certs/cert.pem \
   -days 365 -nodes \
-  -subj "/C=US/ST=CA/L=SF/O=RustFS/CN=localhost"
+  -subj "/C=US/ST=CA/L=SF/O=NebulaFX/CN=localhost"
 
 # Set proper permissions
 chmod 600 ./certs/key.pem
@@ -524,16 +524,16 @@ Configure console security settings via environment variables:
 
 ```bash
 # Enable rate limiting and configure timeouts
-export RUSTFS_CONSOLE_RATE_LIMIT_ENABLE=true
-export RUSTFS_CONSOLE_RATE_LIMIT_RPM=60        # 60 requests per minute
-export RUSTFS_CONSOLE_AUTH_TIMEOUT=1800       # 30 minutes session timeout
+export NEUBULAFX_CONSOLE_RATE_LIMIT_ENABLE=true
+export NEUBULAFX_CONSOLE_RATE_LIMIT_RPM=60        # 60 requests per minute
+export NEUBULAFX_CONSOLE_AUTH_TIMEOUT=1800       # 30 minutes session timeout
 
 # Start with security settings
 docker run -d \
-  -e RUSTFS_CONSOLE_RATE_LIMIT_ENABLE=true \
-  -e RUSTFS_CONSOLE_RATE_LIMIT_RPM=60 \
-  -e RUSTFS_CONSOLE_AUTH_TIMEOUT=1800 \
-  rustfs/rustfs:latest
+  -e NEUBULAFX_CONSOLE_RATE_LIMIT_ENABLE=true \
+  -e NEUBULAFX_CONSOLE_RATE_LIMIT_RPM=60 \
+  -e NEUBULAFX_CONSOLE_AUTH_TIMEOUT=1800 \
+  nebulafx/nebulafx:latest
 ```
 
 ### CORS Security
@@ -542,12 +542,12 @@ Configure restrictive CORS policies for production:
 
 ```bash
 # Production CORS configuration
-export RUSTFS_CORS_ALLOWED_ORIGINS="https://myapp.com,https://api.myapp.com"
-export RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS="https://admin.myapp.com"
+export NEUBULAFX_CORS_ALLOWED_ORIGINS="https://myapp.com,https://api.myapp.com"
+export NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS="https://admin.myapp.com"
 
 # Development CORS (permissive)
-export RUSTFS_CORS_ALLOWED_ORIGINS="*"
-export RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS="*"
+export NEUBULAFX_CORS_ALLOWED_ORIGINS="*"
+export NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS="*"
 ```
 
 ### Network Security
@@ -572,13 +572,13 @@ sudo ufw deny 9001/tcp
 # docker-compose.yml with network isolation
 version: '3.8'
 services:
-  rustfs:
-    image: rustfs/rustfs:latest
+  nebulafx:
+    image: nebulafx/nebulafx:latest
     networks:
       - api-network      # Public API access
       - console-network  # Internal console access
     environment:
-      - RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS=https://admin.internal.com
+      - NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS=https://admin.internal.com
 
 networks:
   api-network:
@@ -593,7 +593,7 @@ networks:
 Use Nginx for additional security layer:
 
 ```nginx
-# /etc/nginx/sites-available/rustfs
+# /etc/nginx/sites-available/nebulafx
 # API endpoint - public access
 server {
     listen 80;
@@ -619,7 +619,7 @@ server {
     ssl_certificate_key /path/to/key.pem;
     
     # Basic authentication
-    auth_basic "RustFS Admin";
+    auth_basic "NebulaFX Admin";
     auth_basic_user_file /etc/nginx/.htpasswd;
     
     # IP whitelist
@@ -651,7 +651,7 @@ Both services provide independent health check endpoints:
 ```json
 {
   "status": "ok",
-  "service": "rustfs-console",
+  "service": "nebulafx-console",
   "timestamp": "2024-01-15T10:30:00Z",
   "version": "0.0.5",
   "details": {
@@ -674,7 +674,7 @@ Both services provide independent health check endpoints:
 ```json
 {
   "status": "ok",
-  "service": "rustfs-endpoint",
+  "service": "nebulafx-endpoint",
   "timestamp": "2024-01-15T10:30:00Z",
   "version": "0.0.5"
 }
@@ -690,21 +690,21 @@ curl http://localhost:9000/health | jq '.status'
 curl http://localhost:9001/health | jq '.status'
 
 # Prometheus alert rules
-- alert: RustFSConsoleDown
-  expr: up{job="rustfs-console"} == 0
+- alert: NebulaFXConsoleDown
+  expr: up{job="nebulafx-console"} == 0
   for: 30s
   labels:
     severity: critical
   annotations:
-    summary: "RustFS Console service is down"
+    summary: "NebulaFX Console service is down"
 
-- alert: RustFSEndpointDown
-  expr: up{job="rustfs-endpoint"} == 0
+- alert: NebulaFXEndpointDown
+  expr: up{job="nebulafx-endpoint"} == 0
   for: 30s
   labels:
     severity: critical
   annotations:
-    summary: "RustFS API Endpoint is down"
+    summary: "NebulaFX API Endpoint is down"
 ```
 
 #### Docker Health Checks
@@ -723,7 +723,7 @@ Check health status:
 docker ps --format "table {{.Names}}\t{{.Status}}"
 
 # Detailed health information
-docker inspect rustfs --format='{{json .State.Health}}' | jq
+docker inspect nebulafx --format='{{json .State.Health}}' | jq
 ```
 
 ### Logging and Auditing
@@ -733,29 +733,29 @@ docker inspect rustfs --format='{{json .State.Health}}' | jq
 Console and endpoint services use separate logging targets:
 
 **Console Logging Targets:**
-- `rustfs::console::startup` - Server startup and configuration
-- `rustfs::console::access` - HTTP access logs with timing
-- `rustfs::console::error` - Console-specific errors  
-- `rustfs::console::shutdown` - Graceful shutdown logs
+- `nebulafx::console::startup` - Server startup and configuration
+- `nebulafx::console::access` - HTTP access logs with timing
+- `nebulafx::console::error` - Console-specific errors  
+- `nebulafx::console::shutdown` - Graceful shutdown logs
 
 **Endpoint Logging Targets:**
-- `rustfs::endpoint::startup` - API server startup
-- `rustfs::endpoint::access` - S3 API access logs
-- `rustfs::endpoint::auth` - Authentication and authorization
+- `nebulafx::endpoint::startup` - API server startup
+- `nebulafx::endpoint::access` - S3 API access logs
+- `nebulafx::endpoint::auth` - Authentication and authorization
 
 #### Centralized Logging
 
 ```bash
 # JSON structured logging
-RUST_LOG="rustfs::console=info,rustfs::endpoint=info" \
-docker run -d rustfs/rustfs:latest
+RUST_LOG="nebulafx::console=info,nebulafx::endpoint=info" \
+docker run -d nebulafx/nebulafx:latest
 
 # Forward to log aggregation
 docker run -d \
   --log-driver=fluentd \
   --log-opt fluentd-address=localhost:24224 \
-  --log-opt tag="rustfs.{{.Name}}" \
-  rustfs/rustfs:latest
+  --log-opt tag="nebulafx.{{.Name}}" \
+  nebulafx/nebulafx:latest
 ```
 
 ## Troubleshooting
@@ -766,25 +766,25 @@ docker run -d \
 
 **Symptoms**: Console UI shows connection errors, "Failed to load data" messages.
 
-**Cause**: Incorrect `RUSTFS_EXTERNAL_ADDRESS` configuration.
+**Cause**: Incorrect `NEUBULAFX_EXTERNAL_ADDRESS` configuration.
 
 **Solutions**:
 
 ```bash
 # For Docker with port mapping 9020:9000 (API) and 9021:9001 (Console)
-RUSTFS_EXTERNAL_ADDRESS=":9020"  # Must match the mapped host API port
+NEUBULAFX_EXTERNAL_ADDRESS=":9020"  # Must match the mapped host API port
 
 # For direct access without port mapping
-RUSTFS_EXTERNAL_ADDRESS=":9000"  # Must match the API service port
+NEUBULAFX_EXTERNAL_ADDRESS=":9000"  # Must match the API service port
 
 # For Kubernetes or complex networking
-RUSTFS_EXTERNAL_ADDRESS="http://rustfs-service:9000"  # Use service name
+NEUBULAFX_EXTERNAL_ADDRESS="http://nebulafx-service:9000"  # Use service name
 ```
 
 **Debug steps**:
 ```bash
 # Test API connectivity from console container
-docker exec rustfs-container curl http://localhost:9000/health
+docker exec nebulafx-container curl http://localhost:9000/health
 
 # Check CORS configuration
 curl -H "Origin: http://localhost:9021" -v http://localhost:9020/health
@@ -798,15 +798,15 @@ curl -H "Origin: http://localhost:9021" -v http://localhost:9020/health
 
 ```bash
 # Allow specific origins (production)
-RUSTFS_CORS_ALLOWED_ORIGINS="https://admin.yourdomain.com,https://backup.yourdomain.com"
-RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS="https://console.yourdomain.com"
+NEUBULAFX_CORS_ALLOWED_ORIGINS="https://admin.yourdomain.com,https://backup.yourdomain.com"
+NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS="https://console.yourdomain.com"
 
 # Allow all origins (development only)
-RUSTFS_CORS_ALLOWED_ORIGINS="*"
-RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS="*"
+NEUBULAFX_CORS_ALLOWED_ORIGINS="*"
+NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS="*"
 
 # Docker deployment with port mapping
-RUSTFS_CORS_ALLOWED_ORIGINS="http://localhost:9021,http://127.0.0.1:9021"
+NEUBULAFX_CORS_ALLOWED_ORIGINS="http://localhost:9021,http://127.0.0.1:9021"
 ```
 
 **Debug CORS issues**:
@@ -838,10 +838,10 @@ sudo netstat -tulpn | grep :9000
 sudo kill -9 <PID>
 
 # Use different ports
-RUSTFS_ADDRESS=":8000" RUSTFS_CONSOLE_ADDRESS=":8001" rustfs /data
+NEUBULAFX_ADDRESS=":8000" NEUBULAFX_CONSOLE_ADDRESS=":8001" nebulafx /data
 
 # For Docker, change host port mapping
-docker run -p 8020:9000 -p 8021:9001 rustfs/rustfs:latest
+docker run -p 8020:9000 -p 8021:9001 nebulafx/nebulafx:latest
 ```
 
 #### 4. TLS Certificate Issues
@@ -863,10 +863,10 @@ openssl req -x509 -newkey rsa:4096 \
   -keyout /path/to/certs/key.pem \
   -out /path/to/certs/cert.pem \
   -days 365 -nodes \
-  -subj "/C=US/O=RustFS/CN=localhost"
+  -subj "/C=US/O=NebulaFX/CN=localhost"
 
 # For Docker, ensure certificate volume mount is correct
-docker run -v /host/path/to/certs:/certs:ro rustfs/rustfs:latest
+docker run -v /host/path/to/certs:/certs:ro nebulafx/nebulafx:latest
 ```
 
 #### 5. Service Not Starting
@@ -877,16 +877,16 @@ docker run -v /host/path/to/certs:/certs:ro rustfs/rustfs:latest
 
 ```bash
 # Check container logs
-docker logs rustfs-container
+docker logs nebulafx-container
 
 # Enable debug logging
-docker run -e RUST_LOG=debug rustfs/rustfs:latest
+docker run -e RUST_LOG=debug nebulafx/nebulafx:latest
 
 # Check configuration
-docker exec rustfs-container env | grep RUSTFS
+docker exec nebulafx-container env | grep NEUBULAFX
 
 # Test configuration outside Docker
-RUST_LOG=debug rustfs --help
+RUST_LOG=debug nebulafx --help
 ```
 
 #### 6. Health Check Failures
@@ -901,7 +901,7 @@ curl http://localhost:9000/health
 curl http://localhost:9001/health
 
 # Check if services are listening
-docker exec rustfs-container netstat -tulpn
+docker exec nebulafx-container netstat -tulpn
 
 # Increase health check timeouts
 # For Docker
@@ -929,7 +929,7 @@ docker exec container1 ping container2
 docker exec container1 curl http://container2:9000/health
 
 # Use Docker network aliases
-docker run --network=my-network --network-alias=rustfs rustfs/rustfs:latest
+docker run --network=my-network --network-alias=nebulafx nebulafx/nebulafx:latest
 ```
 
 ### Debugging Commands
@@ -941,13 +941,13 @@ docker run --network=my-network --network-alias=rustfs rustfs/rustfs:latest
 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
 # Check service logs
-docker logs rustfs-container --tail=100 -f
+docker logs nebulafx-container --tail=100 -f
 
 # Check resource usage
-docker stats rustfs-container
+docker stats nebulafx-container
 
 # Inspect container configuration
-docker inspect rustfs-container | jq '.Config.Env'
+docker inspect nebulafx-container | jq '.Config.Env'
 ```
 
 #### Network Debugging
@@ -958,25 +958,25 @@ curl -v http://localhost:9020/health
 curl -v http://localhost:9021/health
 
 # Test from inside container
-docker exec rustfs-container curl http://localhost:9000/health
-docker exec rustfs-container curl http://localhost:9001/health
+docker exec nebulafx-container curl http://localhost:9000/health
+docker exec nebulafx-container curl http://localhost:9001/health
 
 # Check port listening
-docker exec rustfs-container netstat -tulpn | grep -E ':(9000|9001)'
+docker exec nebulafx-container netstat -tulpn | grep -E ':(9000|9001)'
 ```
 
 #### Configuration Debugging
 
 ```bash
 # Show effective configuration
-docker exec rustfs-container env | grep RUSTFS | sort
+docker exec nebulafx-container env | grep NEUBULAFX | sort
 
 # Test configuration parsing
-docker exec rustfs-container rustfs --help
+docker exec nebulafx-container nebulafx --help
 
 # Check file permissions
-docker exec rustfs-container ls -la /certs/
-docker exec rustfs-container ls -la /data/
+docker exec nebulafx-container ls -la /certs/
+docker exec nebulafx-container ls -la /data/
 ```
 
 ### Getting Help
@@ -986,17 +986,17 @@ docker exec rustfs-container ls -la /data/
 ```bash
 # Collect comprehensive logs
 mkdir -p ./debug-logs
-docker logs rustfs-container > ./debug-logs/container.log 2>&1
-docker inspect rustfs-container > ./debug-logs/inspect.json
-docker exec rustfs-container env > ./debug-logs/environment.txt
-docker exec rustfs-container ps aux > ./debug-logs/processes.txt
-docker exec rustfs-container netstat -tulpn > ./debug-logs/network.txt
+docker logs nebulafx-container > ./debug-logs/container.log 2>&1
+docker inspect nebulafx-container > ./debug-logs/inspect.json
+docker exec nebulafx-container env > ./debug-logs/environment.txt
+docker exec nebulafx-container ps aux > ./debug-logs/processes.txt
+docker exec nebulafx-container netstat -tulpn > ./debug-logs/network.txt
 ```
 
 #### Community Support
 
-- **GitHub Issues**: [rustfs/rustfs/issues](https://github.com/rustfs/rustfs/issues)
-- **Discussions**: [rustfs/rustfs/discussions](https://github.com/rustfs/rustfs/discussions)
+- **GitHub Issues**: [nebulafx/nebulafx/issues](https://github.com/nebulafx/nebulafx/issues)
+- **Discussions**: [nebulafx/nebulafx/discussions](https://github.com/nebulafx/nebulafx/discussions)
 - **Documentation**: Check the `docs/` directory for additional guides
 
 ## Migration Guide
@@ -1018,12 +1018,12 @@ Previous versions served the console from the same port as the S3 API. This sect
 
 ```bash
 # Old single-port configuration
-RUSTFS_ADDRESS=":9000"
+NEUBULAFX_ADDRESS=":9000"
 
 # New separated configuration
-RUSTFS_ADDRESS=":9000"           # API port (unchanged)
-RUSTFS_CONSOLE_ADDRESS=":9001"   # Console port (new)
-RUSTFS_EXTERNAL_ADDRESS=":9000"  # For console→API communication
+NEUBULAFX_ADDRESS=":9000"           # API port (unchanged)
+NEUBULAFX_CONSOLE_ADDRESS=":9001"   # Console port (new)
+NEUBULAFX_EXTERNAL_ADDRESS=":9000"  # For console→API communication
 ```
 
 ##### 2. Update Firewall Rules
@@ -1041,20 +1041,20 @@ sudo ufw allow from 192.168.1.0/24 to any port 9001
 
 ```bash
 # Old deployment
-docker run -p 9000:9000 rustfs/rustfs:legacy
+docker run -p 9000:9000 nebulafx/nebulafx:legacy
 
 # New deployment with both ports
 docker run \
   -p 9000:9000 \    # API port
   -p 9001:9001 \    # Console port  
-  -e RUSTFS_EXTERNAL_ADDRESS=":9000" \
-  rustfs/rustfs:latest
+  -e NEUBULAFX_EXTERNAL_ADDRESS=":9000" \
+  nebulafx/nebulafx:latest
 ```
 
 ##### 4. Update Application URLs
 
 - **API Endpoint**: `http://localhost:9000` (unchanged)
-- **Console UI**: `http://localhost:9001/rustfs/console/` (new URL)
+- **Console UI**: `http://localhost:9001/nebulafx/console/` (new URL)
 
 ##### 5. Update Monitoring and Health Checks
 
@@ -1072,22 +1072,22 @@ curl http://localhost:9001/health
 # migrate-docker.sh
 
 # Stop old container
-docker stop rustfs-old
-docker rm rustfs-old
+docker stop nebulafx-old
+docker rm nebulafx-old
 
 # Start new separated services
 docker run -d \
-  --name rustfs-new \
+  --name nebulafx-new \
   -p 9000:9000 \
   -p 9001:9001 \
-  -e RUSTFS_EXTERNAL_ADDRESS=":9000" \
-  -e RUSTFS_CORS_ALLOWED_ORIGINS="http://localhost:9001" \
-  -v rustfs-data:/data \
-  rustfs/rustfs:latest
+  -e NEUBULAFX_EXTERNAL_ADDRESS=":9000" \
+  -e NEUBULAFX_CORS_ALLOWED_ORIGINS="http://localhost:9001" \
+  -v nebulafx-data:/data \
+  nebulafx/nebulafx:latest
 
 echo "Migration completed!"
 echo "API: http://localhost:9000"
-echo "Console: http://localhost:9001/rustfs/console/"
+echo "Console: http://localhost:9001/nebulafx/console/"
 ```
 
 #### Kubernetes Migration
@@ -1097,12 +1097,12 @@ echo "Console: http://localhost:9001/rustfs/console/"
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rustfs
+  name: nebulafx
 spec:
   template:
     spec:
       containers:
-      - name: rustfs
+      - name: nebulafx
         ports:
         - containerPort: 9000
           name: api
@@ -1114,7 +1114,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: rustfs-service
+  name: nebulafx-service
 spec:
   ports:
   - name: api
@@ -1129,10 +1129,10 @@ If issues occur, you can disable the console to return to single-service mode:
 
 ```bash
 # Disable console service
-RUSTFS_CONSOLE_ENABLE=false rustfs /data
+NEUBULAFX_CONSOLE_ENABLE=false nebulafx /data
 
 # Or use older image version temporarily
-docker run rustfs/rustfs:legacy-tag
+docker run nebulafx/nebulafx:legacy-tag
 ```
 
 ### Configuration Migration
@@ -1141,15 +1141,15 @@ docker run rustfs/rustfs:legacy-tag
 
 ```bash
 # New variables (add these)
-export RUSTFS_CONSOLE_ADDRESS=":9001"
-export RUSTFS_EXTERNAL_ADDRESS=":9000"
-export RUSTFS_CORS_ALLOWED_ORIGINS="*"
-export RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS="*"
+export NEUBULAFX_CONSOLE_ADDRESS=":9001"
+export NEUBULAFX_EXTERNAL_ADDRESS=":9000"
+export NEUBULAFX_CORS_ALLOWED_ORIGINS="*"
+export NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS="*"
 
 # Optional security variables
-export RUSTFS_CONSOLE_RATE_LIMIT_ENABLE="true"
-export RUSTFS_CONSOLE_RATE_LIMIT_RPM="100"
-export RUSTFS_CONSOLE_AUTH_TIMEOUT="3600"
+export NEUBULAFX_CONSOLE_RATE_LIMIT_ENABLE="true"
+export NEUBULAFX_CONSOLE_RATE_LIMIT_RPM="100"
+export NEUBULAFX_CONSOLE_AUTH_TIMEOUT="3600"
 ```
 
 #### Validation
@@ -1162,7 +1162,7 @@ curl http://localhost:9000/health  # Should return API health
 curl http://localhost:9001/health  # Should return console health
 
 # Test console functionality
-open http://localhost:9001/rustfs/console/
+open http://localhost:9001/nebulafx/console/
 
 # Verify API still works
 aws s3 ls --endpoint-url http://localhost:9000
@@ -1177,30 +1177,30 @@ aws s3 ls --endpoint-url http://localhost:9000
 1. **Restrict Console Access**
    ```bash
    # Bind console to internal interface only
-   RUSTFS_CONSOLE_ADDRESS="127.0.0.1:9001"
+   NEUBULAFX_CONSOLE_ADDRESS="127.0.0.1:9001"
    
    # Use restrictive CORS
-   RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS="https://admin.yourdomain.com"
+   NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS="https://admin.yourdomain.com"
    ```
 
 2. **Enable TLS**
    ```bash
    # Use TLS for console
-   RUSTFS_TLS_PATH="/path/to/certs"
+   NEUBULAFX_TLS_PATH="/path/to/certs"
    ```
 
 3. **Configure Rate Limiting**
    ```bash
    # Prevent brute force attacks
-   RUSTFS_CONSOLE_RATE_LIMIT_ENABLE="true"
-   RUSTFS_CONSOLE_RATE_LIMIT_RPM="60"
+   NEUBULAFX_CONSOLE_RATE_LIMIT_ENABLE="true"
+   NEUBULAFX_CONSOLE_RATE_LIMIT_RPM="60"
    ```
 
 4. **Use Strong Credentials**
    ```bash
    # Generate secure credentials
-   RUSTFS_ACCESS_KEY="$(openssl rand -hex 16)"
-   RUSTFS_SECRET_KEY="$(openssl rand -hex 32)"
+   NEUBULAFX_ACCESS_KEY="$(openssl rand -hex 16)"
+   NEUBULAFX_SECRET_KEY="$(openssl rand -hex 32)"
    ```
 
 #### Operational Best Practices
@@ -1225,7 +1225,7 @@ aws s3 ls --endpoint-url http://localhost:9000
 1. **Resource Limits**
    ```yaml
    services:
-     rustfs:
+     nebulafx:
        deploy:
          resources:
            limits:
@@ -1245,9 +1245,9 @@ aws s3 ls --endpoint-url http://localhost:9000
 3. **Volume Management**
    ```yaml
    volumes:
-     - rustfs-data:/data
-     - rustfs-certs:/certs:ro
-     - rustfs-logs:/logs
+     - nebulafx-data:/data
+     - nebulafx-certs:/certs:ro
+     - nebulafx-logs:/logs
    ```
 
 ### Development Environment
@@ -1257,8 +1257,8 @@ aws s3 ls --endpoint-url http://localhost:9000
 1. **Permissive Configuration**
    ```bash
    # Allow all origins for development
-   RUSTFS_CORS_ALLOWED_ORIGINS="*"
-   RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS="*"
+   NEUBULAFX_CORS_ALLOWED_ORIGINS="*"
+   NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS="*"
    
    # Enable debug logging
    RUST_LOG="debug"
@@ -1267,7 +1267,7 @@ aws s3 ls --endpoint-url http://localhost:9000
 2. **Hot Reload Support**
    ```bash
    # Mount source code for development
-   docker run -v $(pwd):/app rustfs/rustfs:dev
+   docker run -v $(pwd):/app nebulafx/nebulafx:dev
    ```
 
 3. **Use Development Scripts**
@@ -1302,23 +1302,23 @@ aws s3 ls --endpoint-url http://localhost:9000
 ```yaml
 # Example Prometheus alerting rules
 groups:
-- name: rustfs
+- name: nebulafx
   rules:
-  - alert: RustFSAPIDown
-    expr: up{job="rustfs-api"} == 0
+  - alert: NebulaFXAPIDown
+    expr: up{job="nebulafx-api"} == 0
     for: 30s
     labels:
       severity: critical
     annotations:
-      summary: RustFS API is down
+      summary: NebulaFX API is down
       
-  - alert: RustFSConsoleDown
-    expr: up{job="rustfs-console"} == 0  
+  - alert: NebulaFXConsoleDown
+    expr: up{job="nebulafx-console"} == 0  
     for: 30s
     labels:
       severity: warning
     annotations:
-      summary: RustFS Console is down
+      summary: NebulaFX Console is down
       
   - alert: HighResponseTime
     expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
@@ -1350,7 +1350,7 @@ groups:
 3. **Configuration Validation**
    ```bash
    # Verify environment variables
-   docker exec container env | grep RUSTFS | sort
+   docker exec container env | grep NEUBULAFX | sort
    ```
 
 4. **Log Analysis**
@@ -1359,4 +1359,4 @@ groups:
    docker logs container 2>&1 | grep -E "(console|endpoint)"
    ```
 
-This comprehensive guide covers all aspects of RustFS console and endpoint service separation, from basic deployment to enterprise-grade production configurations. For additional support, refer to the example scripts in the `examples/` directory and the community resources listed in the troubleshooting section.
+This comprehensive guide covers all aspects of NebulaFX console and endpoint service separation, from basic deployment to enterprise-grade production configurations. For additional support, refer to the example scripts in the `examples/` directory and the community resources listed in the troubleshooting section.

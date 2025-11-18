@@ -1,18 +1,6 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 
-use rustfs_config::VERSION;
+
+use nebulafx_config::VERSION;
 use std::env;
 use std::fmt;
 use sysinfo::System;
@@ -133,11 +121,11 @@ impl UserAgent {
 impl fmt::Display for UserAgent {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if self.service == ServiceType::Basis {
-            return write!(f, "Mozilla/5.0 ({}; {}) RustFS/{}", self.os_platform, self.arch, self.version);
+            return write!(f, "Mozilla/5.0 ({}; {}) NebulaFX/{}", self.os_platform, self.arch, self.version);
         }
         write!(
             f,
-            "Mozilla/5.0 ({}; {}) RustFS/{} ({})",
+            "Mozilla/5.0 ({}; {}) NebulaFX/{} ({})",
             self.os_platform,
             self.arch,
             self.version,
@@ -154,13 +142,13 @@ pub fn get_user_agent(service: ServiceType) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rustfs_config::VERSION;
+    use nebulafx_config::VERSION;
     use tracing::debug;
     #[test]
     fn test_user_agent_format_basis() {
         let ua = get_user_agent(ServiceType::Basis);
         assert!(ua.starts_with("Mozilla/5.0"));
-        assert!(ua.contains(&format!("RustFS/{VERSION}").to_string()));
+        assert!(ua.contains(&format!("NebulaFX/{VERSION}").to_string()));
         debug!("Basic User-Agent: {}", ua);
     }
 
@@ -168,7 +156,7 @@ mod tests {
     fn test_user_agent_format_core() {
         let ua = get_user_agent(ServiceType::Core);
         assert!(ua.starts_with("Mozilla/5.0"));
-        assert!(ua.contains(&format!("RustFS/{VERSION} (core)").to_string()));
+        assert!(ua.contains(&format!("NebulaFX/{VERSION} (core)").to_string()));
         debug!("Core User-Agent: {}", ua);
     }
 
@@ -176,7 +164,7 @@ mod tests {
     fn test_user_agent_format_event() {
         let ua = get_user_agent(ServiceType::Event);
         assert!(ua.starts_with("Mozilla/5.0"));
-        assert!(ua.contains(&format!("RustFS/{VERSION} (event)").to_string()));
+        assert!(ua.contains(&format!("NebulaFX/{VERSION} (event)").to_string()));
         debug!("Event User-Agent: {}", ua);
     }
 
@@ -184,7 +172,7 @@ mod tests {
     fn test_user_agent_format_logger() {
         let ua = get_user_agent(ServiceType::Logger);
         assert!(ua.starts_with("Mozilla/5.0"));
-        assert!(ua.contains(&format!("RustFS/{VERSION} (logger)").to_string()));
+        assert!(ua.contains(&format!("NebulaFX/{VERSION} (logger)").to_string()));
         debug!("Logger User-Agent: {}", ua);
     }
 
@@ -192,7 +180,7 @@ mod tests {
     fn test_user_agent_format_custom() {
         let ua = get_user_agent(ServiceType::Custom("monitor".to_string()));
         assert!(ua.starts_with("Mozilla/5.0"));
-        assert!(ua.contains(&format!("RustFS/{VERSION} (monitor)").to_string()));
+        assert!(ua.contains(&format!("NebulaFX/{VERSION} (monitor)").to_string()));
         debug!("Monitor User-Agent: {}", ua);
     }
 

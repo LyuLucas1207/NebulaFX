@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 //! KMS configuration management
 
@@ -92,7 +80,7 @@ pub struct LocalConfig {
 impl Default for LocalConfig {
     fn default() -> Self {
         Self {
-            key_dir: std::env::temp_dir().join("rustfs_kms_keys"),
+            key_dir: std::env::temp_dir().join("nebulafx_kms_keys"),
             master_key: None,
             file_permissions: Some(0o600), // Owner read/write only
         }
@@ -128,7 +116,7 @@ impl Default for VaultConfig {
             namespace: None,
             mount_path: "transit".to_string(),
             kv_mount: "secret".to_string(),
-            key_path_prefix: "rustfs/kms/keys".to_string(),
+            key_path_prefix: "nebulafx/kms/keys".to_string(),
             tls: None,
         }
     }
@@ -305,7 +293,7 @@ impl KmsConfig {
         let mut config = Self::default();
 
         // Backend type
-        if let Ok(backend_type) = std::env::var("RUSTFS_KMS_BACKEND") {
+        if let Ok(backend_type) = std::env::var("NEUBULAFX_KMS_BACKEND") {
             config.backend = match backend_type.to_lowercase().as_str() {
                 "local" => KmsBackend::Local,
                 "vault" => KmsBackend::Vault,
@@ -314,12 +302,12 @@ impl KmsConfig {
         }
 
         // Default key ID
-        if let Ok(key_id) = std::env::var("RUSTFS_KMS_DEFAULT_KEY_ID") {
+        if let Ok(key_id) = std::env::var("NEUBULAFX_KMS_DEFAULT_KEY_ID") {
             config.default_key_id = Some(key_id);
         }
 
         // Timeout
-        if let Ok(timeout_str) = std::env::var("RUSTFS_KMS_TIMEOUT_SECS") {
+        if let Ok(timeout_str) = std::env::var("NEUBULAFX_KMS_TIMEOUT_SECS") {
             let timeout_secs = timeout_str
                 .parse::<u64>()
                 .map_err(|_| KmsError::configuration_error("Invalid timeout value"))?;
@@ -327,22 +315,22 @@ impl KmsConfig {
         }
 
         // Retry attempts
-        if let Ok(retries_str) = std::env::var("RUSTFS_KMS_RETRY_ATTEMPTS") {
+        if let Ok(retries_str) = std::env::var("NEUBULAFX_KMS_RETRY_ATTEMPTS") {
             config.retry_attempts = retries_str
                 .parse()
                 .map_err(|_| KmsError::configuration_error("Invalid retry attempts value"))?;
         }
 
         // Enable cache
-        if let Ok(cache_str) = std::env::var("RUSTFS_KMS_ENABLE_CACHE") {
+        if let Ok(cache_str) = std::env::var("NEUBULAFX_KMS_ENABLE_CACHE") {
             config.enable_cache = cache_str.parse().unwrap_or(true);
         }
 
         // Backend-specific configuration
         match config.backend {
             KmsBackend::Local => {
-                let key_dir = std::env::var("RUSTFS_KMS_LOCAL_KEY_DIR").unwrap_or_else(|_| "./kms_keys".to_string());
-                let master_key = std::env::var("RUSTFS_KMS_LOCAL_MASTER_KEY").ok();
+                let key_dir = std::env::var("NEUBULAFX_KMS_LOCAL_KEY_DIR").unwrap_or_else(|_| "./kms_keys".to_string());
+                let master_key = std::env::var("NEUBULAFX_KMS_LOCAL_MASTER_KEY").ok();
 
                 config.backend_config = BackendConfig::Local(LocalConfig {
                     key_dir: PathBuf::from(key_dir),
@@ -351,17 +339,17 @@ impl KmsConfig {
                 });
             }
             KmsBackend::Vault => {
-                let address = std::env::var("RUSTFS_KMS_VAULT_ADDRESS").unwrap_or_else(|_| "http://localhost:8200".to_string());
-                let token = std::env::var("RUSTFS_KMS_VAULT_TOKEN").unwrap_or_else(|_| "dev-token".to_string());
+                let address = std::env::var("NEUBULAFX_KMS_VAULT_ADDRESS").unwrap_or_else(|_| "http://localhost:8200".to_string());
+                let token = std::env::var("NEUBULAFX_KMS_VAULT_TOKEN").unwrap_or_else(|_| "dev-token".to_string());
 
                 config.backend_config = BackendConfig::Vault(VaultConfig {
                     address,
                     auth_method: VaultAuthMethod::Token { token },
-                    namespace: std::env::var("RUSTFS_KMS_VAULT_NAMESPACE").ok(),
-                    mount_path: std::env::var("RUSTFS_KMS_VAULT_MOUNT_PATH").unwrap_or_else(|_| "transit".to_string()),
-                    kv_mount: std::env::var("RUSTFS_KMS_VAULT_KV_MOUNT").unwrap_or_else(|_| "secret".to_string()),
-                    key_path_prefix: std::env::var("RUSTFS_KMS_VAULT_KEY_PREFIX")
-                        .unwrap_or_else(|_| "rustfs/kms/keys".to_string()),
+                    namespace: std::env::var("NEUBULAFX_KMS_VAULT_NAMESPACE").ok(),
+                    mount_path: std::env::var("NEUBULAFX_KMS_VAULT_MOUNT_PATH").unwrap_or_else(|_| "transit".to_string()),
+                    kv_mount: std::env::var("NEUBULAFX_KMS_VAULT_KV_MOUNT").unwrap_or_else(|_| "secret".to_string()),
+                    key_path_prefix: std::env::var("NEUBULAFX_KMS_VAULT_KEY_PREFIX")
+                        .unwrap_or_else(|_| "nebulafx/kms/keys".to_string()),
                     tls: None,
                 });
             }

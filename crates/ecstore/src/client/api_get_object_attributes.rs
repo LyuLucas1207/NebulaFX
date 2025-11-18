@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(unused_mut)]
@@ -26,7 +14,7 @@ use time::OffsetDateTime;
 use tokio::io::BufReader;
 
 use crate::client::constants::{GET_OBJECT_ATTRIBUTES_MAX_PARTS, GET_OBJECT_ATTRIBUTES_TAGS, ISO8601_DATEFORMAT};
-use rustfs_utils::EMPTY_STRING_SHA256_HASH;
+use nebulafx_utils::EMPTY_STRING_SHA256_HASH;
 use s3s::header::{
     X_AMZ_DELETE_MARKER, X_AMZ_MAX_PARTS, X_AMZ_METADATA_DIRECTIVE, X_AMZ_OBJECT_ATTRIBUTES, X_AMZ_PART_NUMBER_MARKER,
     X_AMZ_REQUEST_CHARGED, X_AMZ_RESTORE, X_AMZ_VERSION_ID,

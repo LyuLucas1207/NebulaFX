@@ -1,25 +1,13 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::Result;
 use crate::scanner::{
     AdvancedIOMonitor, AdvancedIOThrottler, BatchScanResult, CheckpointManager, IOMonitorConfig, IOThrottlerConfig,
     LocalStatsManager, MetricsSnapshot, ScanResultEntry,
 };
-use rustfs_common::data_usage::DataUsageInfo;
-use rustfs_ecstore::StorageAPI;
-use rustfs_ecstore::disk::{DiskAPI, DiskStore};
+use nebulafx_common::data_usage::DataUsageInfo;
+use nebulafx_ecstore::StorageAPI;
+use nebulafx_ecstore::disk::{DiskAPI, DiskStore};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, HashSet},
@@ -139,7 +127,7 @@ pub struct NodeScannerConfig {
 impl Default for NodeScannerConfig {
     fn default() -> Self {
         // use a user-writable directory for scanner data
-        let data_dir = std::env::temp_dir().join("rustfs_scanner");
+        let data_dir = std::env::temp_dir().join("nebulafx_scanner");
 
         Self {
             scan_interval: Duration::from_secs(300),  // 5 minutes base interval
@@ -480,7 +468,7 @@ impl NodeScanner {
     pub async fn add_local_disk(&self, disk: Arc<DiskStore>) {
         // get disk path and create corresponding scanner directory
         let disk_path = disk.path();
-        let sys_dir = disk_path.join(".rustfs.sys").join("scanner");
+        let sys_dir = disk_path.join(".nebulafx.sys").join("scanner");
 
         // ensure directory exists
         if let Err(e) = std::fs::create_dir_all(&sys_dir) {
@@ -531,7 +519,7 @@ impl NodeScanner {
 
         for disk in local_disks.iter() {
             let disk_path = disk.path();
-            let sys_dir = disk_path.join(".rustfs.sys").join("scanner");
+            let sys_dir = disk_path.join(".nebulafx.sys").join("scanner");
 
             // ensure directory exists
             if let Err(e) = std::fs::create_dir_all(&sys_dir) {
@@ -867,10 +855,10 @@ impl NodeScanner {
         let mut scan_entries = Vec::new();
 
         // get ECStore instance for real disk scanning
-        if let Some(ecstore) = rustfs_ecstore::new_object_layer_fn() {
+        if let Some(ecstore) = nebulafx_ecstore::new_object_layer_fn() {
             // get all buckets on disk
             match ecstore
-                .list_bucket(&rustfs_ecstore::store_api::BucketOptions::default())
+                .list_bucket(&nebulafx_ecstore::store_api::BucketOptions::default())
                 .await
             {
                 Ok(buckets) => {

@@ -1,26 +1,14 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 
-use rustfs_utils::string::has_pattern;
-use rustfs_utils::string::has_string_suffix_in_slice;
+
+use nebulafx_utils::string::has_pattern;
+use nebulafx_utils::string::has_string_suffix_in_slice;
 use std::env;
 use tracing::error;
 
 pub const MIN_COMPRESSIBLE_SIZE: usize = 4096;
 
 // Environment variable name to control whether compression is enabled
-pub const ENV_COMPRESSION_ENABLED: &str = "RUSTFS_COMPRESSION_ENABLED";
+pub const ENV_COMPRESSION_ENABLED: &str = "NEUBULAFX_COMPRESSION_ENABLED";
 
 // Some standard object extensions which we strictly dis-allow for compression.
 pub const STANDARD_EXCLUDE_COMPRESS_EXTENSIONS: &[&str] = &[

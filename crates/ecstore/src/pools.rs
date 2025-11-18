@@ -1,23 +1,11 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::bucket::versioning_sys::BucketVersioningSys;
 use crate::cache_value::metacache_set::{ListPathRawOptions, list_path_raw};
 use crate::config::com::{CONFIG_PREFIX, read_config, save_config};
 use crate::data_usage::DATA_USAGE_CACHE_NAME;
 use crate::disk::error::DiskError;
-use crate::disk::{BUCKET_META_PREFIX, RUSTFS_META_BUCKET};
+use crate::disk::{BUCKET_META_PREFIX, NEUBULAFX_META_BUCKET};
 use crate::error::{Error, Result};
 use crate::error::{
     StorageError, is_err_bucket_exists, is_err_bucket_not_found, is_err_data_movement_overwrite, is_err_object_not_found,
@@ -34,12 +22,12 @@ use byteorder::{ByteOrder, LittleEndian, WriteBytesExt};
 use futures::future::BoxFuture;
 use http::HeaderMap;
 use rmp_serde::{Deserializer, Serializer};
-use rustfs_common::defer;
-use rustfs_common::heal_channel::HealOpts;
-use rustfs_filemeta::{MetaCacheEntries, MetaCacheEntry, MetadataResolutionParams};
-use rustfs_rio::{HashReader, WarpReader};
-use rustfs_utils::path::{SLASH_SEPARATOR, encode_dir_object, path_join};
-use rustfs_workers::workers::Workers;
+use nebulafx_common::defer;
+use nebulafx_common::heal_channel::HealOpts;
+use nebulafx_filemeta::{MetaCacheEntries, MetaCacheEntry, MetadataResolutionParams};
+use nebulafx_rio::{HashReader, WarpReader};
+use nebulafx_utils::path::{SLASH_SEPARATOR, encode_dir_object, path_join};
+use nebulafx_workers::workers::Workers;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Display;
@@ -797,7 +785,7 @@ impl ECStore {
 
                         if !ignore {
                             //
-                            if bucket == RUSTFS_META_BUCKET && version.name.contains(DATA_USAGE_CACHE_NAME) {
+                            if bucket == NEUBULAFX_META_BUCKET && version.name.contains(DATA_USAGE_CACHE_NAME) {
                                 ignore = true;
                                 error!("decommission_pool: ignore data usage cache {}", &version.name);
                                 break;
@@ -903,7 +891,7 @@ impl ECStore {
         // replication
         let rcfg: Option<String> = None;
 
-        if bi.name != RUSTFS_META_BUCKET {
+        if bi.name != NEUBULAFX_META_BUCKET {
             let _versioning = BucketVersioningSys::get(&bi.name).await?;
             // vc = Some(versioning);
             // TODO: LifecycleSys
@@ -1130,8 +1118,8 @@ impl ECStore {
         }
 
         let meta_buckets = [
-            path_join(&[PathBuf::from(RUSTFS_META_BUCKET), PathBuf::from(CONFIG_PREFIX)]),
-            path_join(&[PathBuf::from(RUSTFS_META_BUCKET), PathBuf::from(BUCKET_META_PREFIX)]),
+            path_join(&[PathBuf::from(NEUBULAFX_META_BUCKET), PathBuf::from(CONFIG_PREFIX)]),
+            path_join(&[PathBuf::from(NEUBULAFX_META_BUCKET), PathBuf::from(BUCKET_META_PREFIX)]),
         ];
 
         for bk in meta_buckets.iter() {
@@ -1176,11 +1164,11 @@ impl ECStore {
             .collect();
 
         ret.push(DecomBucketInfo {
-            name: RUSTFS_META_BUCKET.to_owned(),
+            name: NEUBULAFX_META_BUCKET.to_owned(),
             prefix: CONFIG_PREFIX.to_owned(),
         });
         ret.push(DecomBucketInfo {
-            name: RUSTFS_META_BUCKET.to_owned(),
+            name: NEUBULAFX_META_BUCKET.to_owned(),
             prefix: BUCKET_META_PREFIX.to_owned(),
         });
 
@@ -1384,7 +1372,7 @@ impl SetDisks {
     }
 }
 
-pub fn get_total_usable_capacity(disks: &[rustfs_madmin::Disk], info: &rustfs_madmin::StorageInfo) -> usize {
+pub fn get_total_usable_capacity(disks: &[nebulafx_madmin::Disk], info: &nebulafx_madmin::StorageInfo) -> usize {
     let mut capacity = 0;
     for disk in disks.iter() {
         if disk.pool_index < 0 || info.backend.standard_sc_data.len() <= disk.pool_index as usize {
@@ -1397,7 +1385,7 @@ pub fn get_total_usable_capacity(disks: &[rustfs_madmin::Disk], info: &rustfs_ma
     capacity
 }
 
-pub fn get_total_usable_capacity_free(disks: &[rustfs_madmin::Disk], info: &rustfs_madmin::StorageInfo) -> usize {
+pub fn get_total_usable_capacity_free(disks: &[nebulafx_madmin::Disk], info: &nebulafx_madmin::StorageInfo) -> usize {
     let mut capacity = 0;
     for disk in disks.iter() {
         if disk.pool_index < 0 || info.backend.standard_sc_data.len() <= disk.pool_index as usize {

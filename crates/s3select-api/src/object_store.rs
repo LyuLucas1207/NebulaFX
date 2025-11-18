@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use async_trait::async_trait;
 use bytes::Bytes;
@@ -24,13 +12,13 @@ use object_store::{
     PutMultipartOptions, PutOptions, PutPayload, PutResult, Result, path::Path,
 };
 use pin_project_lite::pin_project;
-use rustfs_common::DEFAULT_DELIMITER;
-use rustfs_ecstore::StorageAPI;
-use rustfs_ecstore::new_object_layer_fn;
-use rustfs_ecstore::set_disk::DEFAULT_READ_BUFFER_SIZE;
-use rustfs_ecstore::store::ECStore;
-use rustfs_ecstore::store_api::ObjectIO;
-use rustfs_ecstore::store_api::ObjectOptions;
+use nebulafx_common::DEFAULT_DELIMITER;
+use nebulafx_ecstore::StorageAPI;
+use nebulafx_ecstore::new_object_layer_fn;
+use nebulafx_ecstore::set_disk::DEFAULT_READ_BUFFER_SIZE;
+use nebulafx_ecstore::store::ECStore;
+use nebulafx_ecstore::store_api::ObjectIO;
+use nebulafx_ecstore::store_api::ObjectOptions;
 use s3s::S3Result;
 use s3s::dto::SelectObjectContentInput;
 use s3s::s3_error;

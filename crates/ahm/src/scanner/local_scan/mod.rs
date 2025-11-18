@@ -1,27 +1,15 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::{Error, Result};
-use rustfs_common::data_usage::DiskUsageStatus;
-use rustfs_ecstore::data_usage::{
+use nebulafx_common::data_usage::DiskUsageStatus;
+use nebulafx_ecstore::data_usage::{
     LocalUsageSnapshot, LocalUsageSnapshotMeta, data_usage_state_dir, ensure_data_usage_layout, snapshot_file_name,
     write_local_snapshot,
 };
-use rustfs_ecstore::disk::DiskAPI;
-use rustfs_ecstore::store::ECStore;
-use rustfs_ecstore::store_api::ObjectInfo;
-use rustfs_filemeta::{FileInfo, FileMeta, FileMetaVersion, VersionType};
+use nebulafx_ecstore::disk::DiskAPI;
+use nebulafx_ecstore::store::ECStore;
+use nebulafx_ecstore::store_api::ObjectInfo;
+use nebulafx_filemeta::{FileInfo, FileMeta, FileMetaVersion, VersionType};
 use serde::{Deserialize, Serialize};
 use serde_json::{from_slice, to_vec};
 use std::collections::{HashMap, HashSet};
@@ -61,7 +49,7 @@ struct DiskScanResult {
 #[derive(Debug, Clone)]
 pub struct LocalObjectRecord {
     pub usage: LocalObjectUsage,
-    pub object_info: Option<rustfs_ecstore::store_api::ObjectInfo>,
+    pub object_info: Option<nebulafx_ecstore::store_api::ObjectInfo>,
 }
 
 #[derive(Debug, Default)]
@@ -406,7 +394,7 @@ async fn write_scan_state(path: &Path, state: &IncrementalScanState) -> Result<(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rustfs_filemeta::{ChecksumAlgo, ErasureAlgo, FileMetaShallowVersion, MetaDeleteMarker, MetaObject};
+    use nebulafx_filemeta::{ChecksumAlgo, ErasureAlgo, FileMetaShallowVersion, MetaDeleteMarker, MetaObject};
     use std::collections::HashMap;
     use std::fs;
     use tempfile::TempDir;

@@ -1,12 +1,12 @@
 # KMS Test Suite Integration
 
-RustFS ships with an extensive set of automated tests that exercise the KMS stack. This guide explains how to run them locally and in CI.
+NebulaFX ships with an extensive set of automated tests that exercise the KMS stack. This guide explains how to run them locally and in CI.
 
 ## Crate Overview
 
 - `crates/kms` – unit tests for configuration, caching, and backend adapters.
 - `crates/e2e_test/src/kms` – end-to-end suites for Local and Vault backends, multipart uploads, edge cases, and fault recovery.
-- `crates/e2e_test/src/kms/common.rs` – reusable test environments (spins up RustFS, configures Vault, manages buckets).
+- `crates/e2e_test/src/kms/common.rs` – reusable test environments (spins up NebulaFX, configures Vault, manages buckets).
 
 ## Prerequisites
 
@@ -36,7 +36,7 @@ cargo test -p e2e_test kms:: -- --nocapture --test-threads=1
 ```
 
 - `--nocapture` streams logs to stdout for troubleshooting.
-- `--test-threads=1` ensures serial execution; most tests spawn standalone RustFS and Vault processes.
+- `--test-threads=1` ensures serial execution; most tests spawn standalone NebulaFX and Vault processes.
 
 ### Local Backend Only
 
@@ -64,9 +64,9 @@ The tests can also start Vault automatically if the binary is found on `PATH`. W
 
 ## Debugging Tips
 
-- Use the `CLAUDE DEBUG` log lines (left intentionally verbose) to inspect the RustFS server flow during tests.
+- Use the `CLAUDE DEBUG` log lines (left intentionally verbose) to inspect the NebulaFX server flow during tests.
 - If a test fails with `Operation not permitted`, rerun with sandbox overrides (`cargo test ...` with elevated permissions) as shown above.
-- Attach `RUST_LOG=rustfs::kms=debug` to surface detailed backend interactions.
+- Attach `RUST_LOG=nebulafx::kms=debug` to surface detailed backend interactions.
 
 ## CI Recommendations
 

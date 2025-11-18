@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(unused_mut)]
@@ -30,7 +18,7 @@ use hyper_util::{client::legacy::Client, client::legacy::connect::HttpConnector,
 use md5::Digest;
 use md5::Md5;
 use rand::Rng;
-use rustfs_utils::HashAlgorithm;
+use nebulafx_utils::HashAlgorithm;
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use std::io::Cursor;
@@ -62,8 +50,8 @@ use crate::client::{
     credentials::{CredContext, Credentials, SignatureType, Static},
 };
 use crate::{client::checksum::ChecksumMode, store_api::GetObjectReader};
-use rustfs_rio::HashReader;
-use rustfs_utils::{
+use nebulafx_rio::HashReader;
+use nebulafx_utils::{
     net::get_endpoint_url,
     retry::{
         DEFAULT_RETRY_CAP, DEFAULT_RETRY_UNIT, MAX_JITTER, MAX_RETRY, RetryTimer, is_http_status_retryable, is_s3code_retryable,
@@ -73,7 +61,7 @@ use s3s::S3ErrorCode;
 use s3s::dto::ReplicationStatus;
 use s3s::{Body, dto::Owner};
 
-const C_USER_AGENT: &str = "RustFS (linux; x86)";
+const C_USER_AGENT: &str = "NebulaFX (linux; x86)";
 
 const SUCCESS_STATUS: [StatusCode; 3] = [StatusCode::OK, StatusCode::NO_CONTENT, StatusCode::PARTIAL_CONTENT];
 
@@ -447,9 +435,9 @@ impl TransitionClient {
                 }
             }
             if signer_type == SignatureType::SignatureV2 {
-                req = rustfs_signer::pre_sign_v2(req, &access_key_id, &secret_access_key, metadata.expires, is_virtual_host);
+                req = nebulafx_signer::pre_sign_v2(req, &access_key_id, &secret_access_key, metadata.expires, is_virtual_host);
             } else if signer_type == SignatureType::SignatureV4 {
-                req = rustfs_signer::pre_sign_v4(
+                req = nebulafx_signer::pre_sign_v4(
                     req,
                     &access_key_id,
                     &secret_access_key,
@@ -484,7 +472,7 @@ impl TransitionClient {
         }
 
         if signer_type == SignatureType::SignatureV2 {
-            req = rustfs_signer::sign_v2(req, metadata.content_length, &access_key_id, &secret_access_key, is_virtual_host);
+            req = nebulafx_signer::sign_v2(req, metadata.content_length, &access_key_id, &secret_access_key, is_virtual_host);
         } else if metadata.stream_sha256 && !self.secure {
             if metadata.trailer.len() > 0 {
                 for (_, v) in &metadata.trailer {
@@ -504,7 +492,7 @@ impl TransitionClient {
             req.headers_mut()
                 .insert("X-Amz-Content-Sha256".parse::<HeaderName>().unwrap(), sha_header.parse().expect("err"));
 
-            req = rustfs_signer::sign_v4_trailer(
+            req = nebulafx_signer::sign_v4_trailer(
                 req,
                 &access_key_id,
                 &secret_access_key,

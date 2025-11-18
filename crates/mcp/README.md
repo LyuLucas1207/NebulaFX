@@ -1,23 +1,23 @@
-[![RustFS](https://rustfs.com/images/rustfs-github.png)](https://rustfs.com)
+[![NebulaFX](https://nebulafx.com/images/nebulafx-github.png)](https://nebulafx.com)
 
-# RustFS MCP Server - Model Context Protocol
+# NebulaFX MCP Server - Model Context Protocol
 
 <p align="center">
   <strong>High-performance MCP server providing S3-compatible object storage operations for AI/LLM integration</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/rustfs/rustfs/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/rustfs/rustfs/actions/workflows/ci.yml/badge.svg" /></a>
-  <a href="https://docs.rustfs.com/en/">📖 Documentation</a>
-  <a href="https://github.com/rustfs/rustfs/issues">🐛 Bug Reports</a>
-  <a href="https://github.com/rustfs/rustfs/discussions">💬 Discussions</a>
+  <a href="https://github.com/nebulafx/nebulafx/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nebulafx/nebulafx/actions/workflows/ci.yml/badge.svg" /></a>
+  <a href="https://docs.nebulafx.com/en/">📖 Documentation</a>
+  <a href="https://github.com/nebulafx/nebulafx/issues">🐛 Bug Reports</a>
+  <a href="https://github.com/nebulafx/nebulafx/discussions">💬 Discussions</a>
 </p>
 
 ---
 
 ## 📖 Overview
 
-**RustFS MCP Server** is a high-performance [Model Context Protocol (MCP)](https://spec.modelcontextprotocol.org) server that provides AI/LLM tools with seamless access to S3-compatible object storage operations. Built with Rust for maximum performance and safety, it enables AI assistants like Claude Desktop to interact with cloud storage through a standardized protocol.
+**NebulaFX MCP Server** is a high-performance [Model Context Protocol (MCP)](https://spec.modelcontextprotocol.org) server that provides AI/LLM tools with seamless access to S3-compatible object storage operations. Built with Rust for maximum performance and safety, it enables AI assistants like Claude Desktop to interact with cloud storage through a standardized protocol.
 
 ### What is MCP?
 
@@ -44,14 +44,14 @@ The Model Context Protocol is an open standard that enables secure, controlled c
 
 ```bash
 # Clone the repository
-git clone https://github.com/rustfs/rustfs.git
-cd rustfs
+git clone https://github.com/nebulafx/nebulafx.git
+cd nebulafx
 
 # Build the MCP server
-cargo build --release -p rustfs-mcp
+cargo build --release -p nebulafx-mcp
 
 # The binary will be available at
-./target/release/rustfs-mcp
+./target/release/nebulafx-mcp
 ```
 
 ## ⚙️ Configuration
@@ -74,7 +74,7 @@ export RUST_LOG=info
 ### Command Line Options
 
 ```bash
-rustfs-mcp --help
+nebulafx-mcp --help
 ```
 
 The server supports various command-line options for customizing behavior:
@@ -83,7 +83,7 @@ The server supports various command-line options for customizing behavior:
 - `--secret-access-key`: AWS Secret Access Key for S3 authentication
 - `--region`: AWS region to use for S3 operations (default: us-east-1)
 - `--endpoint-url`: Custom S3 endpoint URL (for MinIO, LocalStack, etc.)
-- `--log-level`: Log level configuration (default: rustfs_mcp_server=info)
+- `--log-level`: Log level configuration (default: nebulafx_mcp_server=info)
 
 ## 🚀 Usage
 
@@ -91,10 +91,10 @@ The server supports various command-line options for customizing behavior:
 
 ```bash
 # Start the MCP server
-rustfs-mcp
+nebulafx-mcp
 
 # Or with custom options
-rustfs-mcp --log-level debug --region us-west-2
+nebulafx-mcp --log-level debug --region us-west-2
 ```
 
 ### Integration with chat client
@@ -104,8 +104,8 @@ rustfs-mcp --log-level debug --region us-west-2
 ```json
 {
   "mcpServers": {
-    "rustfs-mcp": {
-      "command": "/path/to/rustfs-mcp",
+    "nebulafx-mcp": {
+      "command": "/path/to/nebulafx-mcp",
       "args": [
         "--access-key-id", "your_access_key",
         "--secret-access-key", "your_secret_key",
@@ -122,8 +122,8 @@ rustfs-mcp --log-level debug --region us-west-2
 ```json
 {
   "mcpServers": {
-    "rustfs-mcp": {
-      "command": "/path/to/rustfs-mcp",
+    "nebulafx-mcp": {
+      "command": "/path/to/nebulafx-mcp",
       "env": {
         "AWS_ACCESS_KEY_ID": "your_access_key",
         "AWS_SECRET_ACCESS_KEY": "your_secret_key",
@@ -138,16 +138,16 @@ rustfs-mcp --log-level debug --region us-west-2
 
 #### Docker image build
 
-Using MCP with docker will simply the usage of rustfs mcp. Building the docker image with below command:
+Using MCP with docker will simply the usage of nebulafx mcp. Building the docker image with below command:
 
 ```
-docker build -f Dockerfile -t rustfs/rustfs-mcp ../../
+docker build -f Dockerfile -t nebulafx/nebulafx-mcp ../../
 ```
 
-Alternatively, if you want to build the image from the rustfs codebase root directory,run the command:
+Alternatively, if you want to build the image from the nebulafx codebase root directory,run the command:
 
 ```
-docker build -f crates/mcp/Dockerfile -t rustfs/rustfs-mcp .
+docker build -f crates/mcp/Dockerfile -t nebulafx/nebulafx-mcp .
 ```
 
 #### IDE Configuration
@@ -157,7 +157,7 @@ Adding the following content in IDE MCP settings:
 ```
 {
   "mcpServers": {
-    "rustfs-mcp": {
+    "nebulafx-mcp": {
       "command": "docker",
       "args": [
         "run",
@@ -171,13 +171,13 @@ Adding the following content in IDE MCP settings:
         "AWS_REGION",
         "-e",
         "AWS_ENDPOINT_URL",
-        "rustfs/rustfs-mcp"
+        "nebulafx/nebulafx-mcp"
       ],
       "env": {
-        "AWS_ACCESS_KEY_ID": "rustfs_access_key",
-        "AWS_SECRET_ACCESS_KEY": "rustfs_secret_key",
+        "AWS_ACCESS_KEY_ID": "nebulafx_access_key",
+        "AWS_SECRET_ACCESS_KEY": "nebulafx_secret_key",
         "AWS_REGION": "cn-east-1",
-        "AWS_ENDPOINT_URL": "rustfs_instance_url"
+        "AWS_ENDPOINT_URL": "nebulafx_instance_url"
       }
     }
   }
@@ -250,7 +250,7 @@ Delete the specified S3 bucket. If the bucket is not empty, the deletion will fa
 The MCP server is built with a modular architecture:
 
 ```
-rustfs-mcp/
+nebulafx-mcp/
 ├── src/
 │   ├── main.rs          # Entry point, CLI parsing, and server initialization
 │   ├── server.rs        # MCP server implementation and tool handlers

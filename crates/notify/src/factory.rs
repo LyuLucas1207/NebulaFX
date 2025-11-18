@@ -1,29 +1,17 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::Event;
 use async_trait::async_trait;
 use hashbrown::HashSet;
 use rumqttc::QoS;
-use rustfs_config::notify::{ENV_NOTIFY_MQTT_KEYS, ENV_NOTIFY_WEBHOOK_KEYS, NOTIFY_MQTT_KEYS, NOTIFY_WEBHOOK_KEYS};
-use rustfs_config::{
+use nebulafx_config::notify::{ENV_NOTIFY_MQTT_KEYS, ENV_NOTIFY_WEBHOOK_KEYS, NOTIFY_MQTT_KEYS, NOTIFY_WEBHOOK_KEYS};
+use nebulafx_config::{
     DEFAULT_DIR, DEFAULT_LIMIT, MQTT_BROKER, MQTT_KEEP_ALIVE_INTERVAL, MQTT_PASSWORD, MQTT_QOS, MQTT_QUEUE_DIR, MQTT_QUEUE_LIMIT,
     MQTT_RECONNECT_INTERVAL, MQTT_TOPIC, MQTT_USERNAME, WEBHOOK_AUTH_TOKEN, WEBHOOK_CLIENT_CERT, WEBHOOK_CLIENT_KEY,
     WEBHOOK_ENDPOINT, WEBHOOK_QUEUE_DIR, WEBHOOK_QUEUE_LIMIT,
 };
-use rustfs_ecstore::config::KVS;
-use rustfs_targets::{
+use nebulafx_ecstore::config::KVS;
+use nebulafx_targets::{
     Target,
     error::TargetError,
     target::{mqtt::MQTTArgs, webhook::WebhookArgs},
@@ -74,10 +62,10 @@ impl TargetFactory for WebhookTargetFactory {
                 .unwrap_or(DEFAULT_LIMIT),
             client_cert: config.lookup(WEBHOOK_CLIENT_CERT).unwrap_or_default(),
             client_key: config.lookup(WEBHOOK_CLIENT_KEY).unwrap_or_default(),
-            target_type: rustfs_targets::target::TargetType::NotifyEvent,
+            target_type: nebulafx_targets::target::TargetType::NotifyEvent,
         };
 
-        let target = rustfs_targets::target::webhook::WebhookTarget::new(id, args)?;
+        let target = nebulafx_targets::target::webhook::WebhookTarget::new(id, args)?;
         Ok(Box::new(target))
     }
 
@@ -164,10 +152,10 @@ impl TargetFactory for MQTTTargetFactory {
                 .lookup(MQTT_QUEUE_LIMIT)
                 .and_then(|v| v.parse::<u64>().ok())
                 .unwrap_or(DEFAULT_LIMIT),
-            target_type: rustfs_targets::target::TargetType::NotifyEvent,
+            target_type: nebulafx_targets::target::TargetType::NotifyEvent,
         };
 
-        let target = rustfs_targets::target::mqtt::MQTTTarget::new(id, args)?;
+        let target = nebulafx_targets::target::mqtt::MQTTTarget::new(id, args)?;
         Ok(Box::new(target))
     }
 

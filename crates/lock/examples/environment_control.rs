@@ -1,20 +1,8 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 //! Example demonstrating environment variable control of lock system
 
-use rustfs_lock::{LockManager, get_global_lock_manager};
+use nebulafx_lock::{LockManager, get_global_lock_manager};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -22,9 +10,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Lock system status: {}", if manager.is_disabled() { "DISABLED" } else { "ENABLED" });
 
-    match std::env::var("RUSTFS_ENABLE_LOCKS") {
-        Ok(value) => println!("RUSTFS_ENABLE_LOCKS set to: {value}"),
-        Err(_) => println!("RUSTFS_ENABLE_LOCKS not set (defaults to enabled)"),
+    match std::env::var("NEUBULAFX_ENABLE_LOCKS") {
+        Ok(value) => println!("NEUBULAFX_ENABLE_LOCKS set to: {value}"),
+        Err(_) => println!("NEUBULAFX_ENABLE_LOCKS not set (defaults to enabled)"),
     }
 
     // Test acquiring a lock

@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use bytes::BytesMut;
 use http::request;
@@ -20,7 +8,7 @@ use std::fmt::Write;
 use time::{OffsetDateTime, format_description};
 
 use super::utils::get_host_addr;
-use rustfs_utils::crypto::{hex, hmac_sha1};
+use nebulafx_utils::crypto::{hex, hmac_sha1};
 use s3s::Body;
 
 const _SIGN_V4_ALGORITHM: &str = "AWS4-HMAC-SHA256";

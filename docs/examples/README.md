@@ -1,12 +1,12 @@
-# RustFS Deployment Examples
+# NebulaFX Deployment Examples
 
-This directory contains practical deployment examples and configurations for RustFS.
+This directory contains practical deployment examples and configurations for NebulaFX.
 
 ## Available Examples
 
 ### [MNMD (Multi-Node Multi-Drive)](./mnmd/)
 
-Complete Docker Compose example for deploying RustFS in a 4-node, 4-drive-per-node configuration.
+Complete Docker Compose example for deploying NebulaFX in a 4-node, 4-drive-per-node configuration.
 
 **Features:**
 
@@ -81,5 +81,5 @@ When adding new examples:
 
 For issues or questions:
 
-- GitHub Issues: https://github.com/rustfs/rustfs/issues
-- Documentation: https://rustfs.com/docs
+- GitHub Issues: https://github.com/nebulafx/nebulafx/issues
+- Documentation: https://nebulafx.com/docs

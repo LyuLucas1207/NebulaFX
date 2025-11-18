@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(unused_mut)]
@@ -46,12 +34,12 @@ use crate::tier::{
 use crate::{
     StorageAPI,
     config::com::{CONFIG_PREFIX, read_config},
-    disk::RUSTFS_META_BUCKET,
+    disk::NEUBULAFX_META_BUCKET,
     store::ECStore,
     store_api::{ObjectOptions, PutObjReader},
 };
-use rustfs_rio::HashReader;
-use rustfs_utils::path::{SLASH_SEPARATOR, path_join};
+use nebulafx_rio::HashReader;
+use nebulafx_utils::path::{SLASH_SEPARATOR, path_join};
 use s3s::S3ErrorCode;
 
 use super::{
@@ -66,31 +54,31 @@ pub const TIER_CONFIG_FORMAT: u16 = 1;
 pub const TIER_CONFIG_V1: u16 = 1;
 pub const TIER_CONFIG_VERSION: u16 = 1;
 
-const _TIER_CFG_REFRESH_AT_HDR: &str = "X-RustFS-TierCfg-RefreshedAt";
+const _TIER_CFG_REFRESH_AT_HDR: &str = "X-NebulaFX-TierCfg-RefreshedAt";
 
 lazy_static! {
     pub static ref ERR_TIER_MISSING_CREDENTIALS: AdminError = AdminError {
-        code: "XRustFSAdminTierMissingCredentials".to_string(),
+        code: "XNebulaFXAdminTierMissingCredentials".to_string(),
         message: "Specified remote credentials are empty".to_string(),
         status_code: StatusCode::FORBIDDEN,
     };
     pub static ref ERR_TIER_BACKEND_IN_USE: AdminError = AdminError {
-        code: "XRustFSAdminTierBackendInUse".to_string(),
+        code: "XNebulaFXAdminTierBackendInUse".to_string(),
         message: "Specified remote tier is already in use".to_string(),
         status_code: StatusCode::CONFLICT,
     };
     pub static ref ERR_TIER_TYPE_UNSUPPORTED: AdminError = AdminError {
-        code: "XRustFSAdminTierTypeUnsupported".to_string(),
+        code: "XNebulaFXAdminTierTypeUnsupported".to_string(),
         message: "Specified tier type is unsupported".to_string(),
         status_code: StatusCode::BAD_REQUEST,
     };
     pub static ref ERR_TIER_BACKEND_NOT_EMPTY: AdminError = AdminError {
-        code: "XRustFSAdminTierBackendNotEmpty".to_string(),
+        code: "XNebulaFXAdminTierBackendNotEmpty".to_string(),
         message: "Specified remote backend is not empty".to_string(),
         status_code: StatusCode::BAD_REQUEST,
     };
     pub static ref ERR_TIER_INVALID_CONFIG: AdminError = AdminError {
-        code: "XRustFSAdminTierInvalidConfig".to_string(),
+        code: "XNebulaFXAdminTierInvalidConfig".to_string(),
         message: "Unable to setup remote tier, check tier configuration".to_string(),
         status_code: StatusCode::BAD_REQUEST,
     };
@@ -276,13 +264,13 @@ impl TierConfigMgr {
                     s3.secret_key = creds.secret_key;
                 }
             }
-            TierType::RustFS => {
-                let mut rustfs = tier_config.rustfs.as_mut().expect("err");
+            TierType::NebulaFX => {
+                let mut nebulafx = tier_config.nebulafx.as_mut().expect("err");
                 if creds.access_key == "" || creds.secret_key == "" {
                     return Err(ERR_TIER_MISSING_CREDENTIALS.clone());
                 }
-                rustfs.access_key = creds.access_key;
-                rustfs.secret_key = creds.secret_key;
+                nebulafx.access_key = creds.access_key;
+                nebulafx.secret_key = creds.secret_key;
             }
             TierType::MinIO => {
                 let mut minio = tier_config.minio.as_mut().expect("err");
@@ -435,7 +423,7 @@ impl TierConfigMgr {
     ) -> std::result::Result<(), std::io::Error> {
         debug!("save tier config:{}", file);
         let _ = api
-            .put_object(RUSTFS_META_BUCKET, file, &mut PutObjReader::from_vec(data.to_vec()), opts)
+            .put_object(NEUBULAFX_META_BUCKET, file, &mut PutObjReader::from_vec(data.to_vec()), opts)
             .await?;
         Ok(())
     }

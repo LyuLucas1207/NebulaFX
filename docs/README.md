@@ -1,12 +1,12 @@
-# RustFS Documentation Center
+# NebulaFX Documentation Center
 
-Welcome to the RustFS distributed file system documentation center!
+Welcome to the NebulaFX distributed file system documentation center!
 
 ## 📚 Documentation Navigation
 
 ### 🔐 KMS (Key Management Service)
 
-RustFS KMS delivers enterprise-grade key management and data encryption.
+NebulaFX KMS delivers enterprise-grade key management and data encryption.
 
 | Document | Description | Audience |
 |------|------|----------|
@@ -28,11 +28,11 @@ RustFS KMS delivers enterprise-grade key management and data encryption.
 cargo build --features vault --release
 
 # 2. Configure environment variables
-export RUSTFS_VAULT_ADDRESS=https://vault.company.com:8200
-export RUSTFS_VAULT_TOKEN=hvs.CAESIJ...
+export NEUBULAFX_VAULT_ADDRESS=https://vault.company.com:8200
+export NEUBULAFX_VAULT_TOKEN=hvs.CAESIJ...
 
 # 3. Launch the service
-./target/release/rustfs server
+./target/release/nebulafx server
 ```
 
 **Development & Testing (Local backend)**
@@ -42,23 +42,23 @@ export RUSTFS_VAULT_TOKEN=hvs.CAESIJ...
 cargo build --release
 
 # 2. Configure local storage
-export RUSTFS_KMS_BACKEND=Local
-export RUSTFS_KMS_LOCAL_KEY_DIR=/tmp/rustfs-keys
+export NEUBULAFX_KMS_BACKEND=Local
+export NEUBULAFX_KMS_LOCAL_KEY_DIR=/tmp/nebulafx-keys
 
 # 3. Launch the service
-./target/release/rustfs server
+./target/release/nebulafx server
 ```
 
 ### 2. S3-Compatible Encryption
 
 ```bash
 # Upload an encrypted object
-curl -X PUT https://rustfs.company.com/bucket/sensitive.txt \
+curl -X PUT https://nebulafx.company.com/bucket/sensitive.txt \
   -H "x-amz-server-side-encryption: AES256" \
   --data-binary @sensitive.txt
 
 # Download with automatic decryption
-curl https://rustfs.company.com/bucket/sensitive.txt
+curl https://nebulafx.company.com/bucket/sensitive.txt
 ```
 
 ## 🏗️ Architecture Overview
@@ -129,7 +129,7 @@ We welcome community contributions!
 
 ```bash
 # 1. Fork the repository
-git clone https://github.com/your-username/rustfs.git
+git clone https://github.com/your-username/nebulafx.git
 
 # 2. Create a documentation branch
 git checkout -b docs/improve-kms-guide
@@ -157,10 +157,10 @@ gh pr create --title "Improve KMS documentation"
 
 ### Getting Help
 
-- **GitHub Issues**: https://github.com/rustfs/rustfs/issues
-- **Discussion Forum**: https://github.com/rustfs/rustfs/discussions
+- **GitHub Issues**: https://github.com/nebulafx/nebulafx/issues
+- **Discussion Forum**: https://github.com/nebulafx/nebulafx/discussions
 - **Documentation Questions**: Open an issue on the relevant document
-- **Security Concerns**: security@rustfs.com
+- **Security Concerns**: security@nebulafx.com
 
 ### Issue Reporting Template
 
@@ -168,7 +168,7 @@ When reporting a problem, please provide:
 
 ```markdown
 **Environment**
-- RustFS version: v1.0.0
+- NebulaFX version: v1.0.0
 - Operating system: Ubuntu 20.04
 - Rust version: 1.75.0
 
@@ -236,4 +236,4 @@ Share specific ideas via GitHub Issues.
 **Last Updated**: 2024-01-15
 **Documentation Version**: v1.0.0
 
-*Thank you for using RustFS! We are committed to delivering the best distributed file system solution.*
+*Thank you for using NebulaFX! We are committed to delivering the best distributed file system solution.*

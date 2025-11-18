@@ -1,4 +1,4 @@
-//  Copyright 2024 RustFS Team
+//  Copyright 2024 NebulaFX Team
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 //! Tests for audit system observability and metrics
 
-use rustfs_audit::observability::*;
+use nebulafx_audit::observability::*;
 use std::time::Duration;
 
 #[tokio::test]

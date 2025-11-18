@@ -1,17 +1,5 @@
 #![cfg(test)]
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use aws_config::meta::region::RegionProviderChain;
 use aws_sdk_s3::Client;
@@ -22,8 +10,8 @@ use std::error::Error;
 use tokio::time::sleep;
 
 const ENDPOINT: &str = "http://localhost:9000";
-const ACCESS_KEY: &str = "rustfsadmin";
-const SECRET_KEY: &str = "rustfsadmin";
+const ACCESS_KEY: &str = "nebulafxadmin";
+const SECRET_KEY: &str = "nebulafxadmin";
 const BUCKET: &str = "test-basic-bucket";
 
 async fn create_aws_s3_client() -> Result<Client, Box<dyn Error>> {
@@ -59,7 +47,7 @@ async fn setup_test_bucket(client: &Client) -> Result<(), Box<dyn Error>> {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_bucket_lifecycle_configuration() -> Result<(), Box<dyn std::error::Error>> {
     use aws_sdk_s3::types::{BucketLifecycleConfiguration, LifecycleExpiration, LifecycleRule, LifecycleRuleFilter};
     use tokio::time::Duration;

@@ -1,15 +1,15 @@
 # KMS Security Guidelines
 
-This document summarises the security posture of the RustFS KMS subsystem and offers guidance for safe production deployment.
+This document summarises the security posture of the NebulaFX KMS subsystem and offers guidance for safe production deployment.
 
 ## Threat Model
 
-- Attackers might obtain network access to RustFS or Vault.
+- Attackers might obtain network access to NebulaFX or Vault.
 - Leaked admin credentials could manipulate KMS configuration.
 - Misconfigured SSE-C clients could expose plaintext keys.
 - Insider threats may attempt to extract master keys from disk-based storage.
 
-RustFS mitigates these risks via access control, auditability, and best practices outlined below.
+NebulaFX mitigates these risks via access control, auditability, and best practices outlined below.
 
 ## Authentication & Authorisation
 
@@ -19,9 +19,9 @@ RustFS mitigates these risks via access control, auditability, and best practice
 
 ## Network Security
 
-- Enforce TLS for both RustFS and Vault deployments. Set `skip_tls_verify=false` in production.
-- Use mTLS or private network peering between RustFS and Vault where possible.
-- Restrict Vault transit endpoints using network ACLs or service meshes so only RustFS can reach them.
+- Enforce TLS for both NebulaFX and Vault deployments. Set `skip_tls_verify=false` in production.
+- Use mTLS or private network peering between NebulaFX and Vault where possible.
+- Restrict Vault transit endpoints using network ACLs or service meshes so only NebulaFX can reach them.
 
 ## Secret Management
 
@@ -32,7 +32,7 @@ RustFS mitigates these risks via access control, auditability, and best practice
 ## Vault Hardening Checklist
 
 - Enable audit logging (`vault audit enable file file_path=/var/log/vault_audit.log`).
-- Create a dedicated policy granting access only to the `transit` and `secret` paths used by RustFS.
+- Create a dedicated policy granting access only to the `transit` and `secret` paths used by NebulaFX.
 - Configure automatic token renewal or rely on `vault agent` to manage token lifetimes.
 - Monitor the health endpoint (`/v1/sys/health`) and integrate it into your on-call alerts.
 
@@ -50,7 +50,7 @@ RustFS mitigates these risks via access control, auditability, and best practice
 
 ## Audit & Monitoring
 
-- Capture structured logs emitted under the `rustfs::kms` target. Each admin call logs request principals and outcomes.
+- Capture structured logs emitted under the `nebulafx::kms` target. Each admin call logs request principals and outcomes.
 - Export metrics such as cache hit ratio, backend latency, and failure counts to your observability stack.
 - Periodically run the e2e Vault suite in a staging environment to verify backup/restore procedures.
 
@@ -62,4 +62,4 @@ RustFS mitigates these risks via access control, auditability, and best practice
 4. Restore keys from backups or Vault versions if tampering occurred.
 5. Reconfigure the backend using trusted credentials and restart the service.
 
-By adhering to these practices, you can deploy RustFS KMS with confidence across regulated or high-security environments.
+By adhering to these practices, you can deploy NebulaFX KMS with confidence across regulated or high-security environments.

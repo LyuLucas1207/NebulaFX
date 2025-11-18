@@ -1,4 +1,4 @@
-//  Copyright 2024 RustFS Team
+//  Copyright 2024 NebulaFX Team
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
 
 //! Comprehensive integration tests for the complete audit system
 
-use rustfs_audit::*;
-use rustfs_ecstore::config::{Config, KVS};
+use nebulafx_audit::*;
+use nebulafx_ecstore::config::{Config, KVS};
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
@@ -110,7 +110,7 @@ async fn test_audit_log_dispatch_with_no_targets() {
 
 #[tokio::test]
 async fn test_global_audit_functions() {
-    use rustfs_audit::*;
+    use nebulafx_audit::*;
 
     // Test global functions
     let system = init_audit_system();
@@ -184,7 +184,7 @@ async fn test_config_parsing_with_multiple_instances() {
 
 #[test]
 fn test_target_type_validation() {
-    use rustfs_targets::target::TargetType;
+    use nebulafx_targets::target::TargetType;
 
     // Test that TargetType::AuditLog is properly defined
     let audit_type = TargetType::AuditLog;
@@ -271,7 +271,7 @@ fn create_sample_audit_entry() -> AuditEntry {
 
 fn create_sample_audit_entry_with_id(id: u32) -> AuditEntry {
     use chrono::Utc;
-    use rustfs_targets::EventName;
+    use nebulafx_targets::EventName;
     use serde_json::json;
 
     let mut req_header = hashbrown::HashMap::new();

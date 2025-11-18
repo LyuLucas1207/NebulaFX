@@ -1,4 +1,4 @@
-//  Copyright 2024 RustFS Team
+//  Copyright 2024 NebulaFX Team
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -13,8 +13,8 @@
 //  limitations under the License.
 
 use crate::{AuditEntry, AuditError, AuditRegistry, AuditResult, observability};
-use rustfs_ecstore::config::Config;
-use rustfs_targets::{
+use nebulafx_ecstore::config::Config;
+use nebulafx_targets::{
     StoreError, Target, TargetError,
     store::{Key, Store},
     target::EntityTarget,
@@ -269,7 +269,7 @@ impl AuditSystem {
                 let entity_target = EntityTarget {
                     object_name: entry.api.name.clone().unwrap_or_default(),
                     bucket_name: entry.api.bucket.clone().unwrap_or_default(),
-                    event_name: rustfs_targets::EventName::ObjectCreatedPut, // Default, should be derived from entry
+                    event_name: nebulafx_targets::EventName::ObjectCreatedPut, // Default, should be derived from entry
                     data: (*entry_clone).clone(),
                 };
 
@@ -349,7 +349,7 @@ impl AuditSystem {
                         let entity_target = EntityTarget {
                             object_name: entry.api.name.clone().unwrap_or_default(),
                             bucket_name: entry.api.bucket.clone().unwrap_or_default(),
-                            event_name: rustfs_targets::EventName::ObjectCreatedPut,
+                            event_name: nebulafx_targets::EventName::ObjectCreatedPut,
                             data: (*entry).clone(),
                         };
                         match target.save(Arc::new(entity_target)).await {

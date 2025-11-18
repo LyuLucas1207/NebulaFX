@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 // use crate::quorum::CheckErrorFn;
 use std::hash::{Hash, Hasher};
@@ -219,14 +207,14 @@ impl DiskError {
     // }
 }
 
-impl From<rustfs_filemeta::Error> for DiskError {
-    fn from(e: rustfs_filemeta::Error) -> Self {
+impl From<nebulafx_filemeta::Error> for DiskError {
+    fn from(e: nebulafx_filemeta::Error) -> Self {
         match e {
-            rustfs_filemeta::Error::Io(e) => DiskError::other(e),
-            rustfs_filemeta::Error::FileNotFound => DiskError::FileNotFound,
-            rustfs_filemeta::Error::FileVersionNotFound => DiskError::FileVersionNotFound,
-            rustfs_filemeta::Error::FileCorrupt => DiskError::FileCorrupt,
-            rustfs_filemeta::Error::MethodNotAllowed => DiskError::MethodNotAllowed,
+            nebulafx_filemeta::Error::Io(e) => DiskError::other(e),
+            nebulafx_filemeta::Error::FileNotFound => DiskError::FileNotFound,
+            nebulafx_filemeta::Error::FileVersionNotFound => DiskError::FileVersionNotFound,
+            nebulafx_filemeta::Error::FileCorrupt => DiskError::FileCorrupt,
+            nebulafx_filemeta::Error::MethodNotAllowed => DiskError::MethodNotAllowed,
             e => DiskError::other(e),
         }
     }
@@ -253,8 +241,8 @@ impl From<tonic::Status> for DiskError {
     }
 }
 
-impl From<rustfs_protos::proto_gen::node_service::Error> for DiskError {
-    fn from(e: rustfs_protos::proto_gen::node_service::Error) -> Self {
+impl From<nebulafx_protos::proto_gen::node_service::Error> for DiskError {
+    fn from(e: nebulafx_protos::proto_gen::node_service::Error) -> Self {
         if let Some(err) = DiskError::from_u32(e.code) {
             if matches!(err, DiskError::Io(_)) {
                 DiskError::other(e.error_info)
@@ -267,9 +255,9 @@ impl From<rustfs_protos::proto_gen::node_service::Error> for DiskError {
     }
 }
 
-impl From<DiskError> for rustfs_protos::proto_gen::node_service::Error {
+impl From<DiskError> for nebulafx_protos::proto_gen::node_service::Error {
     fn from(e: DiskError) -> Self {
-        rustfs_protos::proto_gen::node_service::Error {
+        nebulafx_protos::proto_gen::node_service::Error {
             code: e.to_u32(),
             error_info: e.to_string(),
         }

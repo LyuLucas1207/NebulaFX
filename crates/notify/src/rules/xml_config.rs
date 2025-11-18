@@ -1,21 +1,9 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use super::pattern;
 use hashbrown::HashSet;
-use rustfs_targets::EventName;
-use rustfs_targets::arn::{ARN, ArnError, TargetIDError};
+use nebulafx_targets::EventName;
+use nebulafx_targets::arn::{ARN, ArnError, TargetIDError};
 use serde::{Deserialize, Serialize};
 use std::io::Read;
 use thiserror::Error;
@@ -174,7 +162,7 @@ impl QueueConfig {
         }
 
         // Construct the ARN string that would be in arn_list
-        // The arn_list contains ARNs like "arn:rustfs:sqs:REGION:ID:NAME"
+        // The arn_list contains ARNs like "arn:nebulafx:sqs:REGION:ID:NAME"
         // We need to ensure self.arn (potentially with region adjusted) is in arn_list
         let effective_arn = ARN {
             target_id: self.arn.target_id.clone(),
@@ -184,7 +172,7 @@ impl QueueConfig {
                 self.arn.region.clone()
             },
             service: self.arn.service.clone(),     // or default "sqs"
-            partition: self.arn.partition.clone(), // or default "rustfs"
+            partition: self.arn.partition.clone(), // or default "nebulafx"
         };
 
         if !arn_list.contains(&effective_arn.to_string()) {

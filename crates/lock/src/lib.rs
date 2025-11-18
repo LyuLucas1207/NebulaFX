@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 // ============================================================================
 // Core Module Declarations
@@ -91,14 +79,14 @@ impl Default for GlobalLockManager {
 impl GlobalLockManager {
     /// Create a lock manager based on environment variable configuration
     pub fn new() -> Self {
-        // Check RUSTFS_ENABLE_LOCKS environment variable
-        let locks_enabled = std::env::var("RUSTFS_ENABLE_LOCKS")
+        // Check NEUBULAFX_ENABLE_LOCKS environment variable
+        let locks_enabled = std::env::var("NEUBULAFX_ENABLE_LOCKS")
             .unwrap_or_else(|_| "true".to_string())
             .to_lowercase();
 
         match locks_enabled.as_str() {
             "false" | "0" | "no" | "off" | "disabled" => {
-                tracing::info!("Lock system disabled via RUSTFS_ENABLE_LOCKS environment variable");
+                tracing::info!("Lock system disabled via NEUBULAFX_ENABLE_LOCKS environment variable");
                 Self::Disabled(fast_lock::DisabledLockManager::new())
             }
             _ => {
@@ -253,7 +241,7 @@ static GLOBAL_LOCK_MANAGER: OnceCell<Arc<GlobalLockManager>> = OnceCell::new();
 /// Get the global shared lock manager instance
 ///
 /// Returns either FastObjectLockManager or DisabledLockManager based on
-/// the RUSTFS_ENABLE_LOCKS environment variable.
+/// the NEUBULAFX_ENABLE_LOCKS environment variable.
 pub fn get_global_lock_manager() -> Arc<GlobalLockManager> {
     GLOBAL_LOCK_MANAGER.get_or_init(|| Arc::new(GlobalLockManager::new())).clone()
 }

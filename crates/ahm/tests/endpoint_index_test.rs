@@ -1,21 +1,9 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 //! test endpoint index settings
 
-use rustfs_ecstore::disk::endpoint::Endpoint;
-use rustfs_ecstore::endpoints::{EndpointServerPools, Endpoints, PoolEndpoints};
+use nebulafx_ecstore::disk::endpoint::Endpoint;
+use nebulafx_ecstore::endpoints::{EndpointServerPools, Endpoints, PoolEndpoints};
 use std::net::SocketAddr;
 use tempfile::TempDir;
 use tokio_util::sync::CancellationToken;
@@ -71,10 +59,10 @@ async fn test_endpoint_index_settings() -> anyhow::Result<()> {
     }
 
     // test ECStore initialization
-    rustfs_ecstore::store::init_local_disks(endpoint_pools.clone()).await?;
+    nebulafx_ecstore::store::init_local_disks(endpoint_pools.clone()).await?;
 
     let server_addr: SocketAddr = "127.0.0.1:0".parse().unwrap();
-    let ecstore = rustfs_ecstore::store::ECStore::new(server_addr, endpoint_pools, CancellationToken::new()).await?;
+    let ecstore = nebulafx_ecstore::store::ECStore::new(server_addr, endpoint_pools, CancellationToken::new()).await?;
 
     println!("ECStore initialized successfully with {} pools", ecstore.pools.len());
 

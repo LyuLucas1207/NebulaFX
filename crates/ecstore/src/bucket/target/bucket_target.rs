@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::error::{Error, Result};
 use rmp_serde::Serializer as rmpSerializer;
@@ -346,10 +334,10 @@ mod tests {
     fn test_bucket_target_json_serialize_deserialize_roundtrip() {
         let original = BucketTarget {
             source_bucket: "test-source".to_string(),
-            endpoint: "rustfs.example.com".to_string(),
+            endpoint: "nebulafx.example.com".to_string(),
             credentials: Some(Credentials {
-                access_key: "rustfsaccess".to_string(),
-                secret_key: "rustfssecret".to_string(),
+                access_key: "nebulafxaccess".to_string(),
+                secret_key: "nebulafxsecret".to_string(),
                 session_token: None,
                 expiration: None,
             }),
@@ -357,7 +345,7 @@ mod tests {
             secure: false,
             path: "/".to_string(),
             api: "s3v4".to_string(),
-            arn: "arn:rustfs:s3:::test-target".to_string(),
+            arn: "arn:nebulafx:s3:::test-target".to_string(),
             target_type: BucketTargetType::ReplicationService,
             region: "us-west-2".to_string(),
             bandwidth_limit: 500000,
@@ -516,8 +504,8 @@ mod tests {
             "sourcebucket": "mc-test-bucket-22139",
             "endpoint": "localhost:8000",
             "credentials": {
-                "accessKey": "rustfsadmin",
-                "secretKey": "rustfsadmin",
+                "accessKey": "nebulafxadmin",
+                "secretKey": "nebulafxadmin",
                 "expiration": "0001-01-01T00:00:00Z"
             },
             "targetbucket": "test",
@@ -566,8 +554,8 @@ mod tests {
         // Verify credentials
         assert!(target.credentials.is_some());
         let credentials = target.credentials.unwrap();
-        assert_eq!(credentials.access_key, "rustfsadmin");
-        assert_eq!(credentials.secret_key, "rustfsadmin");
+        assert_eq!(credentials.access_key, "nebulafxadmin");
+        assert_eq!(credentials.secret_key, "nebulafxadmin");
 
         // Verify latency statistics
         assert_eq!(target.latency.curr, Duration::from_millis(0));
@@ -591,8 +579,8 @@ mod tests {
                     "sourcebucket": "mc-test-bucket-22139",
                     "endpoint": "localhost:8000",
                     "credentials": {
-                        "accessKey": "rustfsadmin",
-                        "secretKey": "rustfsadmin",
+                        "accessKey": "nebulafxadmin",
+                        "secretKey": "nebulafxadmin",
                         "expiration": "0001-01-01T00:00:00Z"
                     },
                     "targetbucket": "test",
@@ -736,8 +724,8 @@ mod tests {
             "sourcebucket": "mc-test-bucket-22139",
             "endpoint": "localhost:8000",
             "credentials": {
-                "accessKey": "rustfsadmin",
-                "secretKey": "rustfsadmin",
+                "accessKey": "nebulafxadmin",
+                "secretKey": "nebulafxadmin",
                 "expiration": "0001-01-01T00:00:00Z"
             },
             "targetbucket": "test",
@@ -792,8 +780,8 @@ mod tests {
         // Verify credentials
         assert!(target.credentials.is_some());
         let credentials = target.credentials.unwrap();
-        assert_eq!(credentials.access_key, "rustfsadmin");
-        assert_eq!(credentials.secret_key, "rustfsadmin");
+        assert_eq!(credentials.access_key, "nebulafxadmin");
+        assert_eq!(credentials.secret_key, "nebulafxadmin");
 
         println!("✅ Original user JSON with defaults successfully deserialized to BucketTarget");
     }

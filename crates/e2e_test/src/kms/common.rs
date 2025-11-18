@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 #![allow(dead_code)]
 #![allow(clippy::upper_case_acronyms)]
@@ -22,7 +10,7 @@
 //! - KMS backend configuration (Local and Vault)
 //! - SSE encryption testing utilities
 
-use crate::common::{RustFSTestEnvironment, awscurl_get, awscurl_post, init_logging as common_init_logging};
+use crate::common::{NebulaFXTestEnvironment, awscurl_get, awscurl_post, init_logging as common_init_logging};
 use aws_sdk_s3::Client;
 use aws_sdk_s3::primitives::ByteStream;
 use aws_sdk_s3::types::ServerSideEncryption;
@@ -43,7 +31,7 @@ pub const VAULT_URL: &str = "http://127.0.0.1:8200";
 pub const VAULT_ADDRESS: &str = "127.0.0.1:8200";
 pub const VAULT_TOKEN: &str = "dev-root-token";
 pub const VAULT_TRANSIT_PATH: &str = "transit";
-pub const VAULT_KEY_NAME: &str = "rustfs-master-key";
+pub const VAULT_KEY_NAME: &str = "nebulafx-master-key";
 
 /// Initialize tracing for KMS tests with KMS-specific log levels
 pub fn init_logging() {
@@ -59,7 +47,7 @@ pub async fn configure_kms(
     access_key: &str,
     secret_key: &str,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let url = format!("{base_url}/rustfs/admin/v3/kms/configure");
+    let url = format!("{base_url}/nebulafx/admin/v3/kms/configure");
     awscurl_post(&url, config_json, access_key, secret_key).await?;
     info!("KMS configured successfully");
     Ok(())
@@ -71,7 +59,7 @@ pub async fn start_kms(
     access_key: &str,
     secret_key: &str,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let url = format!("{base_url}/rustfs/admin/v3/kms/start");
+    let url = format!("{base_url}/nebulafx/admin/v3/kms/start");
     awscurl_post(&url, "{}", access_key, secret_key).await?;
     info!("KMS started successfully");
     Ok(())
@@ -83,7 +71,7 @@ pub async fn get_kms_status(
     access_key: &str,
     secret_key: &str,
 ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
-    let url = format!("{base_url}/rustfs/admin/v3/kms/status");
+    let url = format!("{base_url}/nebulafx/admin/v3/kms/status");
     let status = awscurl_get(&url, access_key, secret_key).await?;
     info!("KMS status retrieved: {}", status);
     Ok(status)
@@ -101,7 +89,7 @@ pub async fn create_default_key(
     })
     .to_string();
 
-    let url = format!("{base_url}/rustfs/admin/v3/kms/keys");
+    let url = format!("{base_url}/nebulafx/admin/v3/kms/keys");
     let response = awscurl_post(&url, &create_key_body, access_key, secret_key).await?;
 
     // Parse response to get the actual key ID
@@ -282,7 +270,7 @@ pub async fn test_kms_key_management(
     .to_string();
 
     let create_response =
-        awscurl_post(&format!("{base_url}/rustfs/admin/v3/kms/keys"), &create_key_body, access_key, secret_key).await?;
+        awscurl_post(&format!("{base_url}/nebulafx/admin/v3/kms/keys"), &create_key_body, access_key, secret_key).await?;
 
     let create_result: serde_json::Value = serde_json::from_str(&create_response)?;
     let key_id = create_result["key_id"]
@@ -291,7 +279,7 @@ pub async fn test_kms_key_management(
     info!("Created key with ID: {}", key_id);
 
     // Test DescribeKey
-    let describe_response = awscurl_get(&format!("{base_url}/rustfs/admin/v3/kms/keys/{key_id}"), access_key, secret_key).await?;
+    let describe_response = awscurl_get(&format!("{base_url}/nebulafx/admin/v3/kms/keys/{key_id}"), access_key, secret_key).await?;
 
     info!("DescribeKey response: {}", describe_response);
     let describe_result: serde_json::Value = serde_json::from_str(&describe_response)?;
@@ -300,7 +288,7 @@ pub async fn test_kms_key_management(
     info!("Successfully described key: {}", key_id);
 
     // Test ListKeys
-    let list_response = awscurl_get(&format!("{base_url}/rustfs/admin/v3/kms/keys"), access_key, secret_key).await?;
+    let list_response = awscurl_get(&format!("{base_url}/nebulafx/admin/v3/kms/keys"), access_key, secret_key).await?;
 
     let list_result: serde_json::Value = serde_json::from_str(&list_response)?;
     let keys = list_result["keys"]
@@ -361,14 +349,14 @@ pub async fn test_error_scenarios(s3_client: &Client, bucket: &str) -> Result<()
 
 /// Vault test environment management
 pub struct VaultTestEnvironment {
-    pub base_env: RustFSTestEnvironment,
+    pub base_env: NebulaFXTestEnvironment,
     pub vault_process: Option<Child>,
 }
 
 impl VaultTestEnvironment {
     /// Create a new Vault test environment
     pub async fn new() -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
-        let base_env = RustFSTestEnvironment::new().await?;
+        let base_env = NebulaFXTestEnvironment::new().await?;
 
         Ok(Self {
             base_env,
@@ -466,9 +454,9 @@ impl VaultTestEnvironment {
         Ok(())
     }
 
-    /// Start RustFS server for Vault backend; dynamic configuration will be applied later.
-    pub async fn start_rustfs_for_vault(&mut self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        self.base_env.start_rustfs_server(Vec::new()).await
+    /// Start NebulaFX server for Vault backend; dynamic configuration will be applied later.
+    pub async fn start_nebulafx_for_vault(&mut self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        self.base_env.start_nebulafx_server(Vec::new()).await
     }
 
     /// Configure Vault KMS backend
@@ -483,7 +471,7 @@ impl VaultTestEnvironment {
             },
             "mount_path": VAULT_TRANSIT_PATH,
             "kv_mount": "secret",
-            "key_path_prefix": "rustfs/kms/keys",
+            "key_path_prefix": "nebulafx/kms/keys",
             "default_key_id": VAULT_KEY_NAME,
             "skip_tls_verify": true
         })
@@ -724,24 +712,24 @@ pub async fn test_all_multipart_encryption_types(
 
 /// Local KMS test environment management
 pub struct LocalKMSTestEnvironment {
-    pub base_env: RustFSTestEnvironment,
+    pub base_env: NebulaFXTestEnvironment,
     pub kms_keys_dir: String,
 }
 
 impl LocalKMSTestEnvironment {
     /// Create a new Local KMS test environment
     pub async fn new() -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
-        let base_env = RustFSTestEnvironment::new().await?;
+        let base_env = NebulaFXTestEnvironment::new().await?;
         let kms_keys_dir = format!("{}/kms-keys", base_env.temp_dir);
         fs::create_dir_all(&kms_keys_dir).await?;
 
         Ok(Self { base_env, kms_keys_dir })
     }
 
-    /// Start RustFS server configured for Local KMS backend with a default key
-    pub async fn start_rustfs_for_local_kms(&mut self) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    /// Start NebulaFX server configured for Local KMS backend with a default key
+    pub async fn start_nebulafx_for_local_kms(&mut self) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
         // Create a default key first
-        let default_key_id = "rustfs-e2e-test-default-key";
+        let default_key_id = "nebulafx-e2e-test-default-key";
         create_key_with_specific_id(&self.kms_keys_dir, default_key_id).await?;
 
         let extra_args = vec![
@@ -754,14 +742,14 @@ impl LocalKMSTestEnvironment {
             default_key_id,
         ];
 
-        self.base_env.start_rustfs_server(extra_args).await?;
+        self.base_env.start_nebulafx_server(extra_args).await?;
         Ok(default_key_id.to_string())
     }
 
     /// Configure Local KMS backend with a predefined default key
     pub async fn configure_local_kms(&self) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
         // Use a fixed, predictable default key ID
-        let default_key_id = "rustfs-e2e-test-default-key";
+        let default_key_id = "nebulafx-e2e-test-default-key";
 
         // Create the default key file first using our manual method
         create_key_with_specific_id(&self.kms_keys_dir, default_key_id).await?;

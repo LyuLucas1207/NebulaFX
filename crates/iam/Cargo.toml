@@ -1,29 +1,17 @@
-# Copyright 2024 RustFS Team
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+
 
 [package]
-name = "rustfs-iam"
+name = "nebulafx-iam"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
 homepage.workspace = true
-description = "Identity and Access Management (IAM) for RustFS, providing user management, roles, and permissions."
-keywords = ["iam", "identity", "access-management", "rustfs", "Minio"]
+description = "Identity and Access Management (IAM) for NebulaFX, providing user management, roles, and permissions."
+keywords = ["iam", "identity", "access-management", "nebulafx", "Minio"]
 categories = ["web-programming", "development-tools", "authentication"]
-documentation = "https://docs.rs/rustfs-iam/latest/rustfs_iam/"
+documentation = "https://docs.rs/nebulafx-iam/latest/nebulafx_iam/"
 
 [lints]
 workspace = true
@@ -32,20 +20,20 @@ workspace = true
 tokio.workspace = true
 time = { workspace = true, features = ["serde-human-readable"] }
 serde = { workspace = true, features = ["derive", "rc"] }
-rustfs-ecstore = { workspace = true }
-rustfs-policy.workspace = true
+nebulafx-ecstore = { workspace = true }
+nebulafx-policy.workspace = true
 serde_json.workspace = true
 async-trait.workspace = true
 thiserror.workspace = true
 arc-swap = { workspace = true }
-rustfs-crypto = { workspace = true }
+nebulafx-crypto = { workspace = true }
 futures.workspace = true
 rand.workspace = true
 base64-simd = { workspace = true }
 jsonwebtoken = { workspace = true }
 tracing.workspace = true
-rustfs-madmin.workspace = true
-rustfs-utils = { workspace = true, features = ["path"] }
+nebulafx-madmin.workspace = true
+nebulafx-utils = { workspace = true, features = ["path"] }
 tokio-util.workspace = true
 
 [dev-dependencies]

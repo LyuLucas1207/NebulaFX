@@ -1,29 +1,17 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use anyhow::Result;
 use clap::Parser;
 use tracing::info;
 
-/// Configuration for RustFS MCP Server
+/// Configuration for NebulaFX MCP Server
 #[derive(Parser, Debug, Clone)]
 #[command(
-    name = "rustfs-mcp-server",
-    about = "RustFS MCP (Model Context Protocol) Server for S3 operations",
+    name = "nebulafx-mcp-server",
+    about = "NebulaFX MCP (Model Context Protocol) Server for S3 operations",
     version,
     long_about = r#"
-RustFS MCP Server - Model Context Protocol server for S3 operations
+NebulaFX MCP Server - Model Context Protocol server for S3 operations
 
 This server provides S3 operations through the Model Context Protocol (MCP),
 allowing AI assistants to interact with S3-compatible storage systems.
@@ -34,16 +22,16 @@ ENVIRONMENT VARIABLES:
 
 EXAMPLES:
   # Using command-line arguments
-  rustfs-mcp-server --access-key-id your_key --secret-access-key your_secret
+  nebulafx-mcp-server --access-key-id your_key --secret-access-key your_secret
 
   # Using environment variables
   export AWS_ACCESS_KEY_ID=your_key
   export AWS_SECRET_ACCESS_KEY=your_secret
-  rustfs-mcp-server
+  nebulafx-mcp-server
 
   # Mixed usage (command-line overrides environment)
   export AWS_REGION=us-east-1
-  rustfs-mcp-server --access-key-id mykey --secret-access-key mysecret --endpoint-url http://localhost:9000
+  nebulafx-mcp-server --access-key-id mykey --secret-access-key mysecret --endpoint-url http://localhost:9000
 "#
 )]
 pub struct Config {
@@ -84,7 +72,7 @@ pub struct Config {
     #[arg(
         long = "log-level",
         env = "RUST_LOG",
-        default_value = "rustfs_mcp_server=info",
+        default_value = "nebulafx_mcp_server=info",
         help = "Log level configuration"
     )]
     pub log_level: String,
@@ -162,7 +150,7 @@ impl Default for Config {
             secret_access_key: None,
             region: "us-east-1".to_string(),
             endpoint_url: None,
-            log_level: "rustfs_mcp_server=info".to_string(),
+            log_level: "nebulafx_mcp_server=info".to_string(),
             force_path_style: false,
         }
     }
@@ -215,7 +203,7 @@ mod tests {
     fn test_config_default() {
         let config = Config::default();
         assert_eq!(config.region, "us-east-1");
-        assert_eq!(config.log_level, "rustfs_mcp_server=info");
+        assert_eq!(config.log_level, "nebulafx_mcp_server=info");
         assert!(!config.force_path_style);
         assert!(config.access_key_id.is_none());
         assert!(config.secret_access_key.is_none());

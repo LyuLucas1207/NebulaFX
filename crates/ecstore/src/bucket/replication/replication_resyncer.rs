@@ -26,20 +26,20 @@ use futures::future::join_all;
 use http::HeaderMap;
 
 use regex::Regex;
-use rustfs_filemeta::{
+use nebulafx_filemeta::{
     MrfReplicateEntry, REPLICATE_EXISTING, REPLICATE_EXISTING_DELETE, REPLICATION_RESET, ReplicateDecision, ReplicateObjectInfo,
     ReplicateTargetDecision, ReplicatedInfos, ReplicatedTargetInfo, ReplicationAction, ReplicationState, ReplicationStatusType,
     ReplicationType, ReplicationWorkerOperation, ResyncDecision, ResyncTargetDecision, VersionPurgeStatusType,
     get_replication_state, parse_replicate_decision, replication_statuses_map, target_reset_header, version_purge_statuses_map,
 };
-use rustfs_utils::http::{
+use nebulafx_utils::http::{
     AMZ_BUCKET_REPLICATION_STATUS, AMZ_OBJECT_TAGGING, AMZ_TAGGING_DIRECTIVE, CONTENT_ENCODING, HeaderExt as _,
-    RESERVED_METADATA_PREFIX, RESERVED_METADATA_PREFIX_LOWER, RUSTFS_REPLICATION_AUTUAL_OBJECT_SIZE,
-    RUSTFS_REPLICATION_RESET_STATUS, SSEC_ALGORITHM_HEADER, SSEC_KEY_HEADER, SSEC_KEY_MD5_HEADER, headers,
+    RESERVED_METADATA_PREFIX, RESERVED_METADATA_PREFIX_LOWER, NEUBULAFX_REPLICATION_AUTUAL_OBJECT_SIZE,
+    NEUBULAFX_REPLICATION_RESET_STATUS, SSEC_ALGORITHM_HEADER, SSEC_KEY_HEADER, SSEC_KEY_MD5_HEADER, headers,
 };
-use rustfs_utils::path::path_join_buf;
-use rustfs_utils::string::strings_has_prefix_fold;
-use rustfs_utils::{DEFAULT_SIP_HASH_KEY, sip_hash};
+use nebulafx_utils::path::path_join_buf;
+use nebulafx_utils::string::strings_has_prefix_fold;
+use nebulafx_utils::{DEFAULT_SIP_HASH_KEY, sip_hash};
 use s3s::dto::ReplicationConfiguration;
 use serde::Deserialize;
 use serde::Serialize;
@@ -870,7 +870,7 @@ pub fn resync_target(
     let rs = oi
         .user_defined
         .get(target_reset_header(arn).as_str())
-        .or(oi.user_defined.get(RUSTFS_REPLICATION_RESET_STATUS))
+        .or(oi.user_defined.get(NEUBULAFX_REPLICATION_RESET_STATUS))
         .map(|s| s.to_string());
 
     let mut dec = ResyncTargetDecision::default();
@@ -2324,7 +2324,7 @@ async fn replicate_object_with_multipart(
     let mut user_metadata = HashMap::new();
 
     user_metadata.insert(
-        RUSTFS_REPLICATION_AUTUAL_OBJECT_SIZE.to_string(),
+        NEUBULAFX_REPLICATION_AUTUAL_OBJECT_SIZE.to_string(),
         object_info
             .user_defined
             .get(&format!("{RESERVED_METADATA_PREFIX}actual-size"))
@@ -2362,8 +2362,8 @@ fn get_replication_action(oi1: &ObjectInfo, oi2: &HeadObjectOutput, op_type: Rep
     let size = oi1.get_actual_size().unwrap_or_default();
 
     // Normalize ETags by removing quotes before comparison (PR #592 compatibility)
-    let oi1_etag = oi1.etag.as_ref().map(|e| rustfs_utils::path::trim_etag(e));
-    let oi2_etag = oi2.e_tag.as_ref().map(|e| rustfs_utils::path::trim_etag(e));
+    let oi1_etag = oi1.etag.as_ref().map(|e| nebulafx_utils::path::trim_etag(e));
+    let oi2_etag = oi2.e_tag.as_ref().map(|e| nebulafx_utils::path::trim_etag(e));
 
     if oi1_etag != oi2_etag
         || oi1.version_id.map(|v| v.to_string()) != oi2.version_id

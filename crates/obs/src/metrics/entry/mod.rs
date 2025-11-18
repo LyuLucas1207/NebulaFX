@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::{MetricDescriptor, MetricName, MetricNamespace, MetricSubsystem, MetricType};
 
@@ -33,7 +21,7 @@ pub fn new_counter_md(
         MetricType::Counter,
         help.into(),
         labels.iter().map(|&s| s.to_string()).collect(),
-        MetricNamespace::RustFS,
+        MetricNamespace::NebulaFX,
         subsystem,
     )
 }
@@ -50,7 +38,7 @@ pub fn new_gauge_md(
         MetricType::Gauge,
         help.into(),
         labels.iter().map(|&s| s.to_string()).collect(),
-        MetricNamespace::RustFS,
+        MetricNamespace::NebulaFX,
         subsystem,
     )
 }
@@ -68,7 +56,7 @@ pub fn new_histogram_md(
         MetricType::Histogram,
         help.into(),
         labels.iter().map(|&s| s.to_string()).collect(),
-        MetricNamespace::RustFS,
+        MetricNamespace::NebulaFX,
         subsystem,
     )
 }
@@ -104,13 +92,13 @@ mod tests {
         assert!(histogram_md.variable_labels.contains(&"le".to_string()));
 
         // Verify that the namespace is correct
-        assert_eq!(histogram_md.namespace, MetricNamespace::RustFS);
+        assert_eq!(histogram_md.namespace, MetricNamespace::NebulaFX);
 
         // Verify that the subsystem is correct
         assert_eq!(histogram_md.subsystem, MetricSubsystem::ApiRequests);
 
         // Verify that the full metric name generated is formatted correctly
-        assert_eq!(histogram_md.get_full_metric_name(), "histogram.rustfs_api_requests_seconds_distribution");
+        assert_eq!(histogram_md.get_full_metric_name(), "histogram.nebulafx_api_requests_seconds_distribution");
 
         // Tests use custom subsystems
         let custom_histogram_md = new_histogram_md(
@@ -123,7 +111,7 @@ mod tests {
         // Verify the custom name and subsystem
         assert_eq!(
             custom_histogram_md.get_full_metric_name(),
-            "histogram.rustfs_custom_path_metrics_custom_latency_distribution"
+            "histogram.nebulafx_custom_path_metrics_custom_latency_distribution"
         );
     }
 }

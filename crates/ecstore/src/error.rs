@@ -1,20 +1,8 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use s3s::{S3Error, S3ErrorCode};
 
-use rustfs_utils::path::decode_dir_object;
+use nebulafx_utils::path::decode_dir_object;
 
 use crate::bucket::error::BucketMetadataError;
 use crate::disk::error::DiskError;
@@ -189,7 +177,7 @@ pub enum StorageError {
     Io(std::io::Error),
 
     #[error("Lock error: {0}")]
-    Lock(#[from] rustfs_lock::LockError),
+    Lock(#[from] nebulafx_lock::LockError),
 
     #[error("Precondition failed")]
     PreconditionFailed,
@@ -319,34 +307,34 @@ impl From<StorageError> for std::io::Error {
     }
 }
 
-impl From<rustfs_filemeta::Error> for StorageError {
-    fn from(e: rustfs_filemeta::Error) -> Self {
+impl From<nebulafx_filemeta::Error> for StorageError {
+    fn from(e: nebulafx_filemeta::Error) -> Self {
         match e {
-            rustfs_filemeta::Error::DoneForNow => StorageError::DoneForNow,
-            rustfs_filemeta::Error::MethodNotAllowed => StorageError::MethodNotAllowed,
-            rustfs_filemeta::Error::VolumeNotFound => StorageError::VolumeNotFound,
-            rustfs_filemeta::Error::FileNotFound => StorageError::FileNotFound,
-            rustfs_filemeta::Error::FileVersionNotFound => StorageError::FileVersionNotFound,
-            rustfs_filemeta::Error::FileCorrupt => StorageError::FileCorrupt,
-            rustfs_filemeta::Error::Unexpected => StorageError::Unexpected,
-            rustfs_filemeta::Error::Io(io_error) => io_error.into(),
+            nebulafx_filemeta::Error::DoneForNow => StorageError::DoneForNow,
+            nebulafx_filemeta::Error::MethodNotAllowed => StorageError::MethodNotAllowed,
+            nebulafx_filemeta::Error::VolumeNotFound => StorageError::VolumeNotFound,
+            nebulafx_filemeta::Error::FileNotFound => StorageError::FileNotFound,
+            nebulafx_filemeta::Error::FileVersionNotFound => StorageError::FileVersionNotFound,
+            nebulafx_filemeta::Error::FileCorrupt => StorageError::FileCorrupt,
+            nebulafx_filemeta::Error::Unexpected => StorageError::Unexpected,
+            nebulafx_filemeta::Error::Io(io_error) => io_error.into(),
             _ => StorageError::Io(std::io::Error::other(e)),
         }
     }
 }
 
-impl From<StorageError> for rustfs_filemeta::Error {
+impl From<StorageError> for nebulafx_filemeta::Error {
     fn from(val: StorageError) -> Self {
         match val {
-            StorageError::Unexpected => rustfs_filemeta::Error::Unexpected,
-            StorageError::FileNotFound => rustfs_filemeta::Error::FileNotFound,
-            StorageError::FileVersionNotFound => rustfs_filemeta::Error::FileVersionNotFound,
-            StorageError::FileCorrupt => rustfs_filemeta::Error::FileCorrupt,
-            StorageError::DoneForNow => rustfs_filemeta::Error::DoneForNow,
-            StorageError::MethodNotAllowed => rustfs_filemeta::Error::MethodNotAllowed,
-            StorageError::VolumeNotFound => rustfs_filemeta::Error::VolumeNotFound,
+            StorageError::Unexpected => nebulafx_filemeta::Error::Unexpected,
+            StorageError::FileNotFound => nebulafx_filemeta::Error::FileNotFound,
+            StorageError::FileVersionNotFound => nebulafx_filemeta::Error::FileVersionNotFound,
+            StorageError::FileCorrupt => nebulafx_filemeta::Error::FileCorrupt,
+            StorageError::DoneForNow => nebulafx_filemeta::Error::DoneForNow,
+            StorageError::MethodNotAllowed => nebulafx_filemeta::Error::MethodNotAllowed,
+            StorageError::VolumeNotFound => nebulafx_filemeta::Error::VolumeNotFound,
             StorageError::Io(io_error) => io_error.into(),
-            _ => rustfs_filemeta::Error::other(val),
+            _ => nebulafx_filemeta::Error::other(val),
         }
     }
 }
@@ -560,7 +548,7 @@ impl StorageError {
             0x35 => Some(StorageError::ConfigNotFound),
             0x36 => Some(StorageError::TooManyOpenFiles),
             0x37 => Some(StorageError::NoHealRequired),
-            0x38 => Some(StorageError::Lock(rustfs_lock::LockError::internal("Generic lock error".to_string()))),
+            0x38 => Some(StorageError::Lock(nebulafx_lock::LockError::internal("Generic lock error".to_string()))),
             0x39 => Some(StorageError::InsufficientReadQuorum(Default::default(), Default::default())),
             0x3A => Some(StorageError::InsufficientWriteQuorum(Default::default(), Default::default())),
             0x3B => Some(StorageError::PreconditionFailed),
@@ -1294,8 +1282,8 @@ mod tests {
 
     #[test]
     fn test_from_filemeta_error_conversions() {
-        // Test conversions from rustfs_filemeta::Error
-        use rustfs_filemeta::Error as FilemetaError;
+        // Test conversions from nebulafx_filemeta::Error
+        use nebulafx_filemeta::Error as FilemetaError;
 
         let filemeta_errors = vec![
             (FilemetaError::FileNotFound, StorageError::FileNotFound),
@@ -1312,7 +1300,7 @@ mod tests {
             assert_eq!(converted_storage_error, expected_storage_error);
 
             // Test reverse conversion
-            let converted_back: rustfs_filemeta::Error = converted_storage_error.into();
+            let converted_back: nebulafx_filemeta::Error = converted_storage_error.into();
             assert_eq!(converted_back, expected_storage_error.into());
         }
     }

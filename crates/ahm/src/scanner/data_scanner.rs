@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 // IO throttling component is integrated into NodeScanner
 use crate::{
@@ -23,18 +11,18 @@ use crate::{
         local_scan::{self, LocalObjectRecord, LocalScanOutcome},
     },
 };
-use rustfs_common::data_usage::{DataUsageInfo, SizeSummary};
-use rustfs_common::metrics::{Metric, Metrics, global_metrics};
-use rustfs_ecstore::{
+use nebulafx_common::data_usage::{DataUsageInfo, SizeSummary};
+use nebulafx_common::metrics::{Metric, Metrics, global_metrics};
+use nebulafx_ecstore::{
     self as ecstore, StorageAPI,
     bucket::versioning::VersioningApi,
     bucket::versioning_sys::BucketVersioningSys,
     data_usage::{aggregate_local_snapshots, store_data_usage_in_backend},
-    disk::{Disk, DiskAPI, DiskStore, RUSTFS_META_BUCKET, WalkDirOptions},
+    disk::{Disk, DiskAPI, DiskStore, NEUBULAFX_META_BUCKET, WalkDirOptions},
     set_disk::SetDisks,
     store_api::ObjectInfo,
 };
-use rustfs_filemeta::{MetacacheReader, VersionType};
+use nebulafx_filemeta::{MetacacheReader, VersionType};
 use s3s::dto::{BucketVersioningStatus, VersioningConfiguration};
 use std::{
     collections::HashMap,
@@ -159,7 +147,7 @@ impl Scanner {
         let node_id = format!("scanner-node-{}", uuid::Uuid::new_v4().simple());
 
         // Create node scanner configuration - we'll set the data directory properly later
-        let data_dir = std::env::temp_dir().join("rustfs_scanner");
+        let data_dir = std::env::temp_dir().join("nebulafx_scanner");
         let node_config = NodeScannerConfig {
             scan_interval: config.scan_interval,
             disk_scan_delay: Duration::from_secs(10), // 10s delay between disks
@@ -224,7 +212,7 @@ impl Scanner {
 
     /// Initialize scanner with ECStore disks (for testing and runtime)
     pub async fn initialize_with_ecstore(&self) {
-        if let Some(ecstore) = rustfs_ecstore::new_object_layer_fn() {
+        if let Some(ecstore) = nebulafx_ecstore::new_object_layer_fn() {
             info!("Initializing scanner with ECStore disks");
             let mut disk_count = 0;
 
@@ -251,7 +239,7 @@ impl Scanner {
     async fn perform_basic_test_scan(&self) -> Result<()> {
         debug!("Starting basic test scan using ECStore directly");
 
-        if let Some(ecstore) = rustfs_ecstore::new_object_layer_fn() {
+        if let Some(ecstore) = nebulafx_ecstore::new_object_layer_fn() {
             let mut total_objects_scanned = 0u64;
 
             // Check if deep scan mode is enabled
@@ -272,7 +260,7 @@ impl Scanner {
             // List all buckets
             debug!("Listing buckets");
             match ecstore
-                .list_bucket(&rustfs_ecstore::store_api::BucketOptions::default())
+                .list_bucket(&nebulafx_ecstore::store_api::BucketOptions::default())
                 .await
             {
                 Ok(buckets) => {
@@ -287,7 +275,7 @@ impl Scanner {
                         }
 
                         // Get bucket lifecycle configuration
-                        let lifecycle_config = rustfs_ecstore::bucket::metadata_sys::get_lifecycle_config(bucket_name)
+                        let lifecycle_config = nebulafx_ecstore::bucket::metadata_sys::get_lifecycle_config(bucket_name)
                             .await
                             .ok()
                             .map(|(c, _)| Arc::new(c));
@@ -377,7 +365,7 @@ impl Scanner {
     async fn update_data_usage_statistics(
         &self,
         outcome: &LocalScanOutcome,
-        ecstore: &std::sync::Arc<rustfs_ecstore::store::ECStore>,
+        ecstore: &std::sync::Arc<nebulafx_ecstore::store::ECStore>,
     ) {
         let enabled = {
             let cfg = self.config.read().await;
@@ -483,7 +471,7 @@ impl Scanner {
 
     async fn deep_scan_bucket_objects_with_records(
         &self,
-        ecstore: &std::sync::Arc<rustfs_ecstore::store::ECStore>,
+        ecstore: &std::sync::Arc<nebulafx_ecstore::store::ECStore>,
         bucket_name: &str,
         records: &[LocalObjectRecord],
     ) -> Result<()> {
@@ -511,7 +499,7 @@ impl Scanner {
     /// Deep scan objects in a bucket for integrity verification
     async fn deep_scan_bucket_objects(
         &self,
-        ecstore: &std::sync::Arc<rustfs_ecstore::store::ECStore>,
+        ecstore: &std::sync::Arc<nebulafx_ecstore::store::ECStore>,
         bucket_name: &str,
     ) -> Result<()> {
         debug!("Starting deep scan for bucket: {}", bucket_name);
@@ -700,7 +688,7 @@ impl Scanner {
     /// Update capacity information in DataUsageInfo
     async fn update_capacity_info(&self, integrated_info: &mut DataUsageInfo) {
         // Update capacity information from storage info
-        if let Some(ecstore) = rustfs_ecstore::new_object_layer_fn() {
+        if let Some(ecstore) = nebulafx_ecstore::new_object_layer_fn() {
             let mut total_capacity = 0u64;
             let mut total_used_capacity = 0u64;
             let mut total_free_capacity = 0u64;
@@ -764,7 +752,7 @@ impl Scanner {
     }
 
     /// Get global metrics from common crate
-    pub async fn get_global_metrics(&self) -> rustfs_madmin::metrics::ScannerMetrics {
+    pub async fn get_global_metrics(&self) -> nebulafx_madmin::metrics::ScannerMetrics {
         global_metrics().report().await
     }
 
@@ -790,7 +778,7 @@ impl Scanner {
         }
 
         // Update global metrics cycle information
-        let cycle_info = rustfs_common::metrics::CurrentCycle {
+        let cycle_info = nebulafx_common::metrics::CurrentCycle {
             current: self.state.read().await.current_cycle,
             cycle_completed: vec![chrono::Utc::now()],
             started: chrono::Utc::now(),
@@ -868,7 +856,7 @@ impl Scanner {
 
         // Phase 2: Minimal EC verification for critical objects only
         // Note: The main scanning is now handled by NodeScanner in the background
-        if let Some(ecstore) = rustfs_ecstore::new_object_layer_fn() {
+        if let Some(ecstore) = nebulafx_ecstore::new_object_layer_fn() {
             if let Err(e) = self.minimal_ec_verification(&ecstore).await {
                 error!("Minimal EC verification failed: {}", e);
             }
@@ -895,7 +883,7 @@ impl Scanner {
         info!("Starting data usage collection and persistence");
 
         // Get ECStore instance
-        let Some(ecstore) = rustfs_ecstore::new_object_layer_fn() else {
+        let Some(ecstore) = nebulafx_ecstore::new_object_layer_fn() else {
             warn!("ECStore not available for data usage collection");
             return Ok(());
         };
@@ -974,12 +962,12 @@ impl Scanner {
     }
 
     /// Build data usage statistics directly from ECStore
-    async fn build_data_usage_from_ecstore(&self, ecstore: &Arc<rustfs_ecstore::store::ECStore>) -> Result<DataUsageInfo> {
+    async fn build_data_usage_from_ecstore(&self, ecstore: &Arc<nebulafx_ecstore::store::ECStore>) -> Result<DataUsageInfo> {
         let mut data_usage = DataUsageInfo::default();
 
         // Get bucket list
         match ecstore
-            .list_bucket(&rustfs_ecstore::store_api::BucketOptions::default())
+            .list_bucket(&nebulafx_ecstore::store_api::BucketOptions::default())
             .await
         {
             Ok(buckets) => {
@@ -1019,7 +1007,7 @@ impl Scanner {
                     total_objects += object_count;
                     total_size += bucket_size;
 
-                    let bucket_usage = rustfs_common::data_usage::BucketUsageInfo {
+                    let bucket_usage = nebulafx_common::data_usage::BucketUsageInfo {
                         size: bucket_size,
                         objects_count: object_count,
                         versions_count: object_count, // Simplified
@@ -1054,7 +1042,7 @@ impl Scanner {
             return Ok(());
         }
 
-        if let Some(ecstore) = rustfs_ecstore::new_object_layer_fn() {
+        if let Some(ecstore) = nebulafx_ecstore::new_object_layer_fn() {
             // First check whether the object still logically exists.
             // If it's already deleted (e.g., non-versioned bucket), do not trigger heal.
             let object_opts = ecstore::store_api::ObjectOptions::default();
@@ -1213,7 +1201,7 @@ impl Scanner {
     async fn check_data_parts_integrity(&self, bucket: &str, object: &str) -> Result<()> {
         debug!("Checking data parts integrity for {}/{}", bucket, object);
 
-        if let Some(ecstore) = rustfs_ecstore::new_object_layer_fn() {
+        if let Some(ecstore) = nebulafx_ecstore::new_object_layer_fn() {
             // Get object info
             let object_info = match ecstore.get_object_info(bucket, object, &Default::default()).await {
                 Ok(info) => info,
@@ -1232,7 +1220,7 @@ impl Scanner {
             );
 
             // Create FileInfo from ObjectInfo
-            let file_info = rustfs_filemeta::FileInfo {
+            let file_info = nebulafx_filemeta::FileInfo {
                 volume: bucket.to_string(),
                 name: object.to_string(),
                 version_id: object_info.version_id,
@@ -1243,7 +1231,7 @@ impl Scanner {
                 parts: object_info
                     .parts
                     .iter()
-                    .map(|p| rustfs_filemeta::ObjectPartInfo {
+                    .map(|p| nebulafx_filemeta::ObjectPartInfo {
                         etag: p.etag.clone(),
                         number: 0, // Will be set by erasure info
                         size: p.size,
@@ -1254,7 +1242,7 @@ impl Scanner {
                         error: None,
                     })
                     .collect(),
-                erasure: rustfs_filemeta::ErasureInfo {
+                erasure: nebulafx_filemeta::ErasureInfo {
                     algorithm: "ReedSolomon".to_string(),
                     data_blocks: object_info.data_blocks,
                     parity_blocks: object_info.parity_blocks,
@@ -1307,11 +1295,11 @@ impl Scanner {
     #[allow(dead_code)]
     async fn check_ec_object_integrity(
         &self,
-        ecstore: &rustfs_ecstore::store::ECStore,
+        ecstore: &nebulafx_ecstore::store::ECStore,
         bucket: &str,
         object: &str,
-        object_info: &rustfs_ecstore::store_api::ObjectInfo,
-        file_info: &rustfs_filemeta::FileInfo,
+        object_info: &nebulafx_ecstore::store_api::ObjectInfo,
+        file_info: &nebulafx_filemeta::FileInfo,
     ) -> Result<()> {
         // In EC storage, we need to check if we have enough healthy parts to reconstruct the object
         let mut total_disks_checked = 0;
@@ -1450,10 +1438,10 @@ impl Scanner {
     #[allow(dead_code)]
     async fn check_ec_stored_object_integrity(
         &self,
-        ecstore: &rustfs_ecstore::store::ECStore,
+        ecstore: &nebulafx_ecstore::store::ECStore,
         bucket: &str,
         object: &str,
-        file_info: &rustfs_filemeta::FileInfo,
+        file_info: &nebulafx_filemeta::FileInfo,
     ) -> Result<()> {
         debug!("Checking EC-stored object integrity for {}/{}", bucket, object);
 
@@ -1551,7 +1539,7 @@ impl Scanner {
     async fn scan_set_disks(
         &self,
         set_disks: Arc<SetDisks>,
-    ) -> Result<Vec<HashMap<String, HashMap<String, rustfs_filemeta::FileMeta>>>> {
+    ) -> Result<Vec<HashMap<String, HashMap<String, nebulafx_filemeta::FileMeta>>>> {
         let set_index = set_disks.set_index;
         let pool_index = set_disks.pool_index;
 
@@ -1634,7 +1622,7 @@ impl Scanner {
 
     /// Scan a single disk
     #[allow(dead_code)]
-    async fn scan_disk(&self, disk: &DiskStore) -> Result<HashMap<String, HashMap<String, rustfs_filemeta::FileMeta>>> {
+    async fn scan_disk(&self, disk: &DiskStore) -> Result<HashMap<String, HashMap<String, nebulafx_filemeta::FileMeta>>> {
         let disk_path = disk.path().to_string_lossy().to_string();
 
         // Start global metrics collection for disk scan
@@ -1673,7 +1661,7 @@ impl Scanner {
                     if enable_healing {
                         if let Some(heal_manager) = &self.heal_manager {
                             // Get bucket list for erasure set healing
-                            let buckets = match rustfs_ecstore::new_object_layer_fn() {
+                            let buckets = match nebulafx_ecstore::new_object_layer_fn() {
                                 Some(ecstore) => match ecstore.list_bucket(&ecstore::store_api::BucketOptions::default()).await {
                                     Ok(buckets) => buckets.iter().map(|b| b.name.clone()).collect::<Vec<String>>(),
                                     Err(e) => {
@@ -1730,7 +1718,7 @@ impl Scanner {
                 if enable_healing {
                     if let Some(heal_manager) = &self.heal_manager {
                         // Get bucket list for erasure set healing
-                        let buckets = match rustfs_ecstore::new_object_layer_fn() {
+                        let buckets = match nebulafx_ecstore::new_object_layer_fn() {
                             Some(ecstore) => match ecstore.list_bucket(&ecstore::store_api::BucketOptions::default()).await {
                                 Ok(buckets) => buckets.iter().map(|b| b.name.clone()).collect::<Vec<String>>(),
                                 Err(e) => {
@@ -1814,8 +1802,8 @@ impl Scanner {
     /// This method collects all objects from a disk for a specific bucket.
     /// It returns a map of object names to their metadata for later analysis.
     #[allow(dead_code)]
-    async fn scan_volume(&self, disk: &DiskStore, bucket: &str) -> Result<HashMap<String, rustfs_filemeta::FileMeta>> {
-        let ecstore = match rustfs_ecstore::new_object_layer_fn() {
+    async fn scan_volume(&self, disk: &DiskStore, bucket: &str) -> Result<HashMap<String, nebulafx_filemeta::FileMeta>> {
+        let ecstore = match nebulafx_ecstore::new_object_layer_fn() {
             Some(ecstore) => ecstore,
             None => {
                 error!("ECStore not available");
@@ -1833,7 +1821,7 @@ impl Scanner {
                 ..Default::default()
             })
         });
-        let lifecycle_config = rustfs_ecstore::bucket::metadata_sys::get_lifecycle_config(bucket)
+        let lifecycle_config = nebulafx_ecstore::bucket::metadata_sys::get_lifecycle_config(bucket)
             .await
             .ok()
             .map(|(c, _)| Arc::new(c));
@@ -1989,7 +1977,7 @@ impl Scanner {
                                 }
 
                                 for free_version in fivs.free_versions.iter() {
-                                    let _obj_info = rustfs_ecstore::store_api::ObjectInfo::from_file_info(
+                                    let _obj_info = nebulafx_ecstore::store_api::ObjectInfo::from_file_info(
                                         free_version,
                                         &scanner_item.bucket,
                                         &scanner_item.object_name,
@@ -2082,7 +2070,7 @@ impl Scanner {
     #[allow(dead_code)]
     async fn analyze_object_distribution(
         &self,
-        all_disk_objects: &[HashMap<String, HashMap<String, rustfs_filemeta::FileMeta>>],
+        all_disk_objects: &[HashMap<String, HashMap<String, nebulafx_filemeta::FileMeta>>],
         disks: &[DiskStore],
     ) -> Result<()> {
         info!("Analyzing object distribution across {} disks", disks.len());
@@ -2093,7 +2081,7 @@ impl Scanner {
 
         for (disk_idx, disk_objects) in all_disk_objects.iter().enumerate() {
             for (bucket, objects) in disk_objects {
-                if bucket == RUSTFS_META_BUCKET {
+                if bucket == NEUBULAFX_META_BUCKET {
                     // Skip internal system bucket during analysis to speed up tests
                     continue;
                 }
@@ -2124,8 +2112,8 @@ impl Scanner {
         let mut objects_with_ec_issues = 0u64;
 
         for (bucket, objects) in &all_objects {
-            // Skip internal RustFS system bucket to avoid lengthy checks on temporary/trash objects
-            if bucket == RUSTFS_META_BUCKET {
+            // Skip internal NebulaFX system bucket to avoid lengthy checks on temporary/trash objects
+            if bucket == NEUBULAFX_META_BUCKET {
                 continue;
             }
             for object_name in objects {
@@ -2163,11 +2151,11 @@ impl Scanner {
                 // Check if object is missing from some disks
                 if locations.len() < disks.len() {
                     // Before submitting heal, confirm the object still exists logically.
-                    let should_heal = if let Some(store) = rustfs_ecstore::new_object_layer_fn() {
+                    let should_heal = if let Some(store) = nebulafx_ecstore::new_object_layer_fn() {
                         match store.get_object_info(bucket, object_name, &Default::default()).await {
                             Ok(_) => true, // exists -> propagate by heal
                             Err(e) => {
-                                if matches!(e, rustfs_ecstore::error::StorageError::ObjectNotFound(_, _)) {
+                                if matches!(e, nebulafx_ecstore::error::StorageError::ObjectNotFound(_, _)) {
                                     debug!(
                                         "Object {}/{} not found logically (deleted), skip missing-disks heal",
                                         bucket, object_name
@@ -2311,7 +2299,7 @@ impl Scanner {
     #[allow(dead_code)]
     async fn collect_data_usage_statistics(
         &self,
-        all_disk_objects: &[HashMap<String, HashMap<String, rustfs_filemeta::FileMeta>>],
+        all_disk_objects: &[HashMap<String, HashMap<String, nebulafx_filemeta::FileMeta>>],
     ) -> Result<()> {
         info!("Collecting data usage statistics from {} disk scans", all_disk_objects.len());
 
@@ -2322,7 +2310,7 @@ impl Scanner {
 
         for disk_objects in all_disk_objects {
             for (bucket_name, objects) in disk_objects {
-                if bucket_name == RUSTFS_META_BUCKET {
+                if bucket_name == NEUBULAFX_META_BUCKET {
                     continue; // skip internal bucket from data usage stats
                 }
                 for object_name in objects.keys() {
@@ -2366,7 +2354,7 @@ impl Scanner {
         // Store to backend if configured (spawned to avoid blocking scan loop)
         let config = self.config.read().await;
         if config.enable_data_usage_stats {
-            if let Some(store) = rustfs_ecstore::new_object_layer_fn() {
+            if let Some(store) = nebulafx_ecstore::new_object_layer_fn() {
                 // Offload persistence to background task
                 let data_clone = data_usage.clone();
                 tokio::spawn(async move {
@@ -2545,7 +2533,7 @@ impl Scanner {
     }
 
     /// Minimal EC verification for critical objects only
-    async fn minimal_ec_verification(&self, _ecstore: &Arc<rustfs_ecstore::store::ECStore>) -> Result<()> {
+    async fn minimal_ec_verification(&self, _ecstore: &Arc<nebulafx_ecstore::store::ECStore>) -> Result<()> {
         // This is a lightweight verification that only checks critical objects
         // The main scanning is now handled by the background NodeScanner
 
@@ -2579,11 +2567,11 @@ impl Scanner {
 mod tests {
     use super::*;
     use crate::heal::manager::HealConfig;
-    use rustfs_ecstore::data_usage::load_data_usage_from_backend;
-    use rustfs_ecstore::disk::endpoint::Endpoint;
-    use rustfs_ecstore::endpoints::{EndpointServerPools, Endpoints, PoolEndpoints};
-    use rustfs_ecstore::store::ECStore;
-    use rustfs_ecstore::{
+    use nebulafx_ecstore::data_usage::load_data_usage_from_backend;
+    use nebulafx_ecstore::disk::endpoint::Endpoint;
+    use nebulafx_ecstore::endpoints::{EndpointServerPools, Endpoints, PoolEndpoints};
+    use nebulafx_ecstore::store::ECStore;
+    use nebulafx_ecstore::{
         StorageAPI,
         store_api::{MakeBucketOptions, ObjectIO, PutObjReader},
     };
@@ -2602,7 +2590,7 @@ mod tests {
         }
 
         // create temp dir as 4 disks
-        let test_base_dir = test_dir.unwrap_or("/tmp/rustfs_ahm_test");
+        let test_base_dir = test_dir.unwrap_or("/tmp/nebulafx_ahm_test");
         let temp_dir = std::path::PathBuf::from(test_base_dir);
         if temp_dir.exists() {
             if let Err(e) = fs::remove_dir_all(&temp_dir) {
@@ -2651,7 +2639,7 @@ mod tests {
         let endpoint_pools = EndpointServerPools(vec![pool_endpoints]);
 
         // format disks
-        rustfs_ecstore::store::init_local_disks(endpoint_pools.clone())
+        nebulafx_ecstore::store::init_local_disks(endpoint_pools.clone())
             .await
             .expect("Failed to initialize local disks");
 
@@ -2664,14 +2652,14 @@ mod tests {
 
         // init bucket metadata system
         let buckets_list = ecstore
-            .list_bucket(&rustfs_ecstore::store_api::BucketOptions {
+            .list_bucket(&nebulafx_ecstore::store_api::BucketOptions {
                 no_metadata: true,
                 ..Default::default()
             })
             .await
             .expect("Failed to list buckets");
         let buckets = buckets_list.into_iter().map(|v| v.name).collect();
-        rustfs_ecstore::bucket::metadata_sys::init_bucket_metadata_sys(ecstore.clone(), buckets).await;
+        nebulafx_ecstore::bucket::metadata_sys::init_bucket_metadata_sys(ecstore.clone(), buckets).await;
 
         // Store in global cache
         let _ = GLOBAL_TEST_ENV.set((disk_paths.clone(), ecstore.clone()));
@@ -2683,13 +2671,13 @@ mod tests {
     #[ignore = "Please run it manually."]
     #[serial]
     async fn test_scanner_basic_functionality() {
-        const TEST_DIR_BASIC: &str = "/tmp/rustfs_ahm_test_basic";
+        const TEST_DIR_BASIC: &str = "/tmp/nebulafx_ahm_test_basic";
         let (disk_paths, ecstore) = prepare_test_env(Some(TEST_DIR_BASIC), Some(9001)).await;
 
         // create some test data
         let bucket_name = "test-bucket";
         let object_name = "test-object";
-        let test_data = b"Hello, RustFS!";
+        let test_data = b"Hello, NebulaFX!";
 
         // create bucket and verify
         let bucket_opts = MakeBucketOptions::default();
@@ -2700,14 +2688,14 @@ mod tests {
 
         // check bucket really exists
         let buckets = ecstore
-            .list_bucket(&rustfs_ecstore::store_api::BucketOptions::default())
+            .list_bucket(&nebulafx_ecstore::store_api::BucketOptions::default())
             .await
             .expect("Failed to list buckets in test");
         assert!(buckets.iter().any(|b| b.name == bucket_name), "bucket not found after creation");
 
         // write object
         let mut put_reader = PutObjReader::from_vec(test_data.to_vec());
-        let object_opts = rustfs_ecstore::store_api::ObjectOptions::default();
+        let object_opts = nebulafx_ecstore::store_api::ObjectOptions::default();
         ecstore
             .put_object(bucket_name, object_name, &mut put_reader, &object_opts)
             .await
@@ -2785,7 +2773,7 @@ mod tests {
     #[ignore = "Please run it manually."]
     #[serial]
     async fn test_scanner_usage_stats() {
-        const TEST_DIR_USAGE_STATS: &str = "/tmp/rustfs_ahm_test_usage_stats";
+        const TEST_DIR_USAGE_STATS: &str = "/tmp/nebulafx_ahm_test_usage_stats";
         let (_, ecstore) = prepare_test_env(Some(TEST_DIR_USAGE_STATS), Some(9002)).await;
 
         // prepare test bucket and object
@@ -2796,7 +2784,7 @@ mod tests {
             Ok(_) => {
                 println!("Successfully created bucket: {bucket}");
             }
-            Err(rustfs_ecstore::error::StorageError::BucketExists(_)) => {
+            Err(nebulafx_ecstore::error::StorageError::BucketExists(_)) => {
                 println!("Bucket {bucket} already exists, continuing with test");
             }
             Err(e) => {
@@ -2903,7 +2891,7 @@ mod tests {
     #[ignore = "Please run it manually."]
     #[serial]
     async fn test_volume_healing_functionality() {
-        const TEST_DIR_VOLUME_HEAL: &str = "/tmp/rustfs_ahm_test_volume_heal";
+        const TEST_DIR_VOLUME_HEAL: &str = "/tmp/nebulafx_ahm_test_volume_heal";
         let (disk_paths, ecstore) = prepare_test_env(Some(TEST_DIR_VOLUME_HEAL), Some(9003)).await;
 
         // Create test buckets
@@ -2972,7 +2960,7 @@ mod tests {
     #[ignore = "Please run it manually."]
     #[serial]
     async fn test_scanner_detect_missing_data_parts() {
-        const TEST_DIR_MISSING_PARTS: &str = "/tmp/rustfs_ahm_test_missing_parts";
+        const TEST_DIR_MISSING_PARTS: &str = "/tmp/nebulafx_ahm_test_missing_parts";
         let (disk_paths, ecstore) = prepare_test_env(Some(TEST_DIR_MISSING_PARTS), Some(9004)).await;
 
         // Create test bucket
@@ -2987,7 +2975,7 @@ mod tests {
         // Create a 20MB object to ensure it has multiple parts (MIN_PART_SIZE is 16MB)
         let large_data = vec![b'A'; 20 * 1024 * 1024]; // 20MB of 'A' characters
         let mut put_reader = PutObjReader::from_vec(large_data);
-        let object_opts = rustfs_ecstore::store_api::ObjectOptions::default();
+        let object_opts = nebulafx_ecstore::store_api::ObjectOptions::default();
 
         println!("=== Creating 20MB object ===");
         ecstore
@@ -3115,7 +3103,7 @@ mod tests {
 
         // Try to manually verify the object to see what happens
         println!("=== Manual object verification ===");
-        if let Some(ecstore) = rustfs_ecstore::new_object_layer_fn() {
+        if let Some(ecstore) = nebulafx_ecstore::new_object_layer_fn() {
             match ecstore.verify_object_integrity(bucket_name, object_name, &object_opts).await {
                 Ok(_) => println!("Manual verification: Object is healthy"),
                 Err(e) => println!("Manual verification: Object verification failed: {e}"),
@@ -3211,7 +3199,7 @@ mod tests {
     #[ignore = "Please run it manually."]
     #[serial]
     async fn test_scanner_detect_missing_xl_meta() {
-        const TEST_DIR_MISSING_META: &str = "/tmp/rustfs_ahm_test_missing_meta";
+        const TEST_DIR_MISSING_META: &str = "/tmp/nebulafx_ahm_test_missing_meta";
         let (disk_paths, ecstore) = prepare_test_env(Some(TEST_DIR_MISSING_META), Some(9005)).await;
 
         // Create test bucket
@@ -3226,7 +3214,7 @@ mod tests {
         // Create a test object
         let test_data = vec![b'B'; 5 * 1024 * 1024]; // 5MB of 'B' characters
         let mut put_reader = PutObjReader::from_vec(test_data);
-        let object_opts = rustfs_ecstore::store_api::ObjectOptions::default();
+        let object_opts = nebulafx_ecstore::store_api::ObjectOptions::default();
 
         println!("=== Creating test object ===");
         ecstore
@@ -3338,7 +3326,7 @@ mod tests {
 
         // Try to manually verify the object to see what happens
         println!("=== Manual object verification ===");
-        if let Some(ecstore) = rustfs_ecstore::new_object_layer_fn() {
+        if let Some(ecstore) = nebulafx_ecstore::new_object_layer_fn() {
             match ecstore.verify_object_integrity(bucket_name, object_name, &object_opts).await {
                 Ok(_) => println!("Manual verification: Object is healthy"),
                 Err(e) => println!("Manual verification: Object verification failed: {e}"),
@@ -3444,7 +3432,7 @@ mod tests {
     #[ignore = "Please run it manually."]
     #[serial]
     async fn test_scanner_healthy_objects_not_marked_corrupted() {
-        const TEST_DIR_HEALTHY: &str = "/tmp/rustfs_ahm_test_healthy_objects";
+        const TEST_DIR_HEALTHY: &str = "/tmp/nebulafx_ahm_test_healthy_objects";
         let (_, ecstore) = prepare_test_env(Some(TEST_DIR_HEALTHY), Some(9006)).await;
 
         // Create heal manager for this test
@@ -3480,7 +3468,7 @@ mod tests {
             ("large-object", vec![123u8; 10240]), // 10KB
         ];
 
-        let object_opts = rustfs_ecstore::store_api::ObjectOptions::default();
+        let object_opts = nebulafx_ecstore::store_api::ObjectOptions::default();
 
         // Write all test objects
         for (object_name, test_data) in &test_objects {

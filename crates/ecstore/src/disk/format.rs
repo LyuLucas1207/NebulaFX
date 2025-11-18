@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use super::error::{Error, Result};
 use super::{DiskInfo, error::DiskError};
@@ -39,7 +27,7 @@ pub enum FormatBackend {
 }
 
 /// Represents the V3 backend disk structure version
-/// under `.rustfs.sys` and actual data namespace.
+/// under `.nebulafx.sys` and actual data namespace.
 ///
 /// FormatErasureV3 - structure holds format config version '3'.
 ///
@@ -110,7 +98,7 @@ pub struct FormatV3 {
     /// Format indicates the backend format type, supports two values 'xl' and 'xl-single'.
     pub format: FormatBackend,
 
-    /// ID is the identifier for the rustfs deployment
+    /// ID is the identifier for the nebulafx deployment
     pub id: Uuid,
 
     #[serde(rename = "xl")]

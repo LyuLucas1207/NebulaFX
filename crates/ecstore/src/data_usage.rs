@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use std::{
     collections::{HashMap, hash_map::Entry},
@@ -28,10 +16,10 @@ pub use local_snapshot::{
 use crate::{
     bucket::metadata_sys::get_replication_config, config::com::read_config, disk::DiskAPI, store::ECStore, store_api::StorageAPI,
 };
-use rustfs_common::data_usage::{
+use nebulafx_common::data_usage::{
     BucketTargetUsageInfo, BucketUsageInfo, DataUsageCache, DataUsageEntry, DataUsageInfo, DiskUsageStatus, SizeSummary,
 };
-use rustfs_utils::path::SLASH_SEPARATOR;
+use nebulafx_utils::path::SLASH_SEPARATOR;
 use tracing::{error, info, warn};
 
 use crate::error::Error;
@@ -45,7 +33,7 @@ pub const DATA_USAGE_CACHE_NAME: &str = ".usage-cache.bin";
 // Data usage storage paths
 lazy_static::lazy_static! {
     pub static ref DATA_USAGE_BUCKET: String = format!("{}{}{}",
-        crate::disk::RUSTFS_META_BUCKET,
+        crate::disk::NEUBULAFX_META_BUCKET,
         SLASH_SEPARATOR,
         crate::disk::BUCKET_META_PREFIX
     );
@@ -114,7 +102,7 @@ pub async fn load_data_usage_from_backend(store: Arc<ECStore>) -> Result<DataUsa
             .map(|(bucket, &size)| {
                 (
                     bucket.clone(),
-                    rustfs_common::data_usage::BucketUsageInfo {
+                    nebulafx_common::data_usage::BucketUsageInfo {
                         size,
                         ..Default::default()
                     },
@@ -404,7 +392,7 @@ pub fn cache_to_data_usage_info(cache: &DataUsageCache, path: &str, buckets: &[c
             None => continue,
         };
         let flat = cache.flatten(&e);
-        let mut bui = rustfs_common::data_usage::BucketUsageInfo {
+        let mut bui = nebulafx_common::data_usage::BucketUsageInfo {
             size: flat.size as u64,
             versions_count: flat.versions as u64,
             objects_count: flat.objects as u64,
@@ -450,7 +438,7 @@ pub fn cache_to_data_usage_info(cache: &DataUsageCache, path: &str, buckets: &[c
 
 // Helper functions for DataUsageCache operations
 pub async fn load_data_usage_cache(store: &crate::set_disk::SetDisks, name: &str) -> crate::error::Result<DataUsageCache> {
-    use crate::disk::{BUCKET_META_PREFIX, RUSTFS_META_BUCKET};
+    use crate::disk::{BUCKET_META_PREFIX, NEUBULAFX_META_BUCKET};
     use crate::store_api::{ObjectIO, ObjectOptions};
     use http::HeaderMap;
     use rand::Rng;
@@ -464,7 +452,7 @@ pub async fn load_data_usage_cache(store: &crate::set_disk::SetDisks, name: &str
         let path = Path::new(BUCKET_META_PREFIX).join(name);
         match store
             .get_object_reader(
-                RUSTFS_META_BUCKET,
+                NEUBULAFX_META_BUCKET,
                 path.to_str().unwrap(),
                 None,
                 HeaderMap::new(),
@@ -485,7 +473,7 @@ pub async fn load_data_usage_cache(store: &crate::set_disk::SetDisks, name: &str
                 crate::error::Error::FileNotFound | crate::error::Error::VolumeNotFound => {
                     match store
                         .get_object_reader(
-                            RUSTFS_META_BUCKET,
+                            NEUBULAFX_META_BUCKET,
                             name,
                             None,
                             HeaderMap::new(),

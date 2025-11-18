@@ -1,6 +1,6 @@
 # ECStore - Erasure Coding Storage
 
-ECStore provides erasure coding functionality for the RustFS project, using high-performance Reed-Solomon SIMD implementation for optimal performance.
+ECStore provides erasure coding functionality for the NebulaFX project, using high-performance Reed-Solomon SIMD implementation for optimal performance.
 
 ## Features
 
@@ -12,7 +12,7 @@ ECStore provides erasure coding functionality for the RustFS project, using high
 
 ## Documentation
 
-For complete documentation, examples, and usage information, please visit the main [RustFS repository](https://github.com/rustfs/rustfs).
+For complete documentation, examples, and usage information, please visit the main [NebulaFX repository](https://github.com/nebulafx/nebulafx).
 
 ## License
 

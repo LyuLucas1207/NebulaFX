@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 #![allow(unused_imports)]
 #![allow(unused_variables)]
@@ -44,7 +32,7 @@ use crate::{
     config::{GLOBAL_STORAGE_CLASS, storageclass},
     disk::{
         CheckPartsResp, DeleteOptions, DiskAPI, DiskInfo, DiskInfoOptions, DiskOption, DiskStore, FileInfoVersions,
-        RUSTFS_META_BUCKET, RUSTFS_META_MULTIPART_BUCKET, RUSTFS_META_TMP_BUCKET, ReadMultipleReq, ReadMultipleResp, ReadOptions,
+        NEUBULAFX_META_BUCKET, NEUBULAFX_META_MULTIPART_BUCKET, NEUBULAFX_META_TMP_BUCKET, ReadMultipleReq, ReadMultipleResp, ReadOptions,
         UpdateMetadataOpts, endpoint::Endpoint, error::DiskError, format::FormatV3, new_disk,
     },
     error::{StorageError, to_object_err},
@@ -67,23 +55,23 @@ use http::HeaderMap;
 use md5::{Digest as Md5Digest, Md5};
 use rand::{Rng, seq::SliceRandom};
 use regex::Regex;
-use rustfs_common::heal_channel::{DriveState, HealChannelPriority, HealItemType, HealOpts, HealScanMode, send_heal_disk};
-use rustfs_filemeta::{
+use nebulafx_common::heal_channel::{DriveState, HealChannelPriority, HealItemType, HealOpts, HealScanMode, send_heal_disk};
+use nebulafx_filemeta::{
     FileInfo, FileMeta, FileMetaShallowVersion, MetaCacheEntries, MetaCacheEntry, MetadataResolutionParams, ObjectPartInfo,
     RawFileInfo, ReplicationStatusType, VersionPurgeStatusType, file_info_from_raw, merge_file_meta_versions,
 };
-use rustfs_lock::fast_lock::types::LockResult;
-use rustfs_madmin::heal_commands::{HealDriveInfo, HealResultItem};
-use rustfs_rio::{EtagResolvable, HashReader, HashReaderMut, TryGetIndex as _, WarpReader};
-use rustfs_utils::http::RUSTFS_BUCKET_REPLICATION_SSEC_CHECKSUM;
-use rustfs_utils::http::headers::AMZ_STORAGE_CLASS;
-use rustfs_utils::http::headers::{AMZ_OBJECT_TAGGING, RESERVED_METADATA_PREFIX, RESERVED_METADATA_PREFIX_LOWER};
-use rustfs_utils::{
+use nebulafx_lock::fast_lock::types::LockResult;
+use nebulafx_madmin::heal_commands::{HealDriveInfo, HealResultItem};
+use nebulafx_rio::{EtagResolvable, HashReader, HashReaderMut, TryGetIndex as _, WarpReader};
+use nebulafx_utils::http::NEUBULAFX_BUCKET_REPLICATION_SSEC_CHECKSUM;
+use nebulafx_utils::http::headers::AMZ_STORAGE_CLASS;
+use nebulafx_utils::http::headers::{AMZ_OBJECT_TAGGING, RESERVED_METADATA_PREFIX, RESERVED_METADATA_PREFIX_LOWER};
+use nebulafx_utils::{
     HashAlgorithm,
     crypto::hex,
     path::{SLASH_SEPARATOR, encode_dir_object, has_suffix, path_join_buf},
 };
-use rustfs_workers::workers::Workers;
+use nebulafx_workers::workers::Workers;
 use s3s::header::X_AMZ_RESTORE;
 use sha2::{Digest, Sha256};
 use std::hash::Hash;
@@ -118,7 +106,7 @@ const DISK_HEALTH_CACHE_TTL: Duration = Duration::from_millis(750);
 
 #[derive(Clone, Debug)]
 pub struct SetDisks {
-    pub fast_lock_manager: Arc<rustfs_lock::FastObjectLockManager>,
+    pub fast_lock_manager: Arc<nebulafx_lock::FastObjectLockManager>,
     pub locker_owner: String,
     pub disks: Arc<RwLock<Vec<Option<DiskStore>>>>,
     pub set_endpoints: Vec<Endpoint>,
@@ -149,7 +137,7 @@ impl DiskHealthEntry {
 impl SetDisks {
     #[allow(clippy::too_many_arguments)]
     pub async fn new(
-        fast_lock_manager: Arc<rustfs_lock::FastObjectLockManager>,
+        fast_lock_manager: Arc<nebulafx_lock::FastObjectLockManager>,
         locker_owner: String,
         disks: Arc<RwLock<Vec<Option<DiskStore>>>>,
         set_drive_count: usize,
@@ -510,7 +498,7 @@ impl SetDisks {
         //     warn!("put_object commit_rename_data_dir:{:?}", &cm_errs);
         // }
 
-        // self.delete_all(RUSTFS_META_TMP_BUCKET, &tmp_dir).await?;
+        // self.delete_all(NEUBULAFX_META_TMP_BUCKET, &tmp_dir).await?;
 
         Ok((Self::eval_disks(disks, &errs), versions, data_dir))
     }
@@ -596,7 +584,7 @@ impl SetDisks {
 
                 async move {
                     if let Some(disk) = disk {
-                        disk.delete_paths(RUSTFS_META_MULTIPART_BUCKET, &paths).await
+                        disk.delete_paths(NEUBULAFX_META_MULTIPART_BUCKET, &paths).await
                     } else {
                         Err(DiskError::DiskNotFound)
                     }
@@ -742,7 +730,7 @@ impl SetDisks {
         for (i, disk) in disks.iter().enumerate() {
             futures.push(async move {
                 if let Some(disk) = disk {
-                    disk.list_dir(RUSTFS_META_MULTIPART_BUCKET, RUSTFS_META_MULTIPART_BUCKET, part_path, -1)
+                    disk.list_dir(NEUBULAFX_META_MULTIPART_BUCKET, NEUBULAFX_META_MULTIPART_BUCKET, part_path, -1)
                         .await
                 } else {
                     Err(DiskError::DiskNotFound)
@@ -1251,7 +1239,7 @@ impl SetDisks {
         let disks = disks.clone();
 
         let (parts_metadata, errs) =
-            Self::read_all_fileinfo(&disks, bucket, RUSTFS_META_MULTIPART_BUCKET, &upload_id_path, "", false, false).await?;
+            Self::read_all_fileinfo(&disks, bucket, NEUBULAFX_META_MULTIPART_BUCKET, &upload_id_path, "", false, false).await?;
 
         let map_err_notfound = |err: DiskError| {
             if err == DiskError::FileNotFound {
@@ -1491,7 +1479,7 @@ impl SetDisks {
         object: &str,
         version_id: &str,
         opts: &ReadOptions,
-    ) -> Result<Vec<rustfs_filemeta::FileInfo>> {
+    ) -> Result<Vec<nebulafx_filemeta::FileInfo>> {
         // Use existing disk selection logic
         let disks = self.disks.read().await;
         let required_reads = self.format.erasure.sets.len();
@@ -1905,9 +1893,9 @@ impl SetDisks {
 
     //         futures.push(async move {
     //             if let Some(disk) = disk {
-    //                 disk.delete(RUSTFS_META_MULTIPART_BUCKET, &file_path, DeleteOptions::default())
+    //                 disk.delete(NEUBULAFX_META_MULTIPART_BUCKET, &file_path, DeleteOptions::default())
     //                     .await?;
-    //                 disk.delete(RUSTFS_META_MULTIPART_BUCKET, &meta_file_path, DeleteOptions::default())
+    //                 disk.delete(NEUBULAFX_META_MULTIPART_BUCKET, &meta_file_path, DeleteOptions::default())
     //                     .await
     //             } else {
     //                 Err(DiskError::DiskNotFound)
@@ -1945,7 +1933,7 @@ impl SetDisks {
     //         let file_path = file_path.clone();
     //         futures.push(async move {
     //             if let Some(disk) = disk {
-    //                 disk.delete(RUSTFS_META_MULTIPART_BUCKET, &file_path, DeleteOptions::default())
+    //                 disk.delete(NEUBULAFX_META_MULTIPART_BUCKET, &file_path, DeleteOptions::default())
     //                     .await
     //             } else {
     //                 Err(DiskError::DiskNotFound)
@@ -2155,7 +2143,7 @@ impl SetDisks {
         let fi = Self::pick_valid_fileinfo(&parts_metadata, mot_time, etag, read_quorum as usize)?;
         if errs.iter().any(|err| err.is_some()) {
             let _ =
-                rustfs_common::heal_channel::send_heal_request(rustfs_common::heal_channel::create_heal_request_with_options(
+                nebulafx_common::heal_channel::send_heal_request(nebulafx_common::heal_channel::create_heal_request_with_options(
                     fi.volume.to_string(),             // bucket
                     Some(fi.name.to_string()),         // object_prefix
                     false,                             // force_start
@@ -2355,8 +2343,8 @@ impl SetDisks {
                     match de_err {
                         DiskError::FileNotFound | DiskError::FileCorrupt => {
                             error!("erasure.decode err 111 {:?}", &de_err);
-                            let _ = rustfs_common::heal_channel::send_heal_request(
-                                rustfs_common::heal_channel::create_heal_request_with_options(
+                            let _ = nebulafx_common::heal_channel::send_heal_request(
+                                nebulafx_common::heal_channel::create_heal_request_with_options(
                                     bucket.to_string(),
                                     Some(object.to_string()),
                                     false,
@@ -2529,11 +2517,11 @@ impl SetDisks {
             info!("Acquiring write lock for object: {}, owner: {}", object, self.locker_owner);
 
             // Check if lock is already held
-            let key = rustfs_lock::fast_lock::types::ObjectKey::new(bucket, object);
+            let key = nebulafx_lock::fast_lock::types::ObjectKey::new(bucket, object);
             let mut reuse_existing_lock = false;
             if let Some(lock_info) = self.fast_lock_manager.get_lock_info(&key) {
                 if lock_info.owner.as_ref() == self.locker_owner.as_str()
-                    && matches!(lock_info.mode, rustfs_lock::fast_lock::types::LockMode::Exclusive)
+                    && matches!(lock_info.mode, nebulafx_lock::fast_lock::types::LockMode::Exclusive)
                 {
                     reuse_existing_lock = true;
                     debug!("Reusing existing exclusive lock for object {} held by {}", object, self.locker_owner);
@@ -2913,7 +2901,7 @@ impl SetDisks {
                                         let writer = create_bitrot_writer(
                                             is_inline_buffer,
                                             Some(outdated_disk),
-                                            RUSTFS_META_TMP_BUCKET,
+                                            NEUBULAFX_META_TMP_BUCKET,
                                             &format!("{}/{}/part.{}", tmp_id, dst_data_dir, part.number),
                                             erasure.shard_file_size(part.size as i64),
                                             erasure.shard_size(),
@@ -2933,7 +2921,7 @@ impl SetDisks {
                                     //     //     } else {
                                     //     //         let disk = disk.clone();
                                     //     //         let part_path = format!("{}/{}/part.{}", tmp_id, dst_data_dir, part.number);
-                                    //     //         disk.create_file("", RUSTFS_META_TMP_BUCKET, &part_path, 0).await?
+                                    //     //         disk.create_file("", NEUBULAFX_META_TMP_BUCKET, &part_path, 0).await?
                                     //     //     }
                                     //     // };
 
@@ -2948,7 +2936,7 @@ impl SetDisks {
                                     //         let f = disk
                                     //             .create_file(
                                     //                 "",
-                                    //                 RUSTFS_META_TMP_BUCKET,
+                                    //                 NEUBULAFX_META_TMP_BUCKET,
                                     //                 &format!("{}/{}/part.{}", tmp_id, dst_data_dir, part.number),
                                     //                 0,
                                     //             )
@@ -2963,7 +2951,7 @@ impl SetDisks {
 
                                     //     // let writer = new_bitrot_filewriter(
                                     //     //     disk.clone(),
-                                    //     //     RUSTFS_META_TMP_BUCKET,
+                                    //     //     NEUBULAFX_META_TMP_BUCKET,
                                     //     //     format!("{}/{}/part.{}", tmp_id, dst_data_dir, part.number).as_str(),
                                     //     //     is_inline_buffer,
                                     //     //     DEFAULT_BITROT_ALGO,
@@ -2977,7 +2965,7 @@ impl SetDisks {
                                     // }
                                 }
                                 // Heal each part. erasure.Heal() will write the healed
-                                // part to .rustfs/tmp/uuid/ which needs to be renamed
+                                // part to .nebulafx/tmp/uuid/ which needs to be renamed
                                 // later to the final location.
                                 erasure.heal(&mut writers, readers, part.size, &prefer).await?;
                                 // close_bitrot_writers(&mut writers).await?;
@@ -3037,10 +3025,10 @@ impl SetDisks {
 
                                 info!(
                                     "rename temp data, src_volume: {}, src_path: {}, dst_volume: {}, dst_path: {}",
-                                    RUSTFS_META_TMP_BUCKET, tmp_id, bucket, object
+                                    NEUBULAFX_META_TMP_BUCKET, tmp_id, bucket, object
                                 );
                                 let rename_result = disk
-                                    .rename_data(RUSTFS_META_TMP_BUCKET, &tmp_id, parts_metadata[index].clone(), bucket, object)
+                                    .rename_data(NEUBULAFX_META_TMP_BUCKET, &tmp_id, parts_metadata[index].clone(), bucket, object)
                                     .await;
 
                                 if let Err(err) = &rename_result {
@@ -3086,9 +3074,9 @@ impl SetDisks {
                                         ));
                                     }
                                 } else {
-                                    info!("remove temp object, volume: {}, path: {}", RUSTFS_META_TMP_BUCKET, tmp_id);
+                                    info!("remove temp object, volume: {}, path: {}", NEUBULAFX_META_TMP_BUCKET, tmp_id);
 
-                                    self.delete_all(RUSTFS_META_TMP_BUCKET, &tmp_id)
+                                    self.delete_all(NEUBULAFX_META_TMP_BUCKET, &tmp_id)
                                         .await
                                         .map_err(DiskError::other)?;
 
@@ -3725,7 +3713,7 @@ impl ObjectIO for SetDisks {
                 let writer = create_bitrot_writer(
                     is_inline_buffer,
                     Some(disk),
-                    RUSTFS_META_TMP_BUCKET,
+                    NEUBULAFX_META_TMP_BUCKET,
                     &tmp_object,
                     erasure.shard_file_size(data.size()),
                     erasure.shard_size(),
@@ -3741,7 +3729,7 @@ impl ObjectIO for SetDisks {
                 //     )
                 // } else {
                 //     let f = match disk
-                //         .create_file("", RUSTFS_META_TMP_BUCKET, &tmp_object, erasure.shard_file_size(data.content_length))
+                //         .create_file("", NEUBULAFX_META_TMP_BUCKET, &tmp_object, erasure.shard_file_size(data.content_length))
                 //         .await
                 //     {
                 //         Ok(f) => f,
@@ -3867,7 +3855,7 @@ impl ObjectIO for SetDisks {
 
         let (online_disks, _, op_old_dir) = Self::rename_data(
             &shuffle_disks,
-            RUSTFS_META_TMP_BUCKET,
+            NEUBULAFX_META_TMP_BUCKET,
             tmp_dir.as_str(),
             &parts_metadatas,
             bucket,
@@ -3881,7 +3869,7 @@ impl ObjectIO for SetDisks {
                 .await?;
         }
 
-        self.delete_all(RUSTFS_META_TMP_BUCKET, &tmp_dir).await?;
+        self.delete_all(NEUBULAFX_META_TMP_BUCKET, &tmp_dir).await?;
 
         for (i, op_disk) in online_disks.iter().enumerate() {
             if let Some(disk) = op_disk {
@@ -3903,17 +3891,17 @@ impl ObjectIO for SetDisks {
 #[async_trait::async_trait]
 impl StorageAPI for SetDisks {
     #[tracing::instrument(skip(self))]
-    async fn backend_info(&self) -> rustfs_madmin::BackendInfo {
+    async fn backend_info(&self) -> nebulafx_madmin::BackendInfo {
         unimplemented!()
     }
     #[tracing::instrument(skip(self))]
-    async fn storage_info(&self) -> rustfs_madmin::StorageInfo {
+    async fn storage_info(&self) -> nebulafx_madmin::StorageInfo {
         let disks = self.get_disks_internal().await;
 
         get_storage_info(&disks, &self.set_endpoints).await
     }
     #[tracing::instrument(skip(self))]
-    async fn local_storage_info(&self) -> rustfs_madmin::StorageInfo {
+    async fn local_storage_info(&self) -> nebulafx_madmin::StorageInfo {
         let disks = self.get_disks_internal().await;
 
         let mut local_disks: Vec<Option<Arc<disk::Disk>>> = Vec::new();
@@ -3980,7 +3968,7 @@ impl StorageAPI for SetDisks {
             Ok((r, w)) => (r as usize, w as usize),
             Err(mut err) => {
                 if err == DiskError::ErasureReadQuorum
-                    && !src_bucket.starts_with(RUSTFS_META_BUCKET)
+                    && !src_bucket.starts_with(NEUBULAFX_META_BUCKET)
                     && self
                         .delete_if_dang_ling(src_bucket, src_object, &metas, &errs, &HashMap::new(), src_opts.clone())
                         .await
@@ -4122,7 +4110,7 @@ impl StorageAPI for SetDisks {
         }
 
         // Acquire locks in batch mode (best effort, matching previous behavior)
-        let mut batch = rustfs_lock::BatchLockRequest::new(self.locker_owner.as_str()).with_all_or_nothing(false);
+        let mut batch = nebulafx_lock::BatchLockRequest::new(self.locker_owner.as_str()).with_all_or_nothing(false);
         let mut unique_objects: std::collections::HashSet<String> = std::collections::HashSet::new();
         for dobj in &objects {
             if unique_objects.insert(dobj.object_name.clone()) {
@@ -4138,7 +4126,7 @@ impl StorageAPI for SetDisks {
             .collect();
         let _lock_guards = batch_result.guards;
 
-        let failed_map: HashMap<(String, String), rustfs_lock::fast_lock::LockResult> = batch_result
+        let failed_map: HashMap<(String, String), nebulafx_lock::fast_lock::LockResult> = batch_result
             .failed_locks
             .into_iter()
             .map(|(key, err)| ((key.bucket.as_ref().to_string(), key.object.as_ref().to_string()), err))
@@ -4517,7 +4505,7 @@ impl StorageAPI for SetDisks {
 
     #[tracing::instrument(skip(self))]
     async fn add_partial(&self, bucket: &str, object: &str, version_id: &str) -> Result<()> {
-        let _ = rustfs_common::heal_channel::send_heal_request(rustfs_common::heal_channel::create_heal_request_with_options(
+        let _ = nebulafx_common::heal_channel::send_heal_request(nebulafx_common::heal_channel::create_heal_request_with_options(
             bucket.to_string(),
             Some(object.to_string()),
             false,
@@ -4568,7 +4556,7 @@ impl StorageAPI for SetDisks {
             Ok((res, _)) => res,
             Err(mut err) => {
                 if err == DiskError::ErasureReadQuorum
-                    && !bucket.starts_with(RUSTFS_META_BUCKET)
+                    && !bucket.starts_with(NEUBULAFX_META_BUCKET)
                     && self
                         .delete_if_dang_ling(bucket, object, &metas, &errs, &HashMap::new(), opts.clone())
                         .await
@@ -4658,8 +4646,8 @@ impl StorageAPI for SetDisks {
             return Err(to_object_err(ERR_METHOD_NOT_ALLOWED, vec![bucket, object]));
         }*/
         // Normalize ETags by removing quotes before comparison (PR #592 compatibility)
-        let transition_etag = rustfs_utils::path::trim_etag(&opts.transition.etag);
-        let stored_etag = rustfs_utils::path::trim_etag(&get_raw_etag(&fi.metadata));
+        let transition_etag = nebulafx_utils::path::trim_etag(&opts.transition.etag);
+        let stored_etag = nebulafx_utils::path::trim_etag(&get_raw_etag(&fi.metadata));
         if opts.mod_time.expect("err").unix_timestamp() != fi.mod_time.as_ref().expect("err").unix_timestamp()
             || transition_etag != stored_etag
         {
@@ -4953,7 +4941,7 @@ impl StorageAPI for SetDisks {
 
         let write_quorum = fi.write_quorum(self.default_write_quorum());
 
-        if let Some(checksum) = fi.metadata.get(rustfs_rio::RUSTFS_MULTIPART_CHECKSUM)
+        if let Some(checksum) = fi.metadata.get(nebulafx_rio::NEUBULAFX_MULTIPART_CHECKSUM)
             && !checksum.is_empty()
             && data
                 .as_hash_reader()
@@ -4989,7 +4977,7 @@ impl StorageAPI for SetDisks {
                 let writer = create_bitrot_writer(
                     false,
                     Some(disk),
-                    RUSTFS_META_TMP_BUCKET,
+                    NEUBULAFX_META_TMP_BUCKET,
                     &tmp_part_path,
                     erasure.shard_file_size(data.size()),
                     erasure.shard_size(),
@@ -4999,7 +4987,7 @@ impl StorageAPI for SetDisks {
 
                 // let writer = {
                 //     let f = match disk
-                //         .create_file("", RUSTFS_META_TMP_BUCKET, &tmp_part_path, erasure.shard_file_size(data.content_length))
+                //         .create_file("", NEUBULAFX_META_TMP_BUCKET, &tmp_part_path, erasure.shard_file_size(data.content_length))
                 //         .await
                 //     {
                 //         Ok(f) => f,
@@ -5084,9 +5072,9 @@ impl StorageAPI for SetDisks {
         let part_path = format!("{}/{}/{}", upload_id_path, fi.data_dir.unwrap_or_default(), part_suffix);
         let _ = Self::rename_part(
             &disks,
-            RUSTFS_META_TMP_BUCKET,
+            NEUBULAFX_META_TMP_BUCKET,
             &tmp_part_path,
-            RUSTFS_META_MULTIPART_BUCKET,
+            NEUBULAFX_META_MULTIPART_BUCKET,
             &part_path,
             part_info_buff.into(),
             write_quorum,
@@ -5196,7 +5184,7 @@ impl StorageAPI for SetDisks {
             .collect::<Vec<String>>();
 
         let object_parts =
-            Self::read_parts(&online_disks, RUSTFS_META_MULTIPART_BUCKET, &part_meta_paths, &part_numbers, read_quorum)
+            Self::read_parts(&online_disks, NEUBULAFX_META_MULTIPART_BUCKET, &part_meta_paths, &part_numbers, read_quorum)
                 .await
                 .map_err(|e| to_object_err(e.into(), vec![bucket, object, upload_id]))?;
 
@@ -5261,7 +5249,7 @@ impl StorageAPI for SetDisks {
             let has_uoload_ids = match disk
                 .list_dir(
                     bucket,
-                    RUSTFS_META_MULTIPART_BUCKET,
+                    NEUBULAFX_META_MULTIPART_BUCKET,
                     Self::get_multipart_sha_dir(bucket, object).as_str(),
                     -1,
                 )
@@ -5428,11 +5416,11 @@ impl StorageAPI for SetDisks {
 
         fi.data_dir = Some(Uuid::new_v4());
 
-        if let Some(cssum) = user_defined.get(RUSTFS_BUCKET_REPLICATION_SSEC_CHECKSUM)
+        if let Some(cssum) = user_defined.get(NEUBULAFX_BUCKET_REPLICATION_SSEC_CHECKSUM)
             && !cssum.is_empty()
         {
             fi.checksum = base64_simd::STANDARD.decode_to_vec(cssum).ok().map(Bytes::from);
-            user_defined.remove(RUSTFS_BUCKET_REPLICATION_SSEC_CHECKSUM);
+            user_defined.remove(NEUBULAFX_BUCKET_REPLICATION_SSEC_CHECKSUM);
         }
 
         let parts_metadata = vec![fi.clone(); disks.len()];
@@ -5448,9 +5436,9 @@ impl StorageAPI for SetDisks {
         }
 
         if let Some(checksum) = &opts.want_checksum {
-            user_defined.insert(rustfs_rio::RUSTFS_MULTIPART_CHECKSUM.to_string(), checksum.checksum_type.to_string());
+            user_defined.insert(nebulafx_rio::NEUBULAFX_MULTIPART_CHECKSUM.to_string(), checksum.checksum_type.to_string());
             user_defined.insert(
-                rustfs_rio::RUSTFS_MULTIPART_CHECKSUM_TYPE.to_string(),
+                nebulafx_rio::NEUBULAFX_MULTIPART_CHECKSUM_TYPE.to_string(),
                 checksum.checksum_type.obj_type().to_string(),
             );
         }
@@ -5477,7 +5465,7 @@ impl StorageAPI for SetDisks {
         Self::write_unique_file_info(
             &shuffle_disks,
             bucket,
-            RUSTFS_META_MULTIPART_BUCKET,
+            NEUBULAFX_META_MULTIPART_BUCKET,
             upload_path.as_str(),
             &parts_metadatas,
             write_quorum,
@@ -5489,8 +5477,8 @@ impl StorageAPI for SetDisks {
 
         Ok(MultipartUploadResult {
             upload_id,
-            checksum_algo: user_defined.get(rustfs_rio::RUSTFS_MULTIPART_CHECKSUM).cloned(),
-            checksum_type: user_defined.get(rustfs_rio::RUSTFS_MULTIPART_CHECKSUM_TYPE).cloned(),
+            checksum_algo: user_defined.get(nebulafx_rio::NEUBULAFX_MULTIPART_CHECKSUM).cloned(),
+            checksum_type: user_defined.get(nebulafx_rio::NEUBULAFX_MULTIPART_CHECKSUM_TYPE).cloned(),
         })
     }
 
@@ -5522,7 +5510,7 @@ impl StorageAPI for SetDisks {
         self.check_upload_id_exists(bucket, object, upload_id, false).await?;
         let upload_id_path = Self::get_upload_id_dir(bucket, object, upload_id);
 
-        self.delete_all(RUSTFS_META_MULTIPART_BUCKET, &upload_id_path).await
+        self.delete_all(NEUBULAFX_META_MULTIPART_BUCKET, &upload_id_path).await
     }
     // complete_multipart_upload finished
     #[tracing::instrument(skip(self))]
@@ -5573,33 +5561,33 @@ impl StorageAPI for SetDisks {
         let part_numbers = uploaded_parts.iter().map(|v| v.part_num).collect::<Vec<usize>>();
 
         let object_parts =
-            Self::read_parts(&disks, RUSTFS_META_MULTIPART_BUCKET, &part_meta_paths, &part_numbers, write_quorum).await?;
+            Self::read_parts(&disks, NEUBULAFX_META_MULTIPART_BUCKET, &part_meta_paths, &part_numbers, write_quorum).await?;
 
         if object_parts.len() != uploaded_parts.len() {
             return Err(Error::other("part result number err"));
         }
 
-        let mut checksum_type = rustfs_rio::ChecksumType::NONE;
+        let mut checksum_type = nebulafx_rio::ChecksumType::NONE;
 
-        if let Some(cs) = fi.metadata.get(rustfs_rio::RUSTFS_MULTIPART_CHECKSUM) {
-            let Some(ct) = fi.metadata.get(rustfs_rio::RUSTFS_MULTIPART_CHECKSUM_TYPE) else {
+        if let Some(cs) = fi.metadata.get(nebulafx_rio::NEUBULAFX_MULTIPART_CHECKSUM) {
+            let Some(ct) = fi.metadata.get(nebulafx_rio::NEUBULAFX_MULTIPART_CHECKSUM_TYPE) else {
                 return Err(Error::other("checksum type not found"));
             };
 
             if opts.want_checksum.is_some()
                 && !opts.want_checksum.as_ref().is_some_and(|v| {
                     v.checksum_type
-                        .is(rustfs_rio::ChecksumType::from_string_with_obj_type(cs, ct))
+                        .is(nebulafx_rio::ChecksumType::from_string_with_obj_type(cs, ct))
                 })
             {
                 return Err(Error::other(format!(
                     "checksum type mismatch, got {:?}, want {:?}",
                     opts.want_checksum.as_ref().unwrap(),
-                    rustfs_rio::ChecksumType::from_string_with_obj_type(cs, ct)
+                    nebulafx_rio::ChecksumType::from_string_with_obj_type(cs, ct)
                 )));
             }
 
-            checksum_type = rustfs_rio::ChecksumType::from_string_with_obj_type(cs, ct);
+            checksum_type = nebulafx_rio::ChecksumType::from_string_with_obj_type(cs, ct);
         }
 
         for (i, part) in object_parts.iter().enumerate() {
@@ -5636,7 +5624,7 @@ impl StorageAPI for SetDisks {
         let mut object_actual_size: i64 = 0;
 
         let mut checksum_combined = bytes::BytesMut::new();
-        let mut checksum = rustfs_rio::Checksum {
+        let mut checksum = nebulafx_rio::Checksum {
             checksum_type,
             ..Default::default()
         };
@@ -5652,11 +5640,11 @@ impl StorageAPI for SetDisks {
             }
 
             let ext_part = &curr_fi.parts[i];
-            tracing::info!(target:"rustfs_ecstore::set_disk", part_number = p.part_num, part_size = ext_part.size, part_actual_size = ext_part.actual_size, "Completing multipart part");
+            tracing::info!(target:"nebulafx_ecstore::set_disk", part_number = p.part_num, part_size = ext_part.size, part_actual_size = ext_part.actual_size, "Completing multipart part");
 
             // Normalize ETags by removing quotes before comparison (PR #592 compatibility)
-            let client_etag = p.etag.as_ref().map(|e| rustfs_utils::path::trim_etag(e));
-            let stored_etag = Some(rustfs_utils::path::trim_etag(&ext_part.etag));
+            let client_etag = p.etag.as_ref().map(|e| nebulafx_utils::path::trim_etag(e));
+            let stored_etag = Some(nebulafx_utils::path::trim_etag(&ext_part.etag));
             if client_etag != stored_etag {
                 error!(
                     "complete_multipart_upload etag err client={:?}, stored={:?}, part_id={}, bucket={}, object={}",
@@ -5696,11 +5684,11 @@ impl StorageAPI for SetDisks {
                 };
 
                 let part_crc = match checksum_type {
-                    rustfs_rio::ChecksumType::SHA256 => p.checksum_sha256.clone(),
-                    rustfs_rio::ChecksumType::SHA1 => p.checksum_sha1.clone(),
-                    rustfs_rio::ChecksumType::CRC32 => p.checksum_crc32.clone(),
-                    rustfs_rio::ChecksumType::CRC32C => p.checksum_crc32c.clone(),
-                    rustfs_rio::ChecksumType::CRC64_NVME => p.checksum_crc64nvme.clone(),
+                    nebulafx_rio::ChecksumType::SHA256 => p.checksum_sha256.clone(),
+                    nebulafx_rio::ChecksumType::SHA1 => p.checksum_sha1.clone(),
+                    nebulafx_rio::ChecksumType::CRC32 => p.checksum_crc32.clone(),
+                    nebulafx_rio::ChecksumType::CRC32C => p.checksum_crc32c.clone(),
+                    nebulafx_rio::ChecksumType::CRC64_NVME => p.checksum_crc64nvme.clone(),
                     _ => {
                         error!(
                             "complete_multipart_upload checksum type={checksum_type}, part_id={}, bucket={}, object={}",
@@ -5719,7 +5707,7 @@ impl StorageAPI for SetDisks {
                     return Err(Error::InvalidPart(p.part_num, ext_part.etag.clone(), p.etag.clone().unwrap_or_default()));
                 }
 
-                let Some(cs) = rustfs_rio::Checksum::new_with_type(checksum_type, &crc) else {
+                let Some(cs) = nebulafx_rio::Checksum::new_with_type(checksum_type, &crc) else {
                     error!(
                         "complete_multipart_upload checksum new_with_type failed part_id={}, bucket={}, object={}",
                         p.part_num, bucket, object
@@ -5788,7 +5776,7 @@ impl StorageAPI for SetDisks {
             }
         }
 
-        if let Some(rc_crc) = opts.user_defined.get(RUSTFS_BUCKET_REPLICATION_SSEC_CHECKSUM) {
+        if let Some(rc_crc) = opts.user_defined.get(NEUBULAFX_BUCKET_REPLICATION_SSEC_CHECKSUM) {
             if let Ok(rc_crc_bytes) = base64_simd::STANDARD.decode_to_vec(rc_crc) {
                 fi.checksum = Some(Bytes::from(rc_crc_bytes));
             } else {
@@ -5798,17 +5786,17 @@ impl StorageAPI for SetDisks {
 
         if checksum_type.is_set() {
             checksum_type
-                .merge(rustfs_rio::ChecksumType::MULTIPART)
-                .merge(rustfs_rio::ChecksumType::INCLUDES_MULTIPART);
+                .merge(nebulafx_rio::ChecksumType::MULTIPART)
+                .merge(nebulafx_rio::ChecksumType::INCLUDES_MULTIPART);
             if !checksum_type.full_object_requested() {
-                checksum = rustfs_rio::Checksum::new_from_data(checksum_type, &checksum_combined)
+                checksum = nebulafx_rio::Checksum::new_from_data(checksum_type, &checksum_combined)
                     .ok_or_else(|| Error::other("checksum new_from_data failed"))?;
             }
             fi.checksum = Some(checksum.to_bytes(&checksum_combined));
         }
 
-        fi.metadata.remove(rustfs_rio::RUSTFS_MULTIPART_CHECKSUM);
-        fi.metadata.remove(rustfs_rio::RUSTFS_MULTIPART_CHECKSUM_TYPE);
+        fi.metadata.remove(nebulafx_rio::NEUBULAFX_MULTIPART_CHECKSUM);
+        fi.metadata.remove(nebulafx_rio::NEUBULAFX_MULTIPART_CHECKSUM_TYPE);
 
         fi.size = object_size as i64;
         fi.mod_time = opts.mod_time;
@@ -5835,13 +5823,13 @@ impl StorageAPI for SetDisks {
                 fi.metadata
                     .insert(format!("{RESERVED_METADATA_PREFIX}actual-size"), actual_size.clone());
                 fi.metadata
-                    .insert("x-rustfs-encryption-original-size".to_string(), actual_size.to_string());
+                    .insert("x-nebulafx-encryption-original-size".to_string(), actual_size.to_string());
             }
         } else {
             fi.metadata
                 .insert(format!("{RESERVED_METADATA_PREFIX}actual-size"), object_actual_size.to_string());
             fi.metadata
-                .insert("x-rustfs-encryption-original-size".to_string(), object_actual_size.to_string());
+                .insert("x-nebulafx-encryption-original-size".to_string(), object_actual_size.to_string());
         }
 
         if fi.is_compressed() {
@@ -5889,7 +5877,7 @@ impl StorageAPI for SetDisks {
 
         let (online_disks, versions, op_old_dir) = Self::rename_data(
             &shuffle_disks,
-            RUSTFS_META_MULTIPART_BUCKET,
+            NEUBULAFX_META_MULTIPART_BUCKET,
             &upload_id_path,
             &parts_metadatas,
             bucket,
@@ -5904,11 +5892,11 @@ impl StorageAPI for SetDisks {
         }
         if let Some(versions) = versions {
             let _ =
-                rustfs_common::heal_channel::send_heal_request(rustfs_common::heal_channel::create_heal_request_with_options(
+                nebulafx_common::heal_channel::send_heal_request(nebulafx_common::heal_channel::create_heal_request_with_options(
                     bucket.to_string(),
                     Some(object.to_string()),
                     false,
-                    Some(rustfs_common::heal_channel::HealChannelPriority::Normal),
+                    Some(nebulafx_common::heal_channel::HealChannelPriority::Normal),
                     Some(self.pool_index),
                     Some(self.set_index),
                 ))
@@ -5918,7 +5906,7 @@ impl StorageAPI for SetDisks {
         let upload_id_path = upload_id_path.clone();
         let store = self.clone();
         let _cleanup_handle = tokio::spawn(async move {
-            let _ = store.delete_all(RUSTFS_META_MULTIPART_BUCKET, &upload_id_path).await;
+            let _ = store.delete_all(NEUBULAFX_META_MULTIPART_BUCKET, &upload_id_path).await;
         });
 
         for (i, op_disk) in online_disks.iter().enumerate() {
@@ -5969,11 +5957,11 @@ impl StorageAPI for SetDisks {
         opts: &HealOpts,
     ) -> Result<(HealResultItem, Option<Error>)> {
         let _write_lock_guard = if !opts.no_lock {
-            let key = rustfs_lock::fast_lock::types::ObjectKey::new(bucket, object);
+            let key = nebulafx_lock::fast_lock::types::ObjectKey::new(bucket, object);
             let mut skip_lock = false;
             if let Some(lock_info) = self.fast_lock_manager.get_lock_info(&key) {
                 if lock_info.owner.as_ref() == self.locker_owner.as_str()
-                    && matches!(lock_info.mode, rustfs_lock::fast_lock::types::LockMode::Exclusive)
+                    && matches!(lock_info.mode, nebulafx_lock::fast_lock::types::LockMode::Exclusive)
                 {
                     debug!(
                         "Reusing existing exclusive lock for heal operation on {}/{} held by {}",
@@ -6430,13 +6418,13 @@ pub fn should_heal_object_on_disk(
     (false, err.clone())
 }
 
-async fn get_disks_info(disks: &[Option<DiskStore>], eps: &[Endpoint]) -> Vec<rustfs_madmin::Disk> {
+async fn get_disks_info(disks: &[Option<DiskStore>], eps: &[Endpoint]) -> Vec<nebulafx_madmin::Disk> {
     let mut ret = Vec::new();
 
     for (i, pool) in disks.iter().enumerate() {
         if let Some(disk) = pool {
             match disk.disk_info(&DiskInfoOptions::default()).await {
-                Ok(res) => ret.push(rustfs_madmin::Disk {
+                Ok(res) => ret.push(nebulafx_madmin::Disk {
                     endpoint: eps[i].to_string(),
                     local: eps[i].is_local,
                     pool_index: eps[i].pool_idx,
@@ -6467,7 +6455,7 @@ async fn get_disks_info(disks: &[Option<DiskStore>], eps: &[Endpoint]) -> Vec<ru
                     free_inodes: res.free_inodes,
                     ..Default::default()
                 }),
-                Err(err) => ret.push(rustfs_madmin::Disk {
+                Err(err) => ret.push(nebulafx_madmin::Disk {
                     state: err.to_string(),
                     endpoint: eps[i].to_string(),
                     local: eps[i].is_local,
@@ -6478,7 +6466,7 @@ async fn get_disks_info(disks: &[Option<DiskStore>], eps: &[Endpoint]) -> Vec<ru
                 }),
             }
         } else {
-            ret.push(rustfs_madmin::Disk {
+            ret.push(nebulafx_madmin::Disk {
                 endpoint: eps[i].to_string(),
                 local: eps[i].is_local,
                 pool_index: eps[i].pool_idx,
@@ -6492,14 +6480,14 @@ async fn get_disks_info(disks: &[Option<DiskStore>], eps: &[Endpoint]) -> Vec<ru
 
     ret
 }
-async fn get_storage_info(disks: &[Option<DiskStore>], eps: &[Endpoint]) -> rustfs_madmin::StorageInfo {
+async fn get_storage_info(disks: &[Option<DiskStore>], eps: &[Endpoint]) -> nebulafx_madmin::StorageInfo {
     let mut disks = get_disks_info(disks, eps).await;
     disks.sort_by(|a, b| a.total_space.cmp(&b.total_space));
 
-    rustfs_madmin::StorageInfo {
+    nebulafx_madmin::StorageInfo {
         disks,
-        backend: rustfs_madmin::BackendInfo {
-            backend_type: rustfs_madmin::BackendByte::Erasure,
+        backend: nebulafx_madmin::BackendInfo {
+            backend_type: nebulafx_madmin::BackendByte::Erasure,
             ..Default::default()
         },
     }
@@ -6631,7 +6619,7 @@ mod tests {
     use crate::disk::CHECK_PART_VOLUME_NOT_FOUND;
     use crate::disk::error::DiskError;
     use crate::store_api::{CompletePart, ObjectInfo};
-    use rustfs_filemeta::ErasureInfo;
+    use nebulafx_filemeta::ErasureInfo;
     use std::collections::HashMap;
     use time::OffsetDateTime;
 

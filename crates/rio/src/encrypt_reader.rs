@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::HashReaderDetector;
 use crate::HashReaderMut;
@@ -19,7 +7,7 @@ use crate::{EtagResolvable, Reader};
 use aes_gcm::aead::Aead;
 use aes_gcm::{Aes256Gcm, KeyInit, Nonce};
 use pin_project_lite::pin_project;
-use rustfs_utils::{put_uvarint, put_uvarint_len};
+use nebulafx_utils::{put_uvarint, put_uvarint_len};
 use std::io::Error;
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -387,7 +375,7 @@ where
                 return Poll::Pending;
             }
 
-            let (plaintext_len, uvarint_len) = rustfs_utils::uvarint(&ciphertext_buf[0..16]);
+            let (plaintext_len, uvarint_len) = nebulafx_utils::uvarint(&ciphertext_buf[0..16]);
             let ciphertext = &ciphertext_buf[uvarint_len as usize..];
 
             let cipher = Aes256Gcm::new_from_slice(this.key).expect("key");

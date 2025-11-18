@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 //! Erasure coding implementation using Reed-Solomon SIMD backend.
 //!
@@ -28,7 +16,7 @@
 //! ## Example
 //!
 //! ```ignore
-//! use rustfs_ecstore::erasure_coding::Erasure;
+//! use nebulafx_ecstore::erasure_coding::Erasure;
 //!
 //! let erasure = Erasure::new(4, 2, 1024); // 4 data shards, 2 parity shards, 1KB block size
 //! let data = b"hello world";
@@ -256,7 +244,7 @@ impl ReedSolomonEncoder {
 ///
 /// # Example
 /// ```ignore
-/// use rustfs_ecstore::erasure_coding::Erasure;
+/// use nebulafx_ecstore::erasure_coding::Erasure;
 /// let erasure = Erasure::new(4, 2, 8);
 /// let data = b"hello world";
 /// let shards = erasure.encode_data(data).unwrap();
@@ -459,7 +447,7 @@ impl Erasure {
         let mut total = 0;
         loop {
             let mut buf = vec![0u8; block_size];
-            match rustfs_utils::read_full(&mut *reader, &mut buf).await {
+            match nebulafx_utils::read_full(&mut *reader, &mut buf).await {
                 Ok(n) if n > 0 => {
                     warn!("encode_stream_callback_async read n={}", n);
                     total += n;

@@ -1,4 +1,4 @@
-//  Copyright 2024 RustFS Team
+//  Copyright 2024 NebulaFX Team
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-use rustfs_targets::{TargetError, arn::TargetID};
+use nebulafx_targets::{TargetError, arn::TargetID};
 use std::io;
 use thiserror::Error;
 

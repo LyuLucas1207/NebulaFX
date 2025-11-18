@@ -1,19 +1,7 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 
-use rustfs_ahm::scanner::{Scanner, data_scanner::ScannerConfig};
-use rustfs_ecstore::{
+
+use nebulafx_ahm::scanner::{Scanner, data_scanner::ScannerConfig};
+use nebulafx_ecstore::{
     bucket::metadata::BUCKET_LIFECYCLE_CONFIG,
     bucket::metadata_sys,
     disk::endpoint::Endpoint,
@@ -52,7 +40,7 @@ async fn setup_test_env() -> (Vec<PathBuf>, Arc<ECStore>) {
     }
 
     // create temp dir as 4 disks with unique base dir
-    let test_base_dir = format!("/tmp/rustfs_ahm_lifecycle_test_{}", uuid::Uuid::new_v4());
+    let test_base_dir = format!("/tmp/nebulafx_ahm_lifecycle_test_{}", uuid::Uuid::new_v4());
     let temp_dir = std::path::PathBuf::from(&test_base_dir);
     if temp_dir.exists() {
         fs::remove_dir_all(&temp_dir).await.ok();
@@ -94,7 +82,7 @@ async fn setup_test_env() -> (Vec<PathBuf>, Arc<ECStore>) {
     let endpoint_pools = EndpointServerPools(vec![pool_endpoints]);
 
     // format disks (only first time)
-    rustfs_ecstore::store::init_local_disks(endpoint_pools.clone()).await.unwrap();
+    nebulafx_ecstore::store::init_local_disks(endpoint_pools.clone()).await.unwrap();
 
     // create ECStore with dynamic port 0 (let OS assign) or fixed 9002 if free
     let port = 9002; // for simplicity
@@ -105,17 +93,17 @@ async fn setup_test_env() -> (Vec<PathBuf>, Arc<ECStore>) {
 
     // init bucket metadata system
     let buckets_list = ecstore
-        .list_bucket(&rustfs_ecstore::store_api::BucketOptions {
+        .list_bucket(&nebulafx_ecstore::store_api::BucketOptions {
             no_metadata: true,
             ..Default::default()
         })
         .await
         .unwrap();
     let buckets = buckets_list.into_iter().map(|v| v.name).collect();
-    rustfs_ecstore::bucket::metadata_sys::init_bucket_metadata_sys(ecstore.clone(), buckets).await;
+    nebulafx_ecstore::bucket::metadata_sys::init_bucket_metadata_sys(ecstore.clone(), buckets).await;
 
     // Initialize background expiry workers
-    rustfs_ecstore::bucket::lifecycle::bucket_lifecycle_ops::init_background_expiry(ecstore.clone()).await;
+    nebulafx_ecstore::bucket::lifecycle::bucket_lifecycle_ops::init_background_expiry(ecstore.clone()).await;
 
     // Store in global once lock
     let _ = GLOBAL_ENV.set((disk_paths.clone(), ecstore.clone()));
@@ -252,7 +240,7 @@ async fn create_test_tier(server: u32) {
         azure: None,
         gcs: None,
         r2: None,
-        rustfs: None,
+        nebulafx: None,
         minio: if server == 1 {
             Some(TierMinIO {
                 access_key: "minioadmin".to_string(),
@@ -363,7 +351,7 @@ mod serial_tests {
         println!("✅ Lifecycle configuration set for bucket: {bucket_name}");
 
         // Verify lifecycle configuration was set
-        match rustfs_ecstore::bucket::metadata_sys::get(bucket_name.as_str()).await {
+        match nebulafx_ecstore::bucket::metadata_sys::get(bucket_name.as_str()).await {
             Ok(bucket_meta) => {
                 assert!(bucket_meta.lifecycle_config.is_some());
                 println!("✅ Bucket metadata retrieved successfully");
@@ -408,19 +396,19 @@ mod serial_tests {
         println!("Object is_delete_marker after lifecycle processing: {}", !expired);
 
         if !expired {
-            let pending = rustfs_ecstore::bucket::lifecycle::bucket_lifecycle_ops::GLOBAL_ExpiryState
+            let pending = nebulafx_ecstore::bucket::lifecycle::bucket_lifecycle_ops::GLOBAL_ExpiryState
                 .read()
                 .await
                 .pending_tasks()
                 .await;
             println!("Pending expiry tasks: {pending}");
 
-            if let Ok((lc_config, _)) = rustfs_ecstore::bucket::metadata_sys::get_lifecycle_config(bucket_name.as_str()).await {
+            if let Ok((lc_config, _)) = nebulafx_ecstore::bucket::metadata_sys::get_lifecycle_config(bucket_name.as_str()).await {
                 if let Ok(object_info) = ecstore
-                    .get_object_info(bucket_name.as_str(), object_name, &rustfs_ecstore::store_api::ObjectOptions::default())
+                    .get_object_info(bucket_name.as_str(), object_name, &nebulafx_ecstore::store_api::ObjectOptions::default())
                     .await
                 {
-                    let event = rustfs_ecstore::bucket::lifecycle::bucket_lifecycle_ops::eval_action_from_lifecycle(
+                    let event = nebulafx_ecstore::bucket::lifecycle::bucket_lifecycle_ops::eval_action_from_lifecycle(
                         &lc_config,
                         None,
                         None,
@@ -428,11 +416,11 @@ mod serial_tests {
                     )
                     .await;
 
-                    rustfs_ecstore::bucket::lifecycle::bucket_lifecycle_ops::apply_expiry_on_non_transitioned_objects(
+                    nebulafx_ecstore::bucket::lifecycle::bucket_lifecycle_ops::apply_expiry_on_non_transitioned_objects(
                         ecstore.clone(),
                         &object_info,
                         &event,
-                        &rustfs_ecstore::bucket::lifecycle::bucket_lifecycle_audit::LcEventSrc::Scanner,
+                        &nebulafx_ecstore::bucket::lifecycle::bucket_lifecycle_audit::LcEventSrc::Scanner,
                     )
                     .await;
 
@@ -447,7 +435,7 @@ mod serial_tests {
             println!("✅ Object was successfully deleted by lifecycle processing");
             // Let's try to get object info to see its details
             match ecstore
-                .get_object_info(bucket_name.as_str(), object_name, &rustfs_ecstore::store_api::ObjectOptions::default())
+                .get_object_info(bucket_name.as_str(), object_name, &nebulafx_ecstore::store_api::ObjectOptions::default())
                 .await
             {
                 Ok(obj_info) => {
@@ -498,7 +486,7 @@ mod serial_tests {
         println!("✅ Lifecycle configuration set for bucket: {bucket_name}");
 
         // Verify lifecycle configuration was set
-        match rustfs_ecstore::bucket::metadata_sys::get(bucket_name.as_str()).await {
+        match nebulafx_ecstore::bucket::metadata_sys::get(bucket_name.as_str()).await {
             Ok(bucket_meta) => {
                 assert!(bucket_meta.lifecycle_config.is_some());
                 println!("✅ Bucket metadata retrieved successfully");
@@ -543,28 +531,28 @@ mod serial_tests {
         println!("Object exists after lifecycle processing: {}", !deleted);
 
         if !deleted {
-            let pending = rustfs_ecstore::bucket::lifecycle::bucket_lifecycle_ops::GLOBAL_ExpiryState
+            let pending = nebulafx_ecstore::bucket::lifecycle::bucket_lifecycle_ops::GLOBAL_ExpiryState
                 .read()
                 .await
                 .pending_tasks()
                 .await;
             println!("Pending expiry tasks: {pending}");
 
-            if let Ok((lc_config, _)) = rustfs_ecstore::bucket::metadata_sys::get_lifecycle_config(bucket_name.as_str()).await {
+            if let Ok((lc_config, _)) = nebulafx_ecstore::bucket::metadata_sys::get_lifecycle_config(bucket_name.as_str()).await {
                 if let Ok(obj_info) = ecstore
-                    .get_object_info(bucket_name.as_str(), object_name, &rustfs_ecstore::store_api::ObjectOptions::default())
+                    .get_object_info(bucket_name.as_str(), object_name, &nebulafx_ecstore::store_api::ObjectOptions::default())
                     .await
                 {
-                    let event = rustfs_ecstore::bucket::lifecycle::bucket_lifecycle_ops::eval_action_from_lifecycle(
+                    let event = nebulafx_ecstore::bucket::lifecycle::bucket_lifecycle_ops::eval_action_from_lifecycle(
                         &lc_config, None, None, &obj_info,
                     )
                     .await;
 
-                    rustfs_ecstore::bucket::lifecycle::bucket_lifecycle_ops::apply_expiry_on_non_transitioned_objects(
+                    nebulafx_ecstore::bucket::lifecycle::bucket_lifecycle_ops::apply_expiry_on_non_transitioned_objects(
                         ecstore.clone(),
                         &obj_info,
                         &event,
-                        &rustfs_ecstore::bucket::lifecycle::bucket_lifecycle_audit::LcEventSrc::Scanner,
+                        &nebulafx_ecstore::bucket::lifecycle::bucket_lifecycle_audit::LcEventSrc::Scanner,
                     )
                     .await;
 
@@ -625,7 +613,7 @@ mod serial_tests {
         println!("✅ Lifecycle configuration set for bucket: {bucket_name}");
 
         // Verify lifecycle configuration was set
-        match rustfs_ecstore::bucket::metadata_sys::get(bucket_name.as_str()).await {
+        match nebulafx_ecstore::bucket::metadata_sys::get(bucket_name.as_str()).await {
             Ok(bucket_meta) => {
                 assert!(bucket_meta.lifecycle_config.is_some());
                 println!("✅ Bucket metadata retrieved successfully");
@@ -667,7 +655,7 @@ mod serial_tests {
             println!("✅ Object was transitioned by lifecycle processing");
             // Let's try to get object info to see its details
             match ecstore
-                .get_object_info(bucket_name.as_str(), object_name, &rustfs_ecstore::store_api::ObjectOptions::default())
+                .get_object_info(bucket_name.as_str(), object_name, &nebulafx_ecstore::store_api::ObjectOptions::default())
                 .await
             {
                 Ok(obj_info) => {

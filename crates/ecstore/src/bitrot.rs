@@ -1,21 +1,9 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::disk::error::DiskError;
 use crate::disk::{self, DiskAPI as _, DiskStore};
 use crate::erasure_coding::{BitrotReader, BitrotWriterWrapper, CustomWriter};
-use rustfs_utils::HashAlgorithm;
+use nebulafx_utils::HashAlgorithm;
 use std::io::Cursor;
 use tokio::io::AsyncRead;
 
@@ -136,7 +124,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_create_bitrot_writer_inline() {
-        use rustfs_utils::HashAlgorithm;
+        use nebulafx_utils::HashAlgorithm;
 
         let wrapper = create_bitrot_writer(
             true, // is_inline_buffer
@@ -167,7 +155,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_create_bitrot_writer_disk_without_disk() {
-        use rustfs_utils::HashAlgorithm;
+        use nebulafx_utils::HashAlgorithm;
 
         // Test error case: trying to create disk writer without providing disk instance
         let wrapper = create_bitrot_writer(

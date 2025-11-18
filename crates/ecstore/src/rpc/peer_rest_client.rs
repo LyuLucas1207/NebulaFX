@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::error::{Error, Result};
 use crate::{
@@ -19,13 +7,13 @@ use crate::{
     metrics_realtime::{CollectMetricsOpts, MetricType},
 };
 use rmp_serde::{Deserializer, Serializer};
-use rustfs_madmin::{
+use nebulafx_madmin::{
     ServerProperties,
     health::{Cpus, MemInfo, OsInfo, Partitions, ProcInfo, SysConfig, SysErrors, SysService},
     metrics::RealtimeMetrics,
     net::NetInfo,
 };
-use rustfs_protos::{
+use nebulafx_protos::{
     node_service_time_out_client,
     proto_gen::node_service::{
         DeleteBucketMetadataRequest, DeletePolicyRequest, DeleteServiceAccountRequest, DeleteUserRequest, GetCpusRequest,
@@ -36,7 +24,7 @@ use rustfs_protos::{
         ReloadSiteReplicationConfigRequest, ServerInfoRequest, SignalServiceRequest, StartProfilingRequest, StopRebalanceRequest,
     },
 };
-use rustfs_utils::XHost;
+use nebulafx_utils::XHost;
 use serde::{Deserialize, Serialize as _};
 use std::{collections::HashMap, io::Cursor, time::SystemTime};
 use tonic::Request;
@@ -85,7 +73,7 @@ impl PeerRestClient {
 }
 
 impl PeerRestClient {
-    pub async fn local_storage_info(&self) -> Result<rustfs_madmin::StorageInfo> {
+    pub async fn local_storage_info(&self) -> Result<nebulafx_madmin::StorageInfo> {
         let mut client = node_service_time_out_client(&self.grid_host)
             .await
             .map_err(|err| Error::other(err.to_string()))?;
@@ -101,7 +89,7 @@ impl PeerRestClient {
         let data = response.storage_info;
 
         let mut buf = Deserializer::new(Cursor::new(data));
-        let storage_info: rustfs_madmin::StorageInfo = Deserialize::deserialize(&mut buf)?;
+        let storage_info: nebulafx_madmin::StorageInfo = Deserialize::deserialize(&mut buf)?;
 
         Ok(storage_info)
     }

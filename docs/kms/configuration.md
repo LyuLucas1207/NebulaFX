@@ -1,13 +1,13 @@
 # KMS Configuration Guide
 
-This guide describes the configuration surfaces for the RustFS Key Management Service. RustFS can be configured statically at process start or dynamically via the admin REST API. Most operators start with a static bootstrap (CLI flags, configuration file, or environment variables) and then rely on dynamic configuration to rotate keys or swap backends.
+This guide describes the configuration surfaces for the NebulaFX Key Management Service. NebulaFX can be configured statically at process start or dynamically via the admin REST API. Most operators start with a static bootstrap (CLI flags, configuration file, or environment variables) and then rely on dynamic configuration to rotate keys or swap backends.
 
 ## Configuration Sources
 
 | Mechanism           | When to use                                             | Notes |
 |---------------------|----------------------------------------------------------|-------|
-| CLI flags           | Local development, ad-hoc testing                        | `rustfs server --kms-enable --kms-backend vault ...` |
-| Environment vars    | Container/Helm/Ansible deployments                       | Prefix variables with `RUSTFS_` (see table below). |
+| CLI flags           | Local development, ad-hoc testing                        | `nebulafx server --kms-enable --kms-backend vault ...` |
+| Environment vars    | Container/Helm/Ansible deployments                       | Prefix variables with `NEUBULAFX_` (see table below). |
 | Static config file  | Use your orchestration tooling to render TOML/YAML, then pass the corresponding flags during startup. |
 | Dynamic REST API    | Post-start updates without restarting (see [dynamic-configuration-guide.md](dynamic-configuration-guide.md)). |
 
@@ -15,34 +15,34 @@ This guide describes the configuration surfaces for the RustFS Key Management Se
 
 | CLI flag                    | Env variable                   | Description |
 |-----------------------------|--------------------------------|-------------|
-| `--kms-enable`              | `RUSTFS_KMS_ENABLE`            | Enables KMS at startup. Defaults to `false`. |
-| `--kms-backend <local\|vault>` | `RUSTFS_KMS_BACKEND`         | Selects the backend implementation. Defaults to `local`. |
-| `--kms-key-dir <path>`      | `RUSTFS_KMS_KEY_DIR`           | Required when `kms-backend=local`; directory that stores wrapped master keys. |
-| `--kms-vault-address <url>` | `RUSTFS_KMS_VAULT_ADDRESS`     | Vault base URL (e.g. `https://vault.example.com:8200`). |
-| `--kms-vault-token <token>` | `RUSTFS_KMS_VAULT_TOKEN`       | Token used for Vault authentication. Prefer AppRole or short-lived tokens. |
-| `--kms-default-key-id <id>` | `RUSTFS_KMS_DEFAULT_KEY_ID`    | Default key used when clients omit `x-amz-server-side-encryption-aws-kms-key-id`. |
+| `--kms-enable`              | `NEUBULAFX_KMS_ENABLE`            | Enables KMS at startup. Defaults to `false`. |
+| `--kms-backend <local\|vault>` | `NEUBULAFX_KMS_BACKEND`         | Selects the backend implementation. Defaults to `local`. |
+| `--kms-key-dir <path>`      | `NEUBULAFX_KMS_KEY_DIR`           | Required when `kms-backend=local`; directory that stores wrapped master keys. |
+| `--kms-vault-address <url>` | `NEUBULAFX_KMS_VAULT_ADDRESS`     | Vault base URL (e.g. `https://vault.example.com:8200`). |
+| `--kms-vault-token <token>` | `NEUBULAFX_KMS_VAULT_TOKEN`       | Token used for Vault authentication. Prefer AppRole or short-lived tokens. |
+| `--kms-default-key-id <id>` | `NEUBULAFX_KMS_DEFAULT_KEY_ID`    | Default key used when clients omit `x-amz-server-side-encryption-aws-kms-key-id`. |
 
 > **Tip:** Even when you plan to reconfigure the backend dynamically, setting `--kms-enable` is useful because it instantiates the global manager eagerly and surfaces better error messages when configuration fails.
 
 ## Static TOML Example (Local Backend)
 
 ```toml
-# rustfs.toml
+# nebulafx.toml
 [kms]
 enabled = true
 backend = "local"
-key_dir = "/var/lib/rustfs/kms-keys"
-default_key_id = "rustfs-master"
+key_dir = "/var/lib/nebulafx/kms-keys"
+default_key_id = "nebulafx-master"
 ```
 
-Render this file using your favourite template tool and translate it to CLI flags when launching RustFS:
+Render this file using your favourite template tool and translate it to CLI flags when launching NebulaFX:
 
 ```bash
-rustfs server \
+nebulafx server \
   --kms-enable \
   --kms-backend local \
-  --kms-key-dir /var/lib/rustfs/kms-keys \
-  --kms-default-key-id rustfs-master
+  --kms-key-dir /var/lib/nebulafx/kms-keys \
+  --kms-default-key-id nebulafx-master
 ```
 
 ## Static TOML Example (Vault Backend)
@@ -54,18 +54,18 @@ backend = "vault"
 vault_address = "https://vault.example.com:8200"
 # Supply either a token or render AppRole credentials dynamically
 vault_token = "s.XYZ..."
-default_key_id = "rustfs-master"
+default_key_id = "nebulafx-master"
 ```
 
-Ensure that the Vault binary is reachable and the Transit engine is initialised before starting RustFS:
+Ensure that the Vault binary is reachable and the Transit engine is initialised before starting NebulaFX:
 
 ```bash
 vault secrets enable transit
 vault secrets enable -path=secret kv-v2
-vault write transit/keys/rustfs-master type=aes256-gcm96
+vault write transit/keys/nebulafx-master type=aes256-gcm96
 ```
 
-If you prefer AppRole authentication, omit `vault_token` and set the token dynamically via the REST API once RustFS is online (see [dynamic-configuration-guide.md](dynamic-configuration-guide.md)).
+If you prefer AppRole authentication, omit `vault_token` and set the token dynamically via the REST API once NebulaFX is online (see [dynamic-configuration-guide.md](dynamic-configuration-guide.md)).
 
 ## Backend-Specific Options
 
@@ -81,8 +81,8 @@ If you prefer AppRole authentication, omit `vault_token` and set the token dynam
 During development you can generate a default key manually:
 
 ```bash
-mkdir -p /tmp/rustfs-keys
-openssl rand -hex 32 > /tmp/rustfs-keys/rustfs-master.material
+mkdir -p /tmp/nebulafx-keys
+openssl rand -hex 32 > /tmp/nebulafx-keys/nebulafx-master.material
 ```
 
 The KMS e2e tests also demonstrate programmatic key creation using the `/kms/keys` API.
@@ -95,7 +95,7 @@ The KMS e2e tests also demonstrate programmatic key creation using the `/kms/key
 | `auth_method`       | `Token { token: "..." }` or `AppRole { role_id, secret_id }`. Tokens should be renewable or short-lived. |
 | `mount_path`        | Transit engine mount (default `transit`). |
 | `kv_mount`          | KV v2 engine used to stash wrapped keys or metadata. |
-| `key_path_prefix`   | Prefix under the KV mount (e.g. `rustfs/kms/keys`). |
+| `key_path_prefix`   | Prefix under the KV mount (e.g. `nebulafx/kms/keys`). |
 | `namespace`         | Vault enterprise namespace (optional). |
 | `skip_tls_verify`   | Development convenience; avoid using this in production. |
 | `default_key_id`    | Transit key to use when clients omit `x-amz-server-side-encryption-aws-kms-key-id`. |
@@ -117,7 +117,7 @@ These options are mostly relevant for large deployments; configure them via the 
 
 1. Pick a backend (`local` or `vault`).
 2. Ensure the required infrastructure is ready (filesystem permissions or Vault engines).
-3. Start RustFS with `--kms-enable` and the minimal bootstrap flags.
+3. Start NebulaFX with `--kms-enable` and the minimal bootstrap flags.
 4. Call the REST API to refine configuration (timeouts, cache, AppRole, etc.).
 5. Verify with `/kms/status` and issue a test `PutObject` using SSE headers.
 6. Record the configuration in your infra-as-code tooling for repeatability.

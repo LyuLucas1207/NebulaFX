@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use std::{
     io,
@@ -19,7 +7,7 @@ use std::{
 
 use super::error::Result;
 use crate::disk::error_conv::to_file_error;
-use rustfs_utils::path::SLASH_SEPARATOR;
+use nebulafx_utils::path::SLASH_SEPARATOR;
 use tokio::fs;
 use tracing::warn;
 
@@ -74,7 +62,7 @@ pub fn is_root_disk(disk_path: &str, root_disk: &str) -> Result<bool> {
         return Ok(false);
     }
 
-    rustfs_utils::os::same_disk(disk_path, root_disk).map_err(|e| to_file_error(e).into())
+    nebulafx_utils::os::same_disk(disk_path, root_disk).map_err(|e| to_file_error(e).into())
 }
 
 /// Create a directory and all its parent components if they are missing.

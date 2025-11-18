@@ -1,17 +1,5 @@
 #![cfg(test)]
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use aws_config::meta::region::RegionProviderChain;
 use aws_sdk_s3::Client;
@@ -24,8 +12,8 @@ use serial_test::serial;
 use std::error::Error;
 
 const ENDPOINT: &str = "http://localhost:9000";
-const ACCESS_KEY: &str = "rustfsadmin";
-const SECRET_KEY: &str = "rustfsadmin";
+const ACCESS_KEY: &str = "nebulafxadmin";
+const SECRET_KEY: &str = "nebulafxadmin";
 const BUCKET: &str = "test-sql-bucket";
 const CSV_OBJECT: &str = "test-data.csv";
 const JSON_OBJECT: &str = "test-data.json";
@@ -119,7 +107,7 @@ async fn process_select_response(
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_select_object_content_csv_basic() -> Result<(), Box<dyn Error>> {
     let client = create_aws_s3_client().await?;
     setup_test_bucket(&client).await?;
@@ -161,7 +149,7 @@ async fn test_select_object_content_csv_basic() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_select_object_content_csv_aggregation() -> Result<(), Box<dyn Error>> {
     let client = create_aws_s3_client().await?;
     setup_test_bucket(&client).await?;
@@ -207,7 +195,7 @@ async fn test_select_object_content_csv_aggregation() -> Result<(), Box<dyn Erro
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_select_object_content_json_basic() -> Result<(), Box<dyn Error>> {
     let client = create_aws_s3_client().await?;
     setup_test_bucket(&client).await?;
@@ -249,7 +237,7 @@ async fn test_select_object_content_json_basic() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_select_object_content_csv_limit() -> Result<(), Box<dyn Error>> {
     let client = create_aws_s3_client().await?;
     setup_test_bucket(&client).await?;
@@ -289,7 +277,7 @@ async fn test_select_object_content_csv_limit() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_select_object_content_csv_order_by() -> Result<(), Box<dyn Error>> {
     let client = create_aws_s3_client().await?;
     setup_test_bucket(&client).await?;
@@ -333,7 +321,7 @@ async fn test_select_object_content_csv_order_by() -> Result<(), Box<dyn Error>>
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_select_object_content_error_handling() -> Result<(), Box<dyn Error>> {
     let client = create_aws_s3_client().await?;
     setup_test_bucket(&client).await?;
@@ -369,7 +357,7 @@ async fn test_select_object_content_error_handling() -> Result<(), Box<dyn Error
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_select_object_content_nonexistent_object() -> Result<(), Box<dyn Error>> {
     let client = create_aws_s3_client().await?;
     setup_test_bucket(&client).await?;

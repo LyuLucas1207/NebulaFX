@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::{AppConfig, GlobalError, OtelGuard, SystemObserver, telemetry::init_telemetry};
 use std::sync::{Arc, Mutex};
@@ -38,7 +26,7 @@ pub fn observability_metric_enabled() -> bool {
 ///
 /// # Example
 /// ```no_run
-/// # use rustfs_obs::init_obs;
+/// # use nebulafx_obs::init_obs;
 ///
 /// # #[tokio::main]
 /// # async fn main() {
@@ -59,10 +47,10 @@ pub async fn init_obs(endpoint: Option<String>) -> Result<OtelGuard, GlobalError
         let obs_result = SystemObserver::init_process_observer().await;
         match obs_result {
             Ok(_) => {
-                info!(target: "rustfs::obs::system::metrics","Process observer initialized successfully");
+                info!(target: "nebulafx::obs::system::metrics","Process observer initialized successfully");
             }
             Err(e) => {
-                error!(target: "rustfs::obs::system::metrics","Failed to initialize process observer: {}", e);
+                error!(target: "nebulafx::obs::system::metrics","Failed to initialize process observer: {}", e);
             }
         }
     });
@@ -81,7 +69,7 @@ pub async fn init_obs(endpoint: Option<String>) -> Result<OtelGuard, GlobalError
 ///
 /// # Example
 /// ```no_run
-/// # use rustfs_obs::{ init_obs, set_global_guard};
+/// # use nebulafx_obs::{ init_obs, set_global_guard};
 ///
 /// # async fn init() -> Result<(), Box<dyn std::error::Error>> {
 /// #    let guard = match init_obs(None).await{
@@ -105,7 +93,7 @@ pub fn set_global_guard(guard: OtelGuard) -> Result<(), GlobalError> {
 ///
 /// # Example
 /// ```no_run
-/// # use rustfs_obs::get_global_guard;
+/// # use nebulafx_obs::get_global_guard;
 ///
 /// # async fn trace_operation() -> Result<(), Box<dyn std::error::Error>> {
 /// #    let guard = get_global_guard()?;

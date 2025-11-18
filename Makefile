@@ -3,8 +3,8 @@
 # https://code.visualstudio.com/docs/remote/containers
 ###########
 DOCKER_CLI ?= docker
-IMAGE_NAME ?= rustfs:v1.0.0
-CONTAINER_NAME ?= rustfs-dev
+IMAGE_NAME ?= nebulafx:v1.0.0
+CONTAINER_NAME ?= nebulafx-dev
 # Docker build configurations
 DOCKERFILE_PRODUCTION = Dockerfile
 DOCKERFILE_SOURCE = Dockerfile.source
@@ -101,139 +101,65 @@ unlock:
 
 .PHONY: run
 run: unlock
-	@echo "🚀 Running RustFS..."
+	@echo "🚀 Running NebulaFX..."
 	@bash -c '\
 		source ../use-rust1.91.sh 2>/dev/null || true; \
-		export RUST_LOG="$${RUST_LOG:-rustfs=info,ecstore=info,s3s=info,iam=info}"; \
-		export RUSTFS_OBS_LOGGER_LEVEL="$${RUSTFS_OBS_LOGGER_LEVEL:-info}"; \
-		export RUSTFS_OBS_LOG_STDOUT_ENABLED="$${RUSTFS_OBS_LOG_STDOUT_ENABLED:-true}"; \
-		export RUSTFS_LOG_JSON="$${RUSTFS_LOG_JSON:-false}"; \
+		export RUST_LOG="$${RUST_LOG:-nebulafx=warn,ecstore=warn,s3s=warn,iam=warn}"; \
+		export NEUBULAFX_OBS_LOGGER_LEVEL="$${NEUBULAFX_OBS_LOGGER_LEVEL:-warn}"; \
+		export NEUBULAFX_OBS_LOG_STDOUT_ENABLED="$${NEUBULAFX_OBS_LOG_STDOUT_ENABLED:-true}"; \
+		export NEUBULAFX_LOG_JSON="$${NEUBULAFX_LOG_JSON:-false}"; \
 		echo "📝 Log level: $$RUST_LOG"; \
-		echo "📝 Log format: $$([ "$$RUSTFS_LOG_JSON" = "true" ] && echo "JSON" || echo "Text (compact)")"; \
-		cargo run --bin rustfs -- ./deploy/data/dev{1...8} --address 0.0.0.0:9000'
-
-.PHONY: e2e-server
-e2e-server:
-	sh $(shell pwd)/scripts/run.sh
-
-.PHONY: probe-e2e
-probe-e2e:
-	sh $(shell pwd)/scripts/probe.sh
+		echo "📝 Log format: $$([ "$$NEUBULAFX_LOG_JSON" = "true" ] && echo "JSON" || echo "Text (compact)")"; \
+		cargo run --bin nebulafx -- ./deploy/data/dev{1...8} --address 0.0.0.0:9000'
 
 # Native build using cargo
 .PHONY: build
 build:
-	@echo "🔨 Building RustFS binary (release mode)..."
-	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; cargo build --release --bin rustfs'
+	@echo "🔨 Building NebulaFX binary (release mode)..."
+	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; cargo build --release --bin nebulafx'
 
 .PHONY: build-dev
 build-dev:
-	@echo "🔨 Building RustFS binary (development mode)..."
-	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; cargo build --bin rustfs'
+	@echo "🔨 Building NebulaFX binary (development mode)..."
+	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; cargo build --bin nebulafx'
 
 # Docker-based build (alternative approach)
 # Usage: make BUILD_OS=ubuntu22.04 build-docker
-# Output: target/ubuntu22.04/release/rustfs
+# Output: target/ubuntu22.04/release/nebulafx
 BUILD_OS ?= rockylinux9.3
 .PHONY: build-docker
-build-docker: SOURCE_BUILD_IMAGE_NAME = rustfs-$(BUILD_OS):v1
-build-docker: SOURCE_BUILD_CONTAINER_NAME = rustfs-$(BUILD_OS)-build
-build-docker: BUILD_CMD = /root/.cargo/bin/cargo build --release --bin rustfs --target-dir /root/s3-rustfs/target/$(BUILD_OS)
+build-docker: SOURCE_BUILD_IMAGE_NAME = nebulafx-$(BUILD_OS):v1
+build-docker: SOURCE_BUILD_CONTAINER_NAME = nebulafx-$(BUILD_OS)-build
+build-docker: BUILD_CMD = /root/.cargo/bin/cargo build --release --bin nebulafx --target-dir /root/s3-nebulafx/target/$(BUILD_OS)
 build-docker:
-	@echo "🐳 Building RustFS using Docker ($(BUILD_OS))..."
+	@echo "🐳 Building NebulaFX using Docker ($(BUILD_OS))..."
 	$(DOCKER_CLI) buildx build -t $(SOURCE_BUILD_IMAGE_NAME) -f $(DOCKERFILE_SOURCE) .
-	$(DOCKER_CLI) run --rm --name $(SOURCE_BUILD_CONTAINER_NAME) -v $(shell pwd):/root/s3-rustfs -it $(SOURCE_BUILD_IMAGE_NAME) $(BUILD_CMD)
+	$(DOCKER_CLI) run --rm --name $(SOURCE_BUILD_CONTAINER_NAME) -v $(shell pwd):/root/s3-nebulafx -it $(SOURCE_BUILD_IMAGE_NAME) $(BUILD_CMD)
 
 # Cross-platform builds (optional - only if needed)
 .PHONY: build-musl
 build-musl:
-	@echo "🔨 Building rustfs for x86_64-unknown-linux-musl..."
-	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; rustup target add x86_64-unknown-linux-musl; cargo build --release --bin rustfs --target x86_64-unknown-linux-musl'
+	@echo "🔨 Building nebulafx for x86_64-unknown-linux-musl..."
+	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; rustup target add x86_64-unknown-linux-musl; cargo build --release --bin nebulafx --target x86_64-unknown-linux-musl'
 
 .PHONY: build-gnu
 build-gnu:
-	@echo "🔨 Building rustfs for x86_64-unknown-linux-gnu..."
-	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; cargo build --release --bin rustfs --target x86_64-unknown-linux-gnu'
+	@echo "🔨 Building nebulafx for x86_64-unknown-linux-gnu..."
+	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; cargo build --release --bin nebulafx --target x86_64-unknown-linux-gnu'
 
 .PHONY: build-musl-arm64
 build-musl-arm64:
-	@echo "🔨 Building rustfs for aarch64-unknown-linux-musl..."
-	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; rustup target add aarch64-unknown-linux-musl; cargo build --release --bin rustfs --target aarch64-unknown-linux-musl'
+	@echo "🔨 Building nebulafx for aarch64-unknown-linux-musl..."
+	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; rustup target add aarch64-unknown-linux-musl; cargo build --release --bin nebulafx --target aarch64-unknown-linux-musl'
 
 .PHONY: build-gnu-arm64
 build-gnu-arm64:
-	@echo "🔨 Building rustfs for aarch64-unknown-linux-gnu..."
-	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; rustup target add aarch64-unknown-linux-gnu; cargo build --release --bin rustfs --target aarch64-unknown-linux-gnu'
-
-# 已移除：deploy-dev（如果不需要可以删除）
-# .PHONY: deploy-dev
-# deploy-dev: build-musl
-# 	@echo "🚀 Deploying to dev server: $${IP}"
-# 	./scripts/dev_deploy.sh $${IP}
+	@echo "🔨 Building nebulafx for aarch64-unknown-linux-gnu..."
+	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; rustup target add aarch64-unknown-linux-gnu; cargo build --release --bin nebulafx --target aarch64-unknown-linux-gnu'
 
 # ========================================================================================
 # Docker Multi-Architecture Builds (Primary Methods)
 # ========================================================================================
-
-# Production builds using docker buildx (for CI/CD and production)
-# 注意：docker-buildx.sh 已删除，使用直接 buildx 命令
-.PHONY: docker-buildx
-docker-buildx:
-	@echo "🏗️ Building multi-architecture production Docker images with buildx..."
-	@echo "💡 Using direct buildx commands (docker-buildx.sh removed)"
-	$(DOCKER_CLI) buildx build \
-		--platform linux/amd64,linux/arm64 \
-		--file $(DOCKERFILE_PRODUCTION) \
-		--tag rustfs:latest \
-		--tag rustfs:production-latest \
-		.
-
-.PHONY: docker-buildx-push
-docker-buildx-push:
-	@if [ -z "$(REGISTRY)" ]; then \
-		echo "❌ Error: Please specify registry, example: make docker-buildx-push REGISTRY=ghcr.io/username"; \
-		exit 1; \
-	fi
-	@echo "🚀 Building and pushing multi-architecture production Docker images..."
-	$(DOCKER_CLI) buildx build \
-		--platform linux/amd64,linux/arm64 \
-		--file $(DOCKERFILE_PRODUCTION) \
-		--tag $(REGISTRY)/rustfs:latest \
-		--tag $(REGISTRY)/rustfs:production-latest \
-		--push \
-		.
-
-.PHONY: docker-buildx-version
-docker-buildx-version:
-	@if [ -z "$(VERSION)" ]; then \
-		echo "❌ Error: Please specify version, example: make docker-buildx-version VERSION=v1.0.0"; \
-		exit 1; \
-	fi
-	@echo "🏗️ Building multi-architecture production Docker images (version: $(VERSION))..."
-	$(DOCKER_CLI) buildx build \
-		--platform linux/amd64,linux/arm64 \
-		--file $(DOCKERFILE_PRODUCTION) \
-		--tag rustfs:$(VERSION) \
-		--tag rustfs:latest \
-		.
-
-.PHONY: docker-buildx-push-version
-docker-buildx-push-version:
-	@if [ -z "$(VERSION)" ] || [ -z "$(REGISTRY)" ]; then \
-		echo "❌ Error: Please specify version and registry"; \
-		echo "   Example: make docker-buildx-push-version VERSION=v1.0.0 REGISTRY=ghcr.io/username"; \
-		exit 1; \
-	fi
-	@echo "🚀 Building and pushing multi-architecture production Docker images (version: $(VERSION))..."
-	$(DOCKER_CLI) buildx build \
-		--platform linux/amd64,linux/arm64 \
-		--file $(DOCKERFILE_PRODUCTION) \
-		--tag $(REGISTRY)/rustfs:$(VERSION) \
-		--tag $(REGISTRY)/rustfs:latest \
-		--push \
-		.
-
-# Development/Source builds using direct buildx commands
 .PHONY: docker-dev
 docker-dev:
 	@echo "🏗️ Building multi-architecture development Docker images with buildx..."
@@ -242,8 +168,8 @@ docker-dev:
 	$(DOCKER_CLI) buildx build \
 		--platform linux/amd64,linux/arm64 \
 		--file $(DOCKERFILE_SOURCE) \
-		--tag rustfs:source-latest \
-		--tag rustfs:dev-latest \
+		--tag nebulafx:source-latest \
+		--tag nebulafx:dev-latest \
 		.
 
 .PHONY: docker-dev-local
@@ -252,8 +178,8 @@ docker-dev-local:
 	@echo "💡 This builds from source code for the current platform and loads locally"
 	$(DOCKER_CLI) buildx build \
 		--file $(DOCKERFILE_SOURCE) \
-		--tag rustfs:source-latest \
-		--tag rustfs:dev-latest \
+		--tag nebulafx:source-latest \
+		--tag nebulafx:dev-latest \
 		--load \
 		.
 
@@ -268,8 +194,8 @@ docker-dev-push:
 	$(DOCKER_CLI) buildx build \
 		--platform linux/amd64,linux/arm64 \
 		--file $(DOCKERFILE_SOURCE) \
-		--tag $(REGISTRY)/rustfs:source-latest \
-		--tag $(REGISTRY)/rustfs:dev-latest \
+		--tag $(REGISTRY)/nebulafx:source-latest \
+		--tag $(REGISTRY)/nebulafx:dev-latest \
 		--push \
 		.
 
@@ -282,8 +208,8 @@ docker-buildx-production-local:
 	@echo "💡 Alternative to docker-buildx.sh for local testing"
 	$(DOCKER_CLI) buildx build \
 		--file $(DOCKERFILE_PRODUCTION) \
-		--tag rustfs:production-latest \
-		--tag rustfs:latest \
+		--tag nebulafx:production-latest \
+		--tag nebulafx:latest \
 		--load \
 		--build-arg RELEASE=latest \
 		.
@@ -296,7 +222,7 @@ docker-buildx-production-local:
 docker-build-production:
 	@echo "🏗️ Building single-architecture production Docker image..."
 	@echo "💡 Consider using 'make docker-buildx-production-local' for multi-arch support"
-	$(DOCKER_CLI) build -f $(DOCKERFILE_PRODUCTION) -t rustfs:latest .
+	$(DOCKER_CLI) build -f $(DOCKERFILE_PRODUCTION) -t nebulafx:latest .
 
 .PHONY: docker-build-source
 docker-build-source:
@@ -304,7 +230,7 @@ docker-build-source:
 	@echo "💡 Consider using 'make docker-dev-local' for multi-arch support"
 	DOCKER_BUILDKIT=1 $(DOCKER_CLI) build \
 		--build-arg BUILDKIT_INLINE_CACHE=1 \
-		-f $(DOCKERFILE_SOURCE) -t rustfs:source .
+		-f $(DOCKERFILE_SOURCE) -t nebulafx:source .
 
 # ========================================================================================
 # Development Environment
@@ -315,7 +241,7 @@ dev-env-start:
 	@echo "🚀 Starting development environment..."
 	$(DOCKER_CLI) buildx build \
 		--file $(DOCKERFILE_SOURCE) \
-		--tag rustfs:dev \
+		--tag nebulafx:dev \
 		--load \
 		.
 	$(DOCKER_CLI) stop $(CONTAINER_NAME) 2>/dev/null || true
@@ -323,7 +249,7 @@ dev-env-start:
 	$(DOCKER_CLI) run -d --name $(CONTAINER_NAME) \
 		-p 9000:9000 \
 		-v $(shell pwd):/workspace \
-		-it rustfs:dev
+		-it nebulafx:dev
 
 .PHONY: dev-env-stop
 dev-env-stop:
@@ -343,7 +269,7 @@ dev-env-restart: dev-env-stop dev-env-start
 .PHONY: docker-inspect-multiarch
 docker-inspect-multiarch:
 	@if [ -z "$(IMAGE)" ]; then \
-		echo "❌ Error: Please specify image, example: make docker-inspect-multiarch IMAGE=rustfs/rustfs:latest"; \
+		echo "❌ Error: Please specify image, example: make docker-inspect-multiarch IMAGE=nebulafx/nebulafx:latest"; \
 		exit 1; \
 	fi
 	@echo "🔍 Inspecting multi-architecture image: $(IMAGE)"
@@ -356,16 +282,16 @@ build-cross-all:
 	@bash -c 'source ../use-rust1.91.sh 2>/dev/null || true; \
 		echo "🔨 Building x86_64-unknown-linux-gnu..."; \
 		rustup target add x86_64-unknown-linux-gnu; \
-		cargo build --release --bin rustfs --target x86_64-unknown-linux-gnu; \
+		cargo build --release --bin nebulafx --target x86_64-unknown-linux-gnu; \
 		echo "🔨 Building aarch64-unknown-linux-gnu..."; \
 		rustup target add aarch64-unknown-linux-gnu; \
-		cargo build --release --bin rustfs --target aarch64-unknown-linux-gnu; \
+		cargo build --release --bin nebulafx --target aarch64-unknown-linux-gnu; \
 		echo "🔨 Building x86_64-unknown-linux-musl..."; \
 		rustup target add x86_64-unknown-linux-musl; \
-		cargo build --release --bin rustfs --target x86_64-unknown-linux-musl; \
+		cargo build --release --bin nebulafx --target x86_64-unknown-linux-musl; \
 		echo "🔨 Building aarch64-unknown-linux-musl..."; \
 		rustup target add aarch64-unknown-linux-musl; \
-		cargo build --release --bin rustfs --target aarch64-unknown-linux-musl; \
+		cargo build --release --bin nebulafx --target aarch64-unknown-linux-musl; \
 		echo "✅ All architectures built successfully!"'
 
 # ========================================================================================
@@ -374,10 +300,10 @@ build-cross-all:
 
 .PHONY: help-build
 help-build:
-	@echo "🔨 RustFS Build Help:"
+	@echo "🔨 NebulaFX Build Help:"
 	@echo ""
 	@echo "🚀 Local Build (Recommended):"
-	@echo "  make build                               # Build RustFS binary (frontend runs independently)"
+	@echo "  make build                               # Build NebulaFX binary (frontend runs independently)"
 	@echo "  make build-dev                           # Development mode build"
 	@echo "  make build-musl                          # Build x86_64 musl version"
 	@echo "  make build-gnu                           # Build x86_64 GNU version"
@@ -392,11 +318,11 @@ help-build:
 	@echo "  make build-cross-all                     # Build binaries for all architectures"
 	@echo ""
 	@echo "🔧 Direct cargo usage:"
-	@echo "  cargo build --release --bin rustfs       # Build release binary"
-	@echo "  cargo build --bin rustfs                 # Build debug binary"
-	@echo "  cargo run --bin rustfs                   # Build and run"
+	@echo "  cargo build --release --bin nebulafx       # Build release binary"
+	@echo "  cargo build --bin nebulafx                 # Build debug binary"
+	@echo "  cargo run --bin nebulafx                   # Build and run"
 	@echo ""
-	@echo "💡 Frontend (rustfsconsole) runs independently - see rustfsconsole project"
+	@echo "💡 Frontend (nebulafxconsole) runs independently - see nebulafxconsole project"
 
 .PHONY: help-docker
 help-docker:
@@ -439,11 +365,11 @@ help-docker:
 	@echo "  - Production use: Use docker-buildx* commands"
 	@echo "  - Local development: Use docker-dev* commands (build from source)"
 	@echo "  - Development environment: Use dev-env-* commands to manage dev containers"
-	@echo "  - Frontend: Runs independently in rustfsconsole project"
+	@echo "  - Frontend: Runs independently in nebulafxconsole project"
 
 .PHONY: help
 help:
-	@echo "🦀 RustFS Makefile Help:"
+	@echo "🦀 NebulaFX Makefile Help:"
 	@echo ""
 	@echo "📋 Main Command Categories:"
 	@echo "  make help-build                          # Show build-related help"
@@ -456,8 +382,8 @@ help:
 	@echo "  make pre-commit                          # Run all pre-commit checks"
 	@echo ""
 	@echo "🚀 Quick Start:"
-	@echo "  make run                                 # Clean locks and run RustFS"
-	@echo "  make build                               # Build RustFS binary"
+	@echo "  make run                                 # Clean locks and run NebulaFX"
+	@echo "  make build                               # Build NebulaFX binary"
 	@echo "  make docker-dev-local                    # Build development Docker image (local)"
 	@echo "  make dev-env-start                       # Start development environment"
 	@echo ""

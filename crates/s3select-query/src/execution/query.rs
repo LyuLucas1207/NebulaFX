@@ -1,27 +1,15 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use std::sync::Arc;
 
 use async_trait::async_trait;
 use futures::stream::AbortHandle;
 use parking_lot::Mutex;
-use rustfs_s3select_api::query::execution::{Output, QueryExecution, QueryStateMachineRef};
-use rustfs_s3select_api::query::logical_planner::QueryPlan;
-use rustfs_s3select_api::query::optimizer::Optimizer;
-use rustfs_s3select_api::query::scheduler::SchedulerRef;
-use rustfs_s3select_api::{QueryError, QueryResult};
+use nebulafx_s3select_api::query::execution::{Output, QueryExecution, QueryStateMachineRef};
+use nebulafx_s3select_api::query::logical_planner::QueryPlan;
+use nebulafx_s3select_api::query::optimizer::Optimizer;
+use nebulafx_s3select_api::query::scheduler::SchedulerRef;
+use nebulafx_s3select_api::{QueryError, QueryResult};
 use tracing::debug;
 
 pub struct SqlQueryExecution {

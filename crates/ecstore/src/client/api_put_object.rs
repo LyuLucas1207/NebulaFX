@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(unused_mut)]
@@ -40,7 +28,7 @@ use crate::client::{
     constants::{ISO8601_DATEFORMAT, MAX_MULTIPART_PUT_OBJECT_SIZE, MIN_PART_SIZE, TOTAL_WORKERS},
     credentials::SignatureType,
     transition_api::{ReaderImpl, TransitionClient, UploadInfo},
-    utils::{is_amz_header, is_minio_header, is_rustfs_header, is_standard_header, is_storageclass_header},
+    utils::{is_amz_header, is_minio_header, is_nebulafx_header, is_standard_header, is_storageclass_header},
 };
 
 #[derive(Debug, Clone)]
@@ -181,7 +169,7 @@ impl PutObjectOptions {
             header.insert(
                 "Expires",
                 HeaderValue::from_str(&self.expires.format(ISO8601_DATEFORMAT).unwrap()).expect("err"),
-            ); //rustfs invalid header
+            ); //nebulafx invalid header
         }
 
         if self.mode.as_str() != "" {
@@ -218,7 +206,7 @@ impl PutObjectOptions {
         }
 
         for (k, v) in &self.user_metadata {
-            if is_amz_header(k) || is_standard_header(k) || is_storageclass_header(k) || is_rustfs_header(k) || is_minio_header(k)
+            if is_amz_header(k) || is_standard_header(k) || is_storageclass_header(k) || is_nebulafx_header(k) || is_minio_header(k)
             {
                 if let Ok(header_name) = HeaderName::from_bytes(k.as_bytes()) {
                     header.insert(header_name, HeaderValue::from_str(&v).unwrap());

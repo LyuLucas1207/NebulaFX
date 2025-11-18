@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::config::{KVS, storageclass};
 use crate::disk::error_reduce::{count_errs, reduce_write_quorum_errs};
@@ -18,7 +6,7 @@ use crate::disk::{self, DiskAPI};
 use crate::error::{Error, Result};
 use crate::{
     disk::{
-        DiskInfoOptions, DiskOption, DiskStore, FORMAT_CONFIG_FILE, RUSTFS_META_BUCKET,
+        DiskInfoOptions, DiskOption, DiskStore, FORMAT_CONFIG_FILE, NEUBULAFX_META_BUCKET,
         error::DiskError,
         format::{FormatErasureVersion, FormatMetaVersion, FormatV3},
         new_disk,
@@ -260,7 +248,7 @@ pub async fn load_format_erasure_all(disks: &[Option<DiskStore>], heal: bool) ->
 
 pub async fn load_format_erasure(disk: &DiskStore, heal: bool) -> disk::error::Result<FormatV3> {
     let data = disk
-        .read_all(RUSTFS_META_BUCKET, FORMAT_CONFIG_FILE)
+        .read_all(NEUBULAFX_META_BUCKET, FORMAT_CONFIG_FILE)
         .await
         .map_err(|e| match e {
             DiskError::FileNotFound => DiskError::UnformattedDisk,
@@ -323,10 +311,10 @@ pub async fn save_format_file(disk: &Option<DiskStore>, format: &Option<FormatV3
     let tmpfile = Uuid::new_v4().to_string();
 
     let disk = disk.as_ref().unwrap();
-    disk.write_all(RUSTFS_META_BUCKET, tmpfile.as_str(), json_data.into_bytes().into())
+    disk.write_all(NEUBULAFX_META_BUCKET, tmpfile.as_str(), json_data.into_bytes().into())
         .await?;
 
-    disk.rename_file(RUSTFS_META_BUCKET, tmpfile.as_str(), RUSTFS_META_BUCKET, FORMAT_CONFIG_FILE)
+    disk.rename_file(NEUBULAFX_META_BUCKET, tmpfile.as_str(), NEUBULAFX_META_BUCKET, FORMAT_CONFIG_FILE)
         .await?;
 
     disk.set_disk_id(Some(format.erasure.this)).await?;

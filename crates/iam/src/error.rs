@@ -1,18 +1,6 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 
-use rustfs_policy::policy::Error as PolicyError;
+
+use nebulafx_policy::policy::Error as PolicyError;
 
 pub type Result<T> = core::result::Result<T, Error>;
 
@@ -25,7 +13,7 @@ pub enum Error {
     StringError(String),
 
     #[error("crypto: {0}")]
-    CryptoError(#[from] rustfs_crypto::Error),
+    CryptoError(#[from] nebulafx_crypto::Error),
 
     #[error("user '{0}' does not exist")]
     NoSuchUser(String),
@@ -175,57 +163,57 @@ impl Error {
     }
 }
 
-impl From<rustfs_ecstore::error::StorageError> for Error {
-    fn from(e: rustfs_ecstore::error::StorageError) -> Self {
+impl From<nebulafx_ecstore::error::StorageError> for Error {
+    fn from(e: nebulafx_ecstore::error::StorageError) -> Self {
         match e {
-            rustfs_ecstore::error::StorageError::ConfigNotFound => Error::ConfigNotFound,
+            nebulafx_ecstore::error::StorageError::ConfigNotFound => Error::ConfigNotFound,
             _ => Error::other(e),
         }
     }
 }
 
-impl From<Error> for rustfs_ecstore::error::StorageError {
+impl From<Error> for nebulafx_ecstore::error::StorageError {
     fn from(e: Error) -> Self {
         match e {
-            Error::ConfigNotFound => rustfs_ecstore::error::StorageError::ConfigNotFound,
-            _ => rustfs_ecstore::error::StorageError::other(e),
+            Error::ConfigNotFound => nebulafx_ecstore::error::StorageError::ConfigNotFound,
+            _ => nebulafx_ecstore::error::StorageError::other(e),
         }
     }
 }
 
-impl From<rustfs_policy::error::Error> for Error {
-    fn from(e: rustfs_policy::error::Error) -> Self {
+impl From<nebulafx_policy::error::Error> for Error {
+    fn from(e: nebulafx_policy::error::Error) -> Self {
         match e {
-            rustfs_policy::error::Error::PolicyTooLarge => Error::PolicyTooLarge,
-            rustfs_policy::error::Error::InvalidArgument => Error::InvalidArgument,
-            rustfs_policy::error::Error::InvalidServiceType(s) => Error::InvalidServiceType(s),
-            rustfs_policy::error::Error::IAMActionNotAllowed => Error::IAMActionNotAllowed,
-            rustfs_policy::error::Error::InvalidExpiration => Error::InvalidExpiration,
-            rustfs_policy::error::Error::NoAccessKey => Error::NoAccessKey,
-            rustfs_policy::error::Error::InvalidToken => Error::InvalidToken,
-            rustfs_policy::error::Error::InvalidAccessKey => Error::InvalidAccessKey,
-            rustfs_policy::error::Error::NoSecretKeyWithAccessKey => Error::NoSecretKeyWithAccessKey,
-            rustfs_policy::error::Error::NoAccessKeyWithSecretKey => Error::NoAccessKeyWithSecretKey,
-            rustfs_policy::error::Error::Io(e) => Error::Io(e),
-            rustfs_policy::error::Error::JWTError(e) => Error::JWTError(e),
-            rustfs_policy::error::Error::NoSuchUser(s) => Error::NoSuchUser(s),
-            rustfs_policy::error::Error::NoSuchAccount(s) => Error::NoSuchAccount(s),
-            rustfs_policy::error::Error::NoSuchServiceAccount(s) => Error::NoSuchServiceAccount(s),
-            rustfs_policy::error::Error::NoSuchTempAccount(s) => Error::NoSuchTempAccount(s),
-            rustfs_policy::error::Error::NoSuchGroup(s) => Error::NoSuchGroup(s),
-            rustfs_policy::error::Error::NoSuchPolicy => Error::NoSuchPolicy,
-            rustfs_policy::error::Error::PolicyInUse => Error::PolicyInUse,
-            rustfs_policy::error::Error::GroupNotEmpty => Error::GroupNotEmpty,
-            rustfs_policy::error::Error::InvalidAccessKeyLength => Error::InvalidAccessKeyLength,
-            rustfs_policy::error::Error::InvalidSecretKeyLength => Error::InvalidSecretKeyLength,
-            rustfs_policy::error::Error::ContainsReservedChars => Error::ContainsReservedChars,
-            rustfs_policy::error::Error::GroupNameContainsReservedChars => Error::GroupNameContainsReservedChars,
-            rustfs_policy::error::Error::CredNotInitialized => Error::CredNotInitialized,
-            rustfs_policy::error::Error::IamSysNotInitialized => Error::IamSysNotInitialized,
-            rustfs_policy::error::Error::PolicyError(e) => Error::PolicyError(e),
-            rustfs_policy::error::Error::StringError(s) => Error::StringError(s),
-            rustfs_policy::error::Error::CryptoError(e) => Error::CryptoError(e),
-            rustfs_policy::error::Error::ErrCredMalformed => Error::ErrCredMalformed,
+            nebulafx_policy::error::Error::PolicyTooLarge => Error::PolicyTooLarge,
+            nebulafx_policy::error::Error::InvalidArgument => Error::InvalidArgument,
+            nebulafx_policy::error::Error::InvalidServiceType(s) => Error::InvalidServiceType(s),
+            nebulafx_policy::error::Error::IAMActionNotAllowed => Error::IAMActionNotAllowed,
+            nebulafx_policy::error::Error::InvalidExpiration => Error::InvalidExpiration,
+            nebulafx_policy::error::Error::NoAccessKey => Error::NoAccessKey,
+            nebulafx_policy::error::Error::InvalidToken => Error::InvalidToken,
+            nebulafx_policy::error::Error::InvalidAccessKey => Error::InvalidAccessKey,
+            nebulafx_policy::error::Error::NoSecretKeyWithAccessKey => Error::NoSecretKeyWithAccessKey,
+            nebulafx_policy::error::Error::NoAccessKeyWithSecretKey => Error::NoAccessKeyWithSecretKey,
+            nebulafx_policy::error::Error::Io(e) => Error::Io(e),
+            nebulafx_policy::error::Error::JWTError(e) => Error::JWTError(e),
+            nebulafx_policy::error::Error::NoSuchUser(s) => Error::NoSuchUser(s),
+            nebulafx_policy::error::Error::NoSuchAccount(s) => Error::NoSuchAccount(s),
+            nebulafx_policy::error::Error::NoSuchServiceAccount(s) => Error::NoSuchServiceAccount(s),
+            nebulafx_policy::error::Error::NoSuchTempAccount(s) => Error::NoSuchTempAccount(s),
+            nebulafx_policy::error::Error::NoSuchGroup(s) => Error::NoSuchGroup(s),
+            nebulafx_policy::error::Error::NoSuchPolicy => Error::NoSuchPolicy,
+            nebulafx_policy::error::Error::PolicyInUse => Error::PolicyInUse,
+            nebulafx_policy::error::Error::GroupNotEmpty => Error::GroupNotEmpty,
+            nebulafx_policy::error::Error::InvalidAccessKeyLength => Error::InvalidAccessKeyLength,
+            nebulafx_policy::error::Error::InvalidSecretKeyLength => Error::InvalidSecretKeyLength,
+            nebulafx_policy::error::Error::ContainsReservedChars => Error::ContainsReservedChars,
+            nebulafx_policy::error::Error::GroupNameContainsReservedChars => Error::GroupNameContainsReservedChars,
+            nebulafx_policy::error::Error::CredNotInitialized => Error::CredNotInitialized,
+            nebulafx_policy::error::Error::IamSysNotInitialized => Error::IamSysNotInitialized,
+            nebulafx_policy::error::Error::PolicyError(e) => Error::PolicyError(e),
+            nebulafx_policy::error::Error::StringError(s) => Error::StringError(s),
+            nebulafx_policy::error::Error::CryptoError(e) => Error::CryptoError(e),
+            nebulafx_policy::error::Error::ErrCredMalformed => Error::ErrCredMalformed,
         }
     }
 }
@@ -325,18 +313,18 @@ mod tests {
     #[test]
     fn test_iam_error_from_storage_error() {
         // Test conversion from StorageError
-        let storage_error = rustfs_ecstore::error::StorageError::ConfigNotFound;
+        let storage_error = nebulafx_ecstore::error::StorageError::ConfigNotFound;
         let iam_error: Error = storage_error.into();
         assert_eq!(iam_error, Error::ConfigNotFound);
 
         // Test reverse conversion
-        let back_to_storage: rustfs_ecstore::error::StorageError = iam_error.into();
-        assert_eq!(back_to_storage, rustfs_ecstore::error::StorageError::ConfigNotFound);
+        let back_to_storage: nebulafx_ecstore::error::StorageError = iam_error.into();
+        assert_eq!(back_to_storage, nebulafx_ecstore::error::StorageError::ConfigNotFound);
     }
 
     #[test]
     fn test_iam_error_from_policy_error() {
-        use rustfs_policy::error::Error as PolicyError;
+        use nebulafx_policy::error::Error as PolicyError;
 
         let policy_errors = vec![
             (PolicyError::NoSuchUser("user1".to_string()), Error::NoSuchUser("user1".to_string())),

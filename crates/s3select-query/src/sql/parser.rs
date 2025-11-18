@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use std::{collections::VecDeque, fmt::Display};
 
@@ -19,13 +7,13 @@ use datafusion::sql::sqlparser::{
     parser::{Parser, ParserError},
     tokenizer::{Token, Tokenizer},
 };
-use rustfs_s3select_api::{
+use nebulafx_s3select_api::{
     ParserSnafu,
-    query::{ast::ExtStatement, parser::Parser as RustFsParser},
+    query::{ast::ExtStatement, parser::Parser as NEUBULAFXParser},
 };
 use snafu::ResultExt;
 
-use super::dialect::RustFsDialect;
+use super::dialect::NEUBULAFXDialect;
 
 pub type Result<T, E = ParserError> = std::result::Result<T, E>;
 
@@ -39,8 +27,8 @@ macro_rules! parser_err {
 #[derive(Default)]
 pub struct DefaultParser {}
 
-impl RustFsParser for DefaultParser {
-    fn parse(&self, sql: &str) -> rustfs_s3select_api::QueryResult<VecDeque<ExtStatement>> {
+impl NEUBULAFXParser for DefaultParser {
+    fn parse(&self, sql: &str) -> nebulafx_s3select_api::QueryResult<VecDeque<ExtStatement>> {
         ExtParser::parse_sql(sql).context(ParserSnafu)
     }
 }
@@ -62,7 +50,7 @@ impl<'a> ExtParser<'a> {
 
     /// Parse a SQL statement and produce a set of statements
     pub fn parse_sql(sql: &str) -> Result<VecDeque<ExtStatement>> {
-        let dialect = &RustFsDialect {};
+        let dialect = &NEUBULAFXDialect {};
         ExtParser::parse_sql_with_dialect(sql, dialect)
     }
 
@@ -108,7 +96,7 @@ impl<'a> ExtParser<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rustfs_s3select_api::query::ast::ExtStatement;
+    use nebulafx_s3select_api::query::ast::ExtStatement;
 
     #[test]
     fn test_default_parser_creation() {
@@ -244,7 +232,7 @@ mod tests {
     #[test]
     fn test_ext_parser_parse_sql_with_dialect() {
         let sql = "SELECT * FROM S3Object";
-        let dialect = &RustFsDialect;
+        let dialect = &NEUBULAFXDialect;
 
         let result = ExtParser::parse_sql_with_dialect(sql, dialect);
         assert!(result.is_ok(), "ExtParser::parse_sql_with_dialect should work");
@@ -256,7 +244,7 @@ mod tests {
     #[test]
     fn test_ext_parser_new_with_dialect() {
         let sql = "SELECT * FROM S3Object";
-        let dialect = &RustFsDialect;
+        let dialect = &NEUBULAFXDialect;
 
         let result = ExtParser::new_with_dialect(sql, dialect);
         assert!(result.is_ok(), "ExtParser::new_with_dialect should work");
@@ -432,7 +420,7 @@ mod tests {
     #[test]
     fn test_ext_parser_expected_method() {
         let sql = "SELECT * FROM S3Object";
-        let dialect = &RustFsDialect;
+        let dialect = &NEUBULAFXDialect;
         let parser = ExtParser::new_with_dialect(sql, dialect).unwrap();
 
         let result: Result<()> = parser.expected("test token", "found token");

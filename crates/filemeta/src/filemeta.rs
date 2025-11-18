@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::{
     ErasureAlgo, ErasureInfo, Error, FileInfo, FileInfoVersions, InlineData, ObjectPartInfo, RawFileInfo, ReplicationState,
@@ -18,8 +6,8 @@ use crate::{
 };
 use byteorder::ByteOrder;
 use bytes::Bytes;
-use rustfs_utils::http::AMZ_BUCKET_REPLICATION_STATUS;
-use rustfs_utils::http::headers::{
+use nebulafx_utils::http::AMZ_BUCKET_REPLICATION_STATUS;
+use nebulafx_utils::http::headers::{
     self, AMZ_META_UNENCRYPTED_CONTENT_LENGTH, AMZ_META_UNENCRYPTED_CONTENT_MD5, AMZ_RESTORE_EXPIRY_DAYS,
     AMZ_RESTORE_REQUEST_DATE, AMZ_STORAGE_CLASS, RESERVED_METADATA_PREFIX, RESERVED_METADATA_PREFIX_LOWER,
     VERSION_PURGE_STATUS_KEY,
@@ -1197,7 +1185,7 @@ pub struct FileMetaVersion {
     #[serde(rename = "DelObj")]
     pub delete_marker: Option<MetaDeleteMarker>,
     #[serde(rename = "v")]
-    pub write_version: u64, // rustfs version
+    pub write_version: u64, // nebulafx version
 }
 
 impl FileMetaVersion {
@@ -1945,7 +1933,7 @@ impl From<FileInfo> for MetaObject {
             if k.len() > RESERVED_METADATA_PREFIX.len()
                 && (k.starts_with(RESERVED_METADATA_PREFIX) || k.starts_with(RESERVED_METADATA_PREFIX_LOWER))
             {
-                if k == headers::X_RUSTFS_HEALING || k == headers::X_RUSTFS_DATA_MOV {
+                if k == headers::X_NEUBULAFX_HEALING || k == headers::X_NEUBULAFX_DATA_MOV {
                     continue;
                 }
 

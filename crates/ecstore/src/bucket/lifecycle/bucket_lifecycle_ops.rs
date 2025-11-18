@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(unused_mut)]
@@ -41,12 +29,12 @@ use bytes::BytesMut;
 use futures::Future;
 use http::HeaderMap;
 use lazy_static::lazy_static;
-use rustfs_common::data_usage::TierStats;
-use rustfs_common::heal_channel::rep_has_active_rules;
-use rustfs_common::metrics::{IlmAction, Metrics};
-use rustfs_filemeta::{NULL_VERSION_ID, RestoreStatusOps, is_restored_object_on_disk};
-use rustfs_utils::path::encode_dir_object;
-use rustfs_utils::string::strings_has_prefix_fold;
+use nebulafx_common::data_usage::TierStats;
+use nebulafx_common::heal_channel::rep_has_active_rules;
+use nebulafx_common::metrics::{IlmAction, Metrics};
+use nebulafx_filemeta::{NULL_VERSION_ID, RestoreStatusOps, is_restored_object_on_disk};
+use nebulafx_utils::path::encode_dir_object;
+use nebulafx_utils::string::strings_has_prefix_fold;
 use s3s::Body;
 use s3s::dto::{
     BucketLifecycleConfiguration, DefaultRetention, ReplicationConfiguration, RestoreRequest, RestoreRequestType, RestoreStatus,
@@ -471,7 +459,7 @@ impl TransitionState {
     }
 
     pub async fn init(api: Arc<ECStore>) {
-        let max_workers = std::env::var("RUSTFS_MAX_TRANSITION_WORKERS")
+        let max_workers = std::env::var("NEUBULAFX_MAX_TRANSITION_WORKERS")
             .ok()
             .and_then(|s| s.parse::<i64>().ok())
             .unwrap_or_else(|| std::cmp::min(num_cpus::get() as i64, 16));
@@ -569,14 +557,14 @@ impl TransitionState {
     pub async fn update_workers_inner(api: Arc<ECStore>, n: i64) {
         let mut n = n;
         if n == 0 {
-            let max_workers = std::env::var("RUSTFS_MAX_TRANSITION_WORKERS")
+            let max_workers = std::env::var("NEUBULAFX_MAX_TRANSITION_WORKERS")
                 .ok()
                 .and_then(|s| s.parse::<i64>().ok())
                 .unwrap_or_else(|| std::cmp::min(num_cpus::get() as i64, 16));
             n = max_workers;
         }
         // Allow environment override of maximum workers
-        let absolute_max = std::env::var("RUSTFS_ABSOLUTE_MAX_WORKERS")
+        let absolute_max = std::env::var("NEUBULAFX_ABSOLUTE_MAX_WORKERS")
             .ok()
             .and_then(|s| s.parse::<i64>().ok())
             .unwrap_or(32);
@@ -603,19 +591,19 @@ impl TransitionState {
 }
 
 pub async fn init_background_expiry(api: Arc<ECStore>) {
-    let mut workers = std::env::var("RUSTFS_MAX_EXPIRY_WORKERS")
+    let mut workers = std::env::var("NEUBULAFX_MAX_EXPIRY_WORKERS")
         .ok()
         .and_then(|s| s.parse::<usize>().ok())
         .unwrap_or_else(|| std::cmp::min(num_cpus::get(), 16));
     //globalILMConfig.getExpirationWorkers()
-    if let Ok(env_expiration_workers) = env::var("_RUSTFS_ILM_EXPIRATION_WORKERS") {
+    if let Ok(env_expiration_workers) = env::var("_NEUBULAFX_ILM_EXPIRATION_WORKERS") {
         if let Ok(num_expirations) = env_expiration_workers.parse::<usize>() {
             workers = num_expirations;
         }
     }
 
     if workers == 0 {
-        workers = std::env::var("RUSTFS_DEFAULT_EXPIRY_WORKERS")
+        workers = std::env::var("NEUBULAFX_DEFAULT_EXPIRY_WORKERS")
             .ok()
             .and_then(|s| s.parse::<usize>().ok())
             .unwrap_or(8);
@@ -757,7 +745,7 @@ pub fn gen_transition_objname(bucket: &str) -> Result<String, Error> {
     let us = Uuid::new_v4().to_string();
     let mut hasher = Sha256::new();
     hasher.update(format!("{}/{}", get_global_deployment_id().unwrap_or_default(), bucket).as_bytes());
-    let hash = rustfs_utils::crypto::hex(hasher.finalize().as_slice());
+    let hash = nebulafx_utils::crypto::hex(hasher.finalize().as_slice());
     let obj = format!("{}/{}/{}/{}", &hash[0..16], &us[0..2], &us[2..4], &us);
     Ok(obj)
 }

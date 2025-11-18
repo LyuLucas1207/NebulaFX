@@ -1,4 +1,4 @@
-//  Copyright 2024 RustFS Team
+//  Copyright 2024 NebulaFX Team
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 //  limitations under the License.
 
 use crate::{AuditEntry, AuditResult, AuditSystem};
-use rustfs_ecstore::config::Config;
+use nebulafx_ecstore::config::Config;
 use std::sync::{Arc, OnceLock};
 use tracing::{debug, error, trace, warn};
 

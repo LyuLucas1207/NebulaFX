@@ -1,22 +1,10 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use heed::byteorder::BigEndian;
 use heed::types::*;
 use heed::{BoxedError, BytesDecode, BytesEncode, Database, DatabaseFlags, Env, EnvOpenOptions};
-use rustfs_ahm::scanner::local_scan::{self, LocalObjectRecord, LocalScanOutcome};
-use rustfs_ecstore::{
+use nebulafx_ahm::scanner::local_scan::{self, LocalObjectRecord, LocalScanOutcome};
+use nebulafx_ecstore::{
     disk::endpoint::Endpoint,
     endpoints::{EndpointServerPools, Endpoints, PoolEndpoints},
     store::ECStore,
@@ -61,7 +49,7 @@ async fn setup_test_env() -> (Vec<PathBuf>, Arc<ECStore>) {
     }
 
     // create temp dir as 4 disks with unique base dir
-    let test_base_dir = format!("/tmp/rustfs_ahm_lifecyclecache_test_{}", uuid::Uuid::new_v4());
+    let test_base_dir = format!("/tmp/nebulafx_ahm_lifecyclecache_test_{}", uuid::Uuid::new_v4());
     let temp_dir = std::path::PathBuf::from(&test_base_dir);
     if temp_dir.exists() {
         fs::remove_dir_all(&temp_dir).await.ok();
@@ -103,7 +91,7 @@ async fn setup_test_env() -> (Vec<PathBuf>, Arc<ECStore>) {
     let endpoint_pools = EndpointServerPools(vec![pool_endpoints]);
 
     // format disks (only first time)
-    rustfs_ecstore::store::init_local_disks(endpoint_pools.clone()).await.unwrap();
+    nebulafx_ecstore::store::init_local_disks(endpoint_pools.clone()).await.unwrap();
 
     // create ECStore with dynamic port 0 (let OS assign) or fixed 9002 if free
     let port = 9002; // for simplicity
@@ -114,14 +102,14 @@ async fn setup_test_env() -> (Vec<PathBuf>, Arc<ECStore>) {
 
     // init bucket metadata system
     let buckets_list = ecstore
-        .list_bucket(&rustfs_ecstore::store_api::BucketOptions {
+        .list_bucket(&nebulafx_ecstore::store_api::BucketOptions {
             no_metadata: true,
             ..Default::default()
         })
         .await
         .unwrap();
     let buckets = buckets_list.into_iter().map(|v| v.name).collect();
-    rustfs_ecstore::bucket::metadata_sys::init_bucket_metadata_sys(ecstore.clone(), buckets).await;
+    nebulafx_ecstore::bucket::metadata_sys::init_bucket_metadata_sys(ecstore.clone(), buckets).await;
 
     //lmdb env
     // User home directory
@@ -425,12 +413,12 @@ mod serial_tests {
             if let Some(lmdb) = GLOBAL_LMDB_DB.get() {
                 let mut wtxn = lmdb_env.write_txn().unwrap();
 
-                /*if let Ok((lc_config, _)) = rustfs_ecstore::bucket::metadata_sys::get_lifecycle_config(bucket_name.as_str()).await {
+                /*if let Ok((lc_config, _)) = nebulafx_ecstore::bucket::metadata_sys::get_lifecycle_config(bucket_name.as_str()).await {
                     if let Ok(object_info) = ecstore
-                        .get_object_info(bucket_name.as_str(), object_name, &rustfs_ecstore::store_api::ObjectOptions::default())
+                        .get_object_info(bucket_name.as_str(), object_name, &nebulafx_ecstore::store_api::ObjectOptions::default())
                         .await
                     {
-                        let event = rustfs_ecstore::bucket::lifecycle::bucket_lifecycle_ops::eval_action_from_lifecycle(
+                        let event = nebulafx_ecstore::bucket::lifecycle::bucket_lifecycle_ops::eval_action_from_lifecycle(
                             &lc_config,
                             None,
                             None,
@@ -438,11 +426,11 @@ mod serial_tests {
                         )
                         .await;
 
-                        rustfs_ecstore::bucket::lifecycle::bucket_lifecycle_ops::apply_expiry_on_non_transitioned_objects(
+                        nebulafx_ecstore::bucket::lifecycle::bucket_lifecycle_ops::apply_expiry_on_non_transitioned_objects(
                             ecstore.clone(),
                             &object_info,
                             &event,
-                            &rustfs_ecstore::bucket::lifecycle::bucket_lifecycle_audit::LcEventSrc::Scanner,
+                            &nebulafx_ecstore::bucket::lifecycle::bucket_lifecycle_audit::LcEventSrc::Scanner,
                         )
                         .await;
 
@@ -458,7 +446,7 @@ mod serial_tests {
                     let object_info = convert_record_to_object_info(record);
                     println!("object_info2: {:?}", object_info);
                     let mod_time = object_info.mod_time.unwrap_or(OffsetDateTime::now_utc());
-                    let expiry_time = rustfs_ecstore::bucket::lifecycle::lifecycle::expected_expiry_time(mod_time, 1);
+                    let expiry_time = nebulafx_ecstore::bucket::lifecycle::lifecycle::expected_expiry_time(mod_time, 1);
 
                     let version_id = if let Some(version_id) = object_info.version_id {
                         version_id.to_string()

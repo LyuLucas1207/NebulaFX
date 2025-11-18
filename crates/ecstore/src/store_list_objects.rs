@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::StorageAPI;
 use crate::bucket::metadata_sys::get_versioning_config;
@@ -30,11 +18,11 @@ use crate::store_utils::is_reserved_or_invalid_bucket;
 use crate::{store::ECStore, store_api::ListObjectsV2Info};
 use futures::future::join_all;
 use rand::seq::SliceRandom;
-use rustfs_filemeta::{
+use nebulafx_filemeta::{
     MetaCacheEntries, MetaCacheEntriesSorted, MetaCacheEntriesSortedResult, MetaCacheEntry, MetadataResolutionParams,
     merge_file_meta_versions,
 };
-use rustfs_utils::path::{self, SLASH_SEPARATOR, base_dir_from_prefix};
+use nebulafx_utils::path::{self, SLASH_SEPARATOR, base_dir_from_prefix};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::broadcast::{self};
@@ -147,7 +135,7 @@ impl ListPathOptions {
     pub fn parse_marker(&mut self) {
         if let Some(marker) = &self.marker {
             let s = marker.clone();
-            if !s.contains(format!("[rustfs_cache:{MARKER_TAG_VERSION}").as_str()) {
+            if !s.contains(format!("[nebulafx_cache:{MARKER_TAG_VERSION}").as_str()) {
                 return;
             }
 
@@ -162,7 +150,7 @@ impl ListPathOptions {
                     }
 
                     match kv[0] {
-                        "rustfs_cache" => {
+                        "nebulafx_cache" => {
                             if kv[1] != MARKER_TAG_VERSION {
                                 continue;
                             }
@@ -197,7 +185,7 @@ impl ListPathOptions {
     pub fn encode_marker(&mut self, marker: &str) -> String {
         if let Some(id) = &self.id {
             format!(
-                "{}[rustfs_cache:{},id:{},p:{},s:{}]",
+                "{}[nebulafx_cache:{},id:{},p:{},s:{}]",
                 marker,
                 MARKER_TAG_VERSION,
                 id.to_owned(),
@@ -205,7 +193,7 @@ impl ListPathOptions {
                 self.pool_idx.unwrap_or_default(),
             )
         } else {
-            format!("{marker}[rustfs_cache:{MARKER_TAG_VERSION},return:]")
+            format!("{marker}[nebulafx_cache:{MARKER_TAG_VERSION},return:]")
         }
     }
 }
@@ -299,7 +287,7 @@ impl ECStore {
             });
 
         if let Some(err) = list_result.err.clone() {
-            if err != rustfs_filemeta::Error::Unexpected {
+            if err != nebulafx_filemeta::Error::Unexpected {
                 return Err(to_object_err(err.into(), vec![bucket, prefix]));
             }
         }
@@ -410,7 +398,7 @@ impl ECStore {
         };
 
         if let Some(err) = list_result.err.clone() {
-            if err != rustfs_filemeta::Error::Unexpected {
+            if err != nebulafx_filemeta::Error::Unexpected {
                 return Err(to_object_err(err.into(), vec![bucket, prefix]));
             }
         }
@@ -579,7 +567,7 @@ impl ECStore {
                     Err(err) => {
                         error!("list_path err_rx.recv() err {:?}", &err);
 
-                        MetaCacheEntriesSortedResult{ entries: None, err: Some(rustfs_filemeta::Error::other(err)) }
+                        MetaCacheEntriesSortedResult{ entries: None, err: Some(nebulafx_filemeta::Error::other(err)) }
                     },
                 }
                },
@@ -1392,7 +1380,7 @@ mod test {
     // use crate::store_list_objects::WalkOptions;
     // use crate::store_list_objects::WalkVersionsSortOrder;
     // use futures::future::join_all;
-    // use rustfs_lock::namespace_lock::NsLockMap;
+    // use nebulafx_lock::namespace_lock::NsLockMap;
     // use tokio::sync::broadcast;
     // use tokio::sync::mpsc;
     // use tokio::sync::RwLock;
@@ -1400,7 +1388,7 @@ mod test {
 
     // #[tokio::test]
     // async fn test_walk_dir() {
-    //     let mut ep = Endpoint::try_from("/Users/weisd/project/weisd/s3-rustfs/target/volume/test").unwrap();
+    //     let mut ep = Endpoint::try_from("/Users/weisd/project/weisd/s3-nebulafx/target/volume/test").unwrap();
     //     ep.pool_idx = 0;
     //     ep.set_idx = 0;
     //     ep.disk_idx = 0;
@@ -1460,7 +1448,7 @@ mod test {
 
     // #[tokio::test]
     // async fn test_list_path_raw() {
-    //     let mut ep = Endpoint::try_from("/Users/weisd/project/weisd/s3-rustfs/target/volume/test").unwrap();
+    //     let mut ep = Endpoint::try_from("/Users/weisd/project/weisd/s3-nebulafx/target/volume/test").unwrap();
     //     ep.pool_idx = 0;
     //     ep.set_idx = 0;
     //     ep.disk_idx = 0;
@@ -1509,7 +1497,7 @@ mod test {
 
     // #[tokio::test]
     // async fn test_set_list_path() {
-    //     let mut ep = Endpoint::try_from("/Users/weisd/project/weisd/s3-rustfs/target/volume/test").unwrap();
+    //     let mut ep = Endpoint::try_from("/Users/weisd/project/weisd/s3-nebulafx/target/volume/test").unwrap();
     //     ep.pool_idx = 0;
     //     ep.set_idx = 0;
     //     ep.disk_idx = 0;
@@ -1556,7 +1544,7 @@ mod test {
 
     //     let (endpoint_pools, _setup_type) = EndpointServerPools::from_volumes(
     //         server_address,
-    //         vec!["/Users/weisd/project/weisd/s3-rustfs/target/volume/test".to_string()],
+    //         vec!["/Users/weisd/project/weisd/s3-nebulafx/target/volume/test".to_string()],
     //     )
     //     .unwrap();
 
@@ -1588,7 +1576,7 @@ mod test {
 
     //     let (endpoint_pools, _setup_type) = EndpointServerPools::from_volumes(
     //         server_address,
-    //         vec!["/Users/weisd/project/weisd/s3-rustfs/target/volume/test".to_string()],
+    //         vec!["/Users/weisd/project/weisd/s3-nebulafx/target/volume/test".to_string()],
     //     )
     //     .unwrap();
 
@@ -1615,7 +1603,7 @@ mod test {
 
     //     let (endpoint_pools, _setup_type) = EndpointServerPools::from_volumes(
     //         server_address,
-    //         vec!["/Users/weisd/project/weisd/s3-rustfs/target/volume/test".to_string()],
+    //         vec!["/Users/weisd/project/weisd/s3-nebulafx/target/volume/test".to_string()],
     //     )
     //     .unwrap();
 
@@ -1633,7 +1621,7 @@ mod test {
 
     //     let (endpoint_pools, _setup_type) = EndpointServerPools::from_volumes(
     //         server_address,
-    //         vec!["/Users/weisd/project/weisd/s3-rustfs/target/volume/test".to_string()],
+    //         vec!["/Users/weisd/project/weisd/s3-nebulafx/target/volume/test".to_string()],
     //     )
     //     .unwrap();
 
@@ -1645,7 +1633,7 @@ mod test {
 
     //     let (_tx, rx) = broadcast::channel(1);
 
-    //     let bucket = ".rustfs.sys";
+    //     let bucket = ".nebulafx.sys";
     //     let prefix = "config/iam/sts/";
 
     //     let (sender, mut recv) = mpsc::channel(10);

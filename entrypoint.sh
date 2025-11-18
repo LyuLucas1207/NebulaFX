@@ -2,25 +2,25 @@
 set -e
 
 # 1) Normalize command:
-# - No arguments: default to execute rustfs with DATA_VOLUMES
-# - First argument starts with '-': treat as rustfs arguments, auto-prefix rustfs
-# - First argument is 'rustfs': replace with absolute path to avoid PATH interference
-# - Otherwise: treat as full rustfs arguments (e.g., /data paths)
+# - No arguments: default to execute nebulafx with DATA_VOLUMES
+# - First argument starts with '-': treat as nebulafx arguments, auto-prefix nebulafx
+# - First argument is 'nebulafx': replace with absolute path to avoid PATH interference
+# - Otherwise: treat as full nebulafx arguments (e.g., /data paths)
 if [ $# -eq 0 ]; then
-  set -- /usr/bin/rustfs
+  set -- /usr/bin/nebulafx
 elif [ "${1#-}" != "$1" ]; then
-  set -- /usr/bin/rustfs "$@"
-elif [ "$1" = "rustfs" ]; then
+  set -- /usr/bin/nebulafx "$@"
+elif [ "$1" = "nebulafx" ]; then
   shift
-  set -- /usr/bin/rustfs "$@"
+  set -- /usr/bin/nebulafx "$@"
 else
-  set -- /usr/bin/rustfs "$@"
+  set -- /usr/bin/nebulafx "$@"
 fi
 
 # 2) Process data volumes (separate from log directory)
 DATA_VOLUMES=""
 process_data_volumes() {
-  VOLUME_RAW="${RUSTFS_VOLUMES:-/data}"
+  VOLUME_RAW="${NEUBULAFX_VOLUMES:-/data}"
   # Convert comma/tab to space
   VOLUME_LIST=$(echo "$VOLUME_RAW" | tr ',\t' ' ')
   
@@ -44,10 +44,10 @@ process_data_volumes() {
       echo "  mkdir -p $vol"
       mkdir -p "$vol"
       # If target user is specified, try to set directory owner to that user (non-recursive to avoid large disk overhead)
-      if [ -n "$RUSTFS_UID" ] && [ -n "$RUSTFS_GID" ]; then
-        chown "$RUSTFS_UID:$RUSTFS_GID" "$vol" 2>/dev/null || true
-      elif [ -n "$RUSTFS_USERNAME" ] && [ -n "$RUSTFS_GROUPNAME" ]; then
-        chown "$RUSTFS_USERNAME:$RUSTFS_GROUPNAME" "$vol" 2>/dev/null || true
+      if [ -n "$NEUBULAFX_UID" ] && [ -n "$NEUBULAFX_GID" ]; then
+        chown "$NEUBULAFX_UID:$NEUBULAFX_GID" "$vol" 2>/dev/null || true
+      elif [ -n "$NEUBULAFX_USERNAME" ] && [ -n "$NEUBULAFX_GROUPNAME" ]; then
+        chown "$NEUBULAFX_USERNAME:$NEUBULAFX_GROUPNAME" "$vol" 2>/dev/null || true
       fi
     fi
   done
@@ -55,17 +55,17 @@ process_data_volumes() {
 
 # 3) Process log directory (separate from data volumes)
 process_log_directory() {
-  LOG_DIR="${RUSTFS_OBS_LOG_DIRECTORY:-/logs}"
+  LOG_DIR="${NEUBULAFX_OBS_LOG_DIRECTORY:-/logs}"
   
   echo "Initializing log directory: $LOG_DIR"
   if [ ! -d "$LOG_DIR" ]; then
     echo "  mkdir -p $LOG_DIR"
     mkdir -p "$LOG_DIR"
     # If target user is specified, try to set directory owner to that user (non-recursive to avoid large disk overhead)
-    if [ -n "$RUSTFS_UID" ] && [ -n "$RUSTFS_GID" ]; then
-      chown "$RUSTFS_UID:$RUSTFS_GID" "$LOG_DIR" 2>/dev/null || true
-    elif [ -n "$RUSTFS_USERNAME" ] && [ -n "$RUSTFS_GROUPNAME" ]; then
-      chown "$RUSTFS_USERNAME:$RUSTFS_GROUPNAME" "$LOG_DIR" 2>/dev/null || true
+    if [ -n "$NEUBULAFX_UID" ] && [ -n "$NEUBULAFX_GID" ]; then
+      chown "$NEUBULAFX_UID:$NEUBULAFX_GID" "$LOG_DIR" 2>/dev/null || true
+    elif [ -n "$NEUBULAFX_USERNAME" ] && [ -n "$NEUBULAFX_GROUPNAME" ]; then
+      chown "$NEUBULAFX_USERNAME:$NEUBULAFX_GROUPNAME" "$LOG_DIR" 2>/dev/null || true
     fi
   fi
 }
@@ -75,8 +75,8 @@ process_data_volumes
 process_log_directory
 
 # 4) Default credentials warning
-if [ "${RUSTFS_ACCESS_KEY}" = "rustfsadmin" ] || [ "${RUSTFS_SECRET_KEY}" = "rustfsadmin" ]; then
-  echo "!!!WARNING: Using default RUSTFS_ACCESS_KEY or RUSTFS_SECRET_KEY. Override them in production!"
+if [ "${NEUBULAFX_ACCESS_KEY}" = "nebulafxadmin" ] || [ "${NEUBULAFX_SECRET_KEY}" = "nebulafxadmin" ]; then
+  echo "!!!WARNING: Using default NEUBULAFX_ACCESS_KEY or NEUBULAFX_SECRET_KEY. Override them in production!"
 fi
 
 # 5) Append DATA_VOLUMES only if no data paths in arguments
@@ -84,7 +84,7 @@ fi
 HAS_DATA_PATH=false
 for arg in "$@"; do
   case "$arg" in
-    /usr/bin/rustfs) continue ;;
+    /usr/bin/nebulafx) continue ;;
     -*) continue ;;
     /*) HAS_DATA_PATH=true; break ;;
   esac

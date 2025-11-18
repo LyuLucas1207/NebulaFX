@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 //! KMS Edge Cases and Boundary Condition Tests
 //!
@@ -39,7 +27,7 @@ async fn test_kms_zero_byte_file_encryption() -> Result<(), Box<dyn std::error::
     info!("🧪 Testing KMS encryption with zero-byte files");
 
     let mut kms_env = LocalKMSTestEnvironment::new().await?;
-    let _default_key_id = kms_env.start_rustfs_for_local_kms().await?;
+    let _default_key_id = kms_env.start_nebulafx_for_local_kms().await?;
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
     let s3_client = kms_env.base_env.create_s3_client();
@@ -113,7 +101,7 @@ async fn test_kms_single_byte_file_encryption() -> Result<(), Box<dyn std::error
     info!("🧪 Testing KMS encryption with single-byte files");
 
     let mut kms_env = LocalKMSTestEnvironment::new().await?;
-    let _default_key_id = kms_env.start_rustfs_for_local_kms().await?;
+    let _default_key_id = kms_env.start_nebulafx_for_local_kms().await?;
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
     let s3_client = kms_env.base_env.create_s3_client();
@@ -206,7 +194,7 @@ async fn test_kms_multipart_boundary_conditions() -> Result<(), Box<dyn std::err
     info!("🧪 Testing KMS multipart upload boundary conditions");
 
     let mut kms_env = LocalKMSTestEnvironment::new().await?;
-    let _default_key_id = kms_env.start_rustfs_for_local_kms().await?;
+    let _default_key_id = kms_env.start_nebulafx_for_local_kms().await?;
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
     let s3_client = kms_env.base_env.create_s3_client();
@@ -282,7 +270,7 @@ async fn test_kms_invalid_key_scenarios() -> Result<(), Box<dyn std::error::Erro
     info!("🧪 Testing KMS invalid key scenarios and error handling");
 
     let mut kms_env = LocalKMSTestEnvironment::new().await?;
-    let _default_key_id = kms_env.start_rustfs_for_local_kms().await?;
+    let _default_key_id = kms_env.start_nebulafx_for_local_kms().await?;
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
     let s3_client = kms_env.base_env.create_s3_client();
@@ -370,7 +358,7 @@ async fn test_kms_concurrent_encryption() -> Result<(), Box<dyn std::error::Erro
     info!("🧪 Testing KMS concurrent encryption operations");
 
     let mut kms_env = LocalKMSTestEnvironment::new().await?;
-    let _default_key_id = kms_env.start_rustfs_for_local_kms().await?;
+    let _default_key_id = kms_env.start_nebulafx_for_local_kms().await?;
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
     let s3_client = Arc::new(kms_env.base_env.create_s3_client());
@@ -478,7 +466,7 @@ async fn test_kms_key_validation_security() -> Result<(), Box<dyn std::error::Er
     info!("🧪 Testing KMS key validation and security properties");
 
     let mut kms_env = LocalKMSTestEnvironment::new().await?;
-    let _default_key_id = kms_env.start_rustfs_for_local_kms().await?;
+    let _default_key_id = kms_env.start_nebulafx_for_local_kms().await?;
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
     let s3_client = kms_env.base_env.create_s3_client();

@@ -1,4 +1,4 @@
-//  Copyright 2024 RustFS Team
+//  Copyright 2024 NebulaFX Team
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ pub enum AuditError {
     ConfigNotLoaded,
 
     #[error("Target error: {0}")]
-    Target(#[from] rustfs_targets::TargetError),
+    Target(#[from] nebulafx_targets::TargetError),
 
     #[error("System not initialized: {0}")]
     NotInitialized(String),

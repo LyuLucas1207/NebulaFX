@@ -1,22 +1,10 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use std::sync::Arc;
 
 use async_trait::async_trait;
 use derive_builder::Builder;
-use rustfs_s3select_api::{
+use nebulafx_s3select_api::{
     QueryResult,
     query::{
         Query, dispatcher::QueryDispatcher, execution::QueryStateMachineRef, logical_planner::Plan, session::SessionCtxFactory,
@@ -34,13 +22,13 @@ use crate::{
 };
 
 #[derive(Builder)]
-pub struct RustFSms<D: QueryDispatcher> {
+pub struct NebulaFXms<D: QueryDispatcher> {
     // query dispatcher & query execution
     query_dispatcher: Arc<D>,
 }
 
 #[async_trait]
-impl<D> DatabaseManagerSystem for RustFSms<D>
+impl<D> DatabaseManagerSystem for NebulaFXms<D>
 where
     D: QueryDispatcher,
 {
@@ -77,7 +65,7 @@ where
     }
 }
 
-pub async fn make_rustfsms(input: Arc<SelectObjectContentInput>, is_test: bool) -> QueryResult<impl DatabaseManagerSystem> {
+pub async fn make_nebulafxms(input: Arc<SelectObjectContentInput>, is_test: bool) -> QueryResult<impl DatabaseManagerSystem> {
     // init Function Manager, we can define some UDF if need
     let func_manager = SimpleFunctionMetadataManager::default();
     // TODO session config need load global system config
@@ -100,14 +88,14 @@ pub async fn make_rustfsms(input: Arc<SelectObjectContentInput>, is_test: bool) 
         .with_query_execution_factory(query_execution_factory)
         .build()?;
 
-    let mut builder = RustFSmsBuilder::default();
+    let mut builder = NebulaFXmsBuilder::default();
 
     let db_server = builder.query_dispatcher(query_dispatcher).build().expect("build db server");
 
     Ok(db_server)
 }
 
-pub async fn make_rustfsms_with_components(
+pub async fn make_nebulafxms_with_components(
     input: Arc<SelectObjectContentInput>,
     is_test: bool,
     func_manager: Arc<SimpleFunctionMetadataManager>,
@@ -127,7 +115,7 @@ pub async fn make_rustfsms_with_components(
         .with_query_execution_factory(query_execution_factory)
         .build()?;
 
-    let mut builder = RustFSmsBuilder::default();
+    let mut builder = NebulaFXmsBuilder::default();
 
     let db_server = builder.query_dispatcher(query_dispatcher).build().expect("build db server");
 
@@ -139,7 +127,7 @@ mod tests {
     use std::sync::Arc;
 
     use datafusion::{arrow::util::pretty, assert_batches_eq};
-    use rustfs_s3select_api::query::{Context, Query};
+    use nebulafx_s3select_api::query::{Context, Query};
     use s3s::dto::{
         CSVInput, CSVOutput, ExpressionType, FieldDelimiter, FileHeaderInfo, InputSerialization, OutputSerialization,
         RecordDelimiter, SelectObjectContentInput, SelectObjectContentRequest,

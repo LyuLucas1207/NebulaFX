@@ -1,4 +1,4 @@
-//  Copyright 2024 RustFS Team
+//  Copyright 2024 NebulaFX Team
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ impl fmt::Display for ParseEventNameError {
 impl std::error::Error for ParseEventNameError {}
 
 /// Represents the type of event that occurs on the object.
-/// Based on AWS S3 event type and includes RustFS extension.
+/// Based on AWS S3 event type and includes NebulaFX extension.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 pub enum EventName {
     // Single event type (values are 1-32 for compatible mask logic)

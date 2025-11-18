@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::global::get_global_action_cred;
 use base64::Engine as _;
@@ -26,8 +14,8 @@ use tracing::error;
 
 type HmacSha256 = Hmac<Sha256>;
 
-const SIGNATURE_HEADER: &str = "x-rustfs-signature";
-const TIMESTAMP_HEADER: &str = "x-rustfs-timestamp";
+const SIGNATURE_HEADER: &str = "x-nebulafx-signature";
+const TIMESTAMP_HEADER: &str = "x-nebulafx-timestamp";
 const SIGNATURE_VALID_DURATION: i64 = 300; // 5 minutes
 
 /// Get the shared secret for HMAC signing
@@ -36,7 +24,7 @@ fn get_shared_secret() -> String {
         cred.secret_key
     } else {
         // Fallback to environment variable if global credentials are not available
-        std::env::var("RUSTFS_RPC_SECRET").unwrap_or_else(|_| "rustfs-default-secret".to_string())
+        std::env::var("NEUBULAFX_RPC_SECRET").unwrap_or_else(|_| "nebulafx-default-secret".to_string())
     }
 }
 
@@ -121,13 +109,13 @@ mod tests {
         let secret = get_shared_secret();
         assert!(!secret.is_empty(), "Secret should not be empty");
 
-        let url = "http://node1:7000/rustfs/rpc/read_file_stream?disk=http%3A%2F%2Fnode1%3A7000%2Fdata%2Frustfs3&volume=.rustfs.sys&path=pool.bin%2Fdd0fd773-a962-4265-b543-783ce83953e9%2Fpart.1&offset=0&length=44";
+        let url = "http://node1:7000/nebulafx/rpc/read_file_stream?disk=http%3A%2F%2Fnode1%3A7000%2Fdata%2Fnebulafx3&volume=.nebulafx.sys&path=pool.bin%2Fdd0fd773-a962-4265-b543-783ce83953e9%2Fpart.1&offset=0&length=44";
         let method = Method::GET;
         let mut headers = HeaderMap::new();
 
         build_auth_headers(url, &method, &mut headers);
 
-        let url = "/rustfs/rpc/read_file_stream?disk=http%3A%2F%2Fnode1%3A7000%2Fdata%2Frustfs3&volume=.rustfs.sys&path=pool.bin%2Fdd0fd773-a962-4265-b543-783ce83953e9%2Fpart.1&offset=0&length=44";
+        let url = "/nebulafx/rpc/read_file_stream?disk=http%3A%2F%2Fnode1%3A7000%2Fdata%2Fnebulafx3&volume=.nebulafx.sys&path=pool.bin%2Fdd0fd773-a962-4265-b543-783ce83953e9%2Fpart.1&offset=0&length=44";
 
         let result = verify_rpc_signature(url, &method, &headers);
         assert!(result.is_ok(), "Valid signature should pass verification");
@@ -370,7 +358,7 @@ mod tests {
     fn test_round_trip_authentication() {
         let test_cases = vec![
             ("http://example.com/api/test", Method::GET),
-            ("https://api.rustfs.com/v1/bucket", Method::POST),
+            ("https://api.nebulafx.com/v1/bucket", Method::POST),
             ("http://localhost:9000/admin/info", Method::PUT),
             ("https://storage.example.com/path/to/object?query=param", Method::DELETE),
         ];

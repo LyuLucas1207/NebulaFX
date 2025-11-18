@@ -3055,14 +3055,14 @@ dependencies = [
  "flatbuffers",
  "futures",
  "md5",
+ "nebulafx-ecstore",
+ "nebulafx-filemeta",
+ "nebulafx-lock",
+ "nebulafx-madmin",
+ "nebulafx-protos",
  "rand 0.10.0-rc.5",
  "reqwest",
  "rmp-serde",
- "rustfs-ecstore",
- "rustfs-filemeta",
- "rustfs-lock",
- "rustfs-madmin",
- "rustfs-protos",
  "serde",
  "serde_json",
  "serial_test",
@@ -5119,6 +5119,684 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d87ecb2933e8aeadb3e3a02b828fed80a7528047e68b4f424523a0981a3a084"
 
 [[package]]
+name = "nebulafx"
+version = "0.0.5"
+dependencies = [
+ "astral-tokio-tar",
+ "async-trait",
+ "atoi",
+ "atomic_enum",
+ "axum",
+ "axum-extra",
+ "axum-server",
+ "base64 0.22.1",
+ "base64-simd",
+ "bytes",
+ "chrono",
+ "clap",
+ "const-str",
+ "datafusion",
+ "flatbuffers",
+ "futures",
+ "futures-util",
+ "hex-simd",
+ "http 1.3.1",
+ "http-body 1.0.1",
+ "hyper 1.7.0",
+ "hyper-util",
+ "jemalloc_pprof",
+ "libsystemd",
+ "matchit 0.9.0",
+ "md5",
+ "metrics",
+ "mimalloc",
+ "mime_guess",
+ "nebulafx-ahm",
+ "nebulafx-appauth",
+ "nebulafx-audit",
+ "nebulafx-common",
+ "nebulafx-config",
+ "nebulafx-ecstore",
+ "nebulafx-filemeta",
+ "nebulafx-iam",
+ "nebulafx-kms",
+ "nebulafx-lock",
+ "nebulafx-madmin",
+ "nebulafx-notify",
+ "nebulafx-obs",
+ "nebulafx-policy",
+ "nebulafx-protos",
+ "nebulafx-rio",
+ "nebulafx-s3select-api",
+ "nebulafx-s3select-query",
+ "nebulafx-targets",
+ "nebulafx-utils",
+ "nebulafx-zip",
+ "pin-project-lite",
+ "pprof",
+ "reqwest",
+ "rmp-serde",
+ "rustls 0.23.35",
+ "s3s",
+ "serde",
+ "serde_json",
+ "serde_urlencoded",
+ "shadow-rs",
+ "socket2 0.6.1",
+ "sysctl",
+ "sysinfo",
+ "thiserror 2.0.17",
+ "tikv-jemalloc-ctl",
+ "tikv-jemallocator",
+ "time",
+ "tokio",
+ "tokio-rustls 0.26.4",
+ "tokio-stream",
+ "tokio-util",
+ "tonic",
+ "tower",
+ "tower-http",
+ "tracing",
+ "url",
+ "urlencoding",
+ "uuid",
+ "zip",
+]
+
+[[package]]
+name = "nebulafx-ahm"
+version = "0.0.5"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "futures",
+ "heed",
+ "nebulafx-common",
+ "nebulafx-ecstore",
+ "nebulafx-filemeta",
+ "nebulafx-madmin",
+ "rand 0.10.0-rc.5",
+ "reqwest",
+ "s3s",
+ "serde",
+ "serde_json",
+ "serial_test",
+ "tempfile",
+ "thiserror 2.0.17",
+ "time",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+ "walkdir",
+]
+
+[[package]]
+name = "nebulafx-appauth"
+version = "0.0.5"
+dependencies = [
+ "base64-simd",
+ "rand 0.10.0-rc.5",
+ "rsa 0.10.0-rc.10",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "nebulafx-audit"
+version = "0.0.5"
+dependencies = [
+ "chrono",
+ "const-str",
+ "futures",
+ "hashbrown 0.16.0",
+ "metrics",
+ "nebulafx-config",
+ "nebulafx-ecstore",
+ "nebulafx-targets",
+ "rumqttc",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "nebulafx-checksums"
+version = "0.0.5"
+dependencies = [
+ "base64-simd",
+ "bytes",
+ "crc-fast",
+ "http 1.3.1",
+ "md-5 0.11.0-rc.3",
+ "pretty_assertions",
+ "sha1 0.11.0-rc.3",
+ "sha2 0.11.0-rc.3",
+]
+
+[[package]]
+name = "nebulafx-common"
+version = "0.0.5"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "nebulafx-filemeta",
+ "nebulafx-madmin",
+ "path-clean",
+ "rmp-serde",
+ "s3s",
+ "serde",
+ "tokio",
+ "tonic",
+ "uuid",
+]
+
+[[package]]
+name = "nebulafx-config"
+version = "0.0.5"
+dependencies = [
+ "const-str",
+]
+
+[[package]]
+name = "nebulafx-crypto"
+version = "0.0.5"
+dependencies = [
+ "aes-gcm",
+ "argon2",
+ "cfg-if",
+ "chacha20poly1305",
+ "jsonwebtoken",
+ "pbkdf2 0.13.0-rc.2",
+ "rand 0.10.0-rc.5",
+ "serde_json",
+ "sha2 0.11.0-rc.3",
+ "test-case",
+ "thiserror 2.0.17",
+ "time",
+]
+
+[[package]]
+name = "nebulafx-ecstore"
+version = "0.0.5"
+dependencies = [
+ "async-channel",
+ "async-recursion",
+ "async-trait",
+ "aws-config",
+ "aws-credential-types",
+ "aws-sdk-s3",
+ "aws-smithy-types",
+ "base64 0.22.1",
+ "base64-simd",
+ "byteorder",
+ "bytes",
+ "bytesize",
+ "chrono",
+ "criterion",
+ "enumset",
+ "faster-hex",
+ "flatbuffers",
+ "futures",
+ "glob",
+ "google-cloud-auth",
+ "google-cloud-storage",
+ "hex-simd",
+ "hmac 0.13.0-rc.3",
+ "http 1.3.1",
+ "hyper 1.7.0",
+ "hyper-rustls 0.27.7",
+ "hyper-util",
+ "lazy_static",
+ "md-5 0.11.0-rc.3",
+ "moka",
+ "nebulafx-checksums",
+ "nebulafx-common",
+ "nebulafx-config",
+ "nebulafx-filemeta",
+ "nebulafx-lock",
+ "nebulafx-madmin",
+ "nebulafx-policy",
+ "nebulafx-protos",
+ "nebulafx-rio",
+ "nebulafx-signer",
+ "nebulafx-utils",
+ "nebulafx-workers",
+ "nix 0.30.1",
+ "num_cpus",
+ "parking_lot",
+ "path-absolutize",
+ "pin-project-lite",
+ "quick-xml 0.38.4",
+ "rand 0.10.0-rc.5",
+ "reed-solomon-simd",
+ "regex",
+ "reqwest",
+ "rmp",
+ "rmp-serde",
+ "rustls 0.23.35",
+ "s3s",
+ "serde",
+ "serde_json",
+ "serde_urlencoded",
+ "sha1 0.11.0-rc.3",
+ "sha2 0.11.0-rc.3",
+ "shadow-rs",
+ "smallvec",
+ "temp-env",
+ "tempfile",
+ "thiserror 2.0.17",
+ "time",
+ "tokio",
+ "tokio-util",
+ "tonic",
+ "tower",
+ "tracing",
+ "url",
+ "urlencoding",
+ "uuid",
+ "winapi",
+ "xxhash-rust",
+]
+
+[[package]]
+name = "nebulafx-filemeta"
+version = "0.0.5"
+dependencies = [
+ "byteorder",
+ "bytes",
+ "crc32fast",
+ "criterion",
+ "lazy_static",
+ "nebulafx-utils",
+ "regex",
+ "rmp",
+ "rmp-serde",
+ "s3s",
+ "serde",
+ "thiserror 2.0.17",
+ "time",
+ "tokio",
+ "tracing",
+ "uuid",
+ "xxhash-rust",
+]
+
+[[package]]
+name = "nebulafx-iam"
+version = "0.0.5"
+dependencies = [
+ "arc-swap",
+ "async-trait",
+ "base64-simd",
+ "futures",
+ "jsonwebtoken",
+ "nebulafx-crypto",
+ "nebulafx-ecstore",
+ "nebulafx-madmin",
+ "nebulafx-policy",
+ "nebulafx-utils",
+ "rand 0.10.0-rc.5",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "time",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "nebulafx-kms"
+version = "0.0.5"
+dependencies = [
+ "aes-gcm",
+ "async-trait",
+ "base64 0.22.1",
+ "chacha20poly1305",
+ "chrono",
+ "md5",
+ "moka",
+ "once_cell",
+ "rand 0.10.0-rc.5",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2 0.11.0-rc.3",
+ "tempfile",
+ "thiserror 2.0.17",
+ "tokio",
+ "tokio-test",
+ "tracing",
+ "url",
+ "uuid",
+ "vaultrs",
+ "zeroize",
+]
+
+[[package]]
+name = "nebulafx-lock"
+version = "0.0.5"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "crossbeam-queue",
+ "futures",
+ "nebulafx-protos",
+ "once_cell",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "smallvec",
+ "smartstring",
+ "thiserror 2.0.17",
+ "tokio",
+ "tonic",
+ "tracing",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "nebulafx-madmin"
+version = "0.0.5"
+dependencies = [
+ "chrono",
+ "humantime",
+ "hyper 1.7.0",
+ "serde",
+ "serde_json",
+ "time",
+]
+
+[[package]]
+name = "nebulafx-mcp"
+version = "0.0.5"
+dependencies = [
+ "anyhow",
+ "aws-sdk-s3",
+ "clap",
+ "mime_guess",
+ "rmcp",
+ "schemars 1.1.0",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "nebulafx-notify"
+version = "0.0.5"
+dependencies = [
+ "async-trait",
+ "axum",
+ "chrono",
+ "form_urlencoded",
+ "futures",
+ "hashbrown 0.16.0",
+ "nebulafx-config",
+ "nebulafx-ecstore",
+ "nebulafx-targets",
+ "nebulafx-utils",
+ "quick-xml 0.38.4",
+ "rayon",
+ "rumqttc",
+ "rustc-hash",
+ "serde",
+ "serde_json",
+ "starshard",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+ "wildmatch",
+]
+
+[[package]]
+name = "nebulafx-obs"
+version = "0.0.5"
+dependencies = [
+ "flexi_logger",
+ "metrics",
+ "nebulafx-config",
+ "nebulafx-utils",
+ "nu-ansi-term",
+ "nvml-wrapper",
+ "opentelemetry",
+ "opentelemetry-appender-tracing",
+ "opentelemetry-otlp",
+ "opentelemetry-semantic-conventions",
+ "opentelemetry-stdout",
+ "opentelemetry_sdk",
+ "serde",
+ "smallvec",
+ "sysinfo",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+ "tracing-appender",
+ "tracing-error",
+ "tracing-opentelemetry",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "nebulafx-policy"
+version = "0.0.5"
+dependencies = [
+ "base64-simd",
+ "chrono",
+ "ipnetwork",
+ "jsonwebtoken",
+ "nebulafx-config",
+ "nebulafx-crypto",
+ "rand 0.10.0-rc.5",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "strum 0.27.2",
+ "temp-env",
+ "test-case",
+ "thiserror 2.0.17",
+ "time",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "nebulafx-protos"
+version = "0.0.5"
+dependencies = [
+ "flatbuffers",
+ "nebulafx-common",
+ "prost 0.14.1",
+ "tonic",
+ "tonic-prost",
+ "tonic-prost-build",
+]
+
+[[package]]
+name = "nebulafx-rio"
+version = "0.0.5"
+dependencies = [
+ "aes-gcm",
+ "base64 0.22.1",
+ "bytes",
+ "crc32c",
+ "crc32fast",
+ "crc64fast-nvme",
+ "faster-hex",
+ "futures",
+ "hex-simd",
+ "http 1.3.1",
+ "md-5 0.11.0-rc.3",
+ "nebulafx-utils",
+ "pin-project-lite",
+ "rand 0.10.0-rc.5",
+ "reqwest",
+ "s3s",
+ "serde",
+ "serde_json",
+ "sha1 0.11.0-rc.3",
+ "sha2 0.11.0-rc.3",
+ "thiserror 2.0.17",
+ "tokio",
+ "tokio-test",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "nebulafx-s3select-api"
+version = "0.0.5"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "chrono",
+ "datafusion",
+ "futures",
+ "futures-core",
+ "http 1.3.1",
+ "nebulafx-common",
+ "nebulafx-ecstore",
+ "object_store",
+ "pin-project-lite",
+ "s3s",
+ "snafu",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "transform-stream",
+ "url",
+]
+
+[[package]]
+name = "nebulafx-s3select-query"
+version = "0.0.5"
+dependencies = [
+ "async-recursion",
+ "async-trait",
+ "datafusion",
+ "derive_builder 0.20.2",
+ "futures",
+ "nebulafx-s3select-api",
+ "parking_lot",
+ "s3s",
+ "snafu",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "nebulafx-signer"
+version = "0.0.5"
+dependencies = [
+ "base64-simd",
+ "bytes",
+ "http 1.3.1",
+ "hyper 1.7.0",
+ "nebulafx-utils",
+ "s3s",
+ "serde_urlencoded",
+ "time",
+ "tracing",
+]
+
+[[package]]
+name = "nebulafx-targets"
+version = "0.0.5"
+dependencies = [
+ "async-trait",
+ "nebulafx-config",
+ "nebulafx-utils",
+ "reqwest",
+ "rumqttc",
+ "serde",
+ "serde_json",
+ "snap",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+ "url",
+ "urlencoding",
+ "uuid",
+]
+
+[[package]]
+name = "nebulafx-utils"
+version = "0.0.5"
+dependencies = [
+ "base64-simd",
+ "blake3",
+ "brotli 8.0.2",
+ "bytes",
+ "convert_case",
+ "crc32fast",
+ "flate2",
+ "futures",
+ "hashbrown 0.16.0",
+ "hex-simd",
+ "highway",
+ "hmac 0.13.0-rc.3",
+ "http 1.3.1",
+ "hyper 1.7.0",
+ "libc",
+ "local-ip-address",
+ "lz4",
+ "md-5 0.11.0-rc.3",
+ "nebulafx-config",
+ "netif",
+ "nix 0.30.1",
+ "rand 0.10.0-rc.5",
+ "regex",
+ "rustls 0.23.35",
+ "rustls-pemfile 2.2.0",
+ "rustls-pki-types",
+ "s3s",
+ "serde",
+ "sha1 0.11.0-rc.3",
+ "sha2 0.11.0-rc.3",
+ "siphasher",
+ "snap",
+ "sysinfo",
+ "tempfile",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+ "transform-stream",
+ "url",
+ "winapi",
+ "zstd",
+]
+
+[[package]]
+name = "nebulafx-workers"
+version = "0.0.5"
+dependencies = [
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "nebulafx-zip"
+version = "0.0.5"
+dependencies = [
+ "astral-tokio-tar",
+ "async-compression",
+ "tokio",
+ "tokio-stream",
+]
+
+[[package]]
 name = "neli"
 version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6846,684 +7524,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cfcb3a22ef46e85b45de6ee7e79d063319ebb6594faafcf1c225ea92ab6e9b92"
 dependencies = [
  "semver",
-]
-
-[[package]]
-name = "rustfs"
-version = "0.0.5"
-dependencies = [
- "astral-tokio-tar",
- "async-trait",
- "atoi",
- "atomic_enum",
- "axum",
- "axum-extra",
- "axum-server",
- "base64 0.22.1",
- "base64-simd",
- "bytes",
- "chrono",
- "clap",
- "const-str",
- "datafusion",
- "flatbuffers",
- "futures",
- "futures-util",
- "hex-simd",
- "http 1.3.1",
- "http-body 1.0.1",
- "hyper 1.7.0",
- "hyper-util",
- "jemalloc_pprof",
- "libsystemd",
- "matchit 0.9.0",
- "md5",
- "metrics",
- "mimalloc",
- "mime_guess",
- "pin-project-lite",
- "pprof",
- "reqwest",
- "rmp-serde",
- "rustfs-ahm",
- "rustfs-appauth",
- "rustfs-audit",
- "rustfs-common",
- "rustfs-config",
- "rustfs-ecstore",
- "rustfs-filemeta",
- "rustfs-iam",
- "rustfs-kms",
- "rustfs-lock",
- "rustfs-madmin",
- "rustfs-notify",
- "rustfs-obs",
- "rustfs-policy",
- "rustfs-protos",
- "rustfs-rio",
- "rustfs-s3select-api",
- "rustfs-s3select-query",
- "rustfs-targets",
- "rustfs-utils",
- "rustfs-zip",
- "rustls 0.23.35",
- "s3s",
- "serde",
- "serde_json",
- "serde_urlencoded",
- "shadow-rs",
- "socket2 0.6.1",
- "sysctl",
- "sysinfo",
- "thiserror 2.0.17",
- "tikv-jemalloc-ctl",
- "tikv-jemallocator",
- "time",
- "tokio",
- "tokio-rustls 0.26.4",
- "tokio-stream",
- "tokio-util",
- "tonic",
- "tower",
- "tower-http",
- "tracing",
- "url",
- "urlencoding",
- "uuid",
- "zip",
-]
-
-[[package]]
-name = "rustfs-ahm"
-version = "0.0.5"
-dependencies = [
- "anyhow",
- "async-trait",
- "chrono",
- "futures",
- "heed",
- "rand 0.10.0-rc.5",
- "reqwest",
- "rustfs-common",
- "rustfs-ecstore",
- "rustfs-filemeta",
- "rustfs-madmin",
- "s3s",
- "serde",
- "serde_json",
- "serial_test",
- "tempfile",
- "thiserror 2.0.17",
- "time",
- "tokio",
- "tokio-util",
- "tracing",
- "tracing-subscriber",
- "uuid",
- "walkdir",
-]
-
-[[package]]
-name = "rustfs-appauth"
-version = "0.0.5"
-dependencies = [
- "base64-simd",
- "rand 0.10.0-rc.5",
- "rsa 0.10.0-rc.10",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "rustfs-audit"
-version = "0.0.5"
-dependencies = [
- "chrono",
- "const-str",
- "futures",
- "hashbrown 0.16.0",
- "metrics",
- "rumqttc",
- "rustfs-config",
- "rustfs-ecstore",
- "rustfs-targets",
- "serde",
- "serde_json",
- "thiserror 2.0.17",
- "tokio",
- "tracing",
- "url",
-]
-
-[[package]]
-name = "rustfs-checksums"
-version = "0.0.5"
-dependencies = [
- "base64-simd",
- "bytes",
- "crc-fast",
- "http 1.3.1",
- "md-5 0.11.0-rc.3",
- "pretty_assertions",
- "sha1 0.11.0-rc.3",
- "sha2 0.11.0-rc.3",
-]
-
-[[package]]
-name = "rustfs-common"
-version = "0.0.5"
-dependencies = [
- "async-trait",
- "chrono",
- "path-clean",
- "rmp-serde",
- "rustfs-filemeta",
- "rustfs-madmin",
- "s3s",
- "serde",
- "tokio",
- "tonic",
- "uuid",
-]
-
-[[package]]
-name = "rustfs-config"
-version = "0.0.5"
-dependencies = [
- "const-str",
-]
-
-[[package]]
-name = "rustfs-crypto"
-version = "0.0.5"
-dependencies = [
- "aes-gcm",
- "argon2",
- "cfg-if",
- "chacha20poly1305",
- "jsonwebtoken",
- "pbkdf2 0.13.0-rc.2",
- "rand 0.10.0-rc.5",
- "serde_json",
- "sha2 0.11.0-rc.3",
- "test-case",
- "thiserror 2.0.17",
- "time",
-]
-
-[[package]]
-name = "rustfs-ecstore"
-version = "0.0.5"
-dependencies = [
- "async-channel",
- "async-recursion",
- "async-trait",
- "aws-config",
- "aws-credential-types",
- "aws-sdk-s3",
- "aws-smithy-types",
- "base64 0.22.1",
- "base64-simd",
- "byteorder",
- "bytes",
- "bytesize",
- "chrono",
- "criterion",
- "enumset",
- "faster-hex",
- "flatbuffers",
- "futures",
- "glob",
- "google-cloud-auth",
- "google-cloud-storage",
- "hex-simd",
- "hmac 0.13.0-rc.3",
- "http 1.3.1",
- "hyper 1.7.0",
- "hyper-rustls 0.27.7",
- "hyper-util",
- "lazy_static",
- "md-5 0.11.0-rc.3",
- "moka",
- "nix 0.30.1",
- "num_cpus",
- "parking_lot",
- "path-absolutize",
- "pin-project-lite",
- "quick-xml 0.38.4",
- "rand 0.10.0-rc.5",
- "reed-solomon-simd",
- "regex",
- "reqwest",
- "rmp",
- "rmp-serde",
- "rustfs-checksums",
- "rustfs-common",
- "rustfs-config",
- "rustfs-filemeta",
- "rustfs-lock",
- "rustfs-madmin",
- "rustfs-policy",
- "rustfs-protos",
- "rustfs-rio",
- "rustfs-signer",
- "rustfs-utils",
- "rustfs-workers",
- "rustls 0.23.35",
- "s3s",
- "serde",
- "serde_json",
- "serde_urlencoded",
- "sha1 0.11.0-rc.3",
- "sha2 0.11.0-rc.3",
- "shadow-rs",
- "smallvec",
- "temp-env",
- "tempfile",
- "thiserror 2.0.17",
- "time",
- "tokio",
- "tokio-util",
- "tonic",
- "tower",
- "tracing",
- "url",
- "urlencoding",
- "uuid",
- "winapi",
- "xxhash-rust",
-]
-
-[[package]]
-name = "rustfs-filemeta"
-version = "0.0.5"
-dependencies = [
- "byteorder",
- "bytes",
- "crc32fast",
- "criterion",
- "lazy_static",
- "regex",
- "rmp",
- "rmp-serde",
- "rustfs-utils",
- "s3s",
- "serde",
- "thiserror 2.0.17",
- "time",
- "tokio",
- "tracing",
- "uuid",
- "xxhash-rust",
-]
-
-[[package]]
-name = "rustfs-iam"
-version = "0.0.5"
-dependencies = [
- "arc-swap",
- "async-trait",
- "base64-simd",
- "futures",
- "jsonwebtoken",
- "rand 0.10.0-rc.5",
- "rustfs-crypto",
- "rustfs-ecstore",
- "rustfs-madmin",
- "rustfs-policy",
- "rustfs-utils",
- "serde",
- "serde_json",
- "thiserror 2.0.17",
- "time",
- "tokio",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
-name = "rustfs-kms"
-version = "0.0.5"
-dependencies = [
- "aes-gcm",
- "async-trait",
- "base64 0.22.1",
- "chacha20poly1305",
- "chrono",
- "md5",
- "moka",
- "once_cell",
- "rand 0.10.0-rc.5",
- "reqwest",
- "serde",
- "serde_json",
- "sha2 0.11.0-rc.3",
- "tempfile",
- "thiserror 2.0.17",
- "tokio",
- "tokio-test",
- "tracing",
- "url",
- "uuid",
- "vaultrs",
- "zeroize",
-]
-
-[[package]]
-name = "rustfs-lock"
-version = "0.0.5"
-dependencies = [
- "async-trait",
- "bytes",
- "crossbeam-queue",
- "futures",
- "once_cell",
- "parking_lot",
- "rustfs-protos",
- "serde",
- "serde_json",
- "smallvec",
- "smartstring",
- "thiserror 2.0.17",
- "tokio",
- "tonic",
- "tracing",
- "url",
- "uuid",
-]
-
-[[package]]
-name = "rustfs-madmin"
-version = "0.0.5"
-dependencies = [
- "chrono",
- "humantime",
- "hyper 1.7.0",
- "serde",
- "serde_json",
- "time",
-]
-
-[[package]]
-name = "rustfs-mcp"
-version = "0.0.5"
-dependencies = [
- "anyhow",
- "aws-sdk-s3",
- "clap",
- "mime_guess",
- "rmcp",
- "schemars 1.1.0",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "rustfs-notify"
-version = "0.0.5"
-dependencies = [
- "async-trait",
- "axum",
- "chrono",
- "form_urlencoded",
- "futures",
- "hashbrown 0.16.0",
- "quick-xml 0.38.4",
- "rayon",
- "rumqttc",
- "rustc-hash",
- "rustfs-config",
- "rustfs-ecstore",
- "rustfs-targets",
- "rustfs-utils",
- "serde",
- "serde_json",
- "starshard",
- "thiserror 2.0.17",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "url",
- "wildmatch",
-]
-
-[[package]]
-name = "rustfs-obs"
-version = "0.0.5"
-dependencies = [
- "flexi_logger",
- "metrics",
- "nu-ansi-term",
- "nvml-wrapper",
- "opentelemetry",
- "opentelemetry-appender-tracing",
- "opentelemetry-otlp",
- "opentelemetry-semantic-conventions",
- "opentelemetry-stdout",
- "opentelemetry_sdk",
- "rustfs-config",
- "rustfs-utils",
- "serde",
- "smallvec",
- "sysinfo",
- "thiserror 2.0.17",
- "tokio",
- "tracing",
- "tracing-appender",
- "tracing-error",
- "tracing-opentelemetry",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "rustfs-policy"
-version = "0.0.5"
-dependencies = [
- "base64-simd",
- "chrono",
- "ipnetwork",
- "jsonwebtoken",
- "rand 0.10.0-rc.5",
- "regex",
- "reqwest",
- "rustfs-config",
- "rustfs-crypto",
- "serde",
- "serde_json",
- "strum 0.27.2",
- "temp-env",
- "test-case",
- "thiserror 2.0.17",
- "time",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "rustfs-protos"
-version = "0.0.5"
-dependencies = [
- "flatbuffers",
- "prost 0.14.1",
- "rustfs-common",
- "tonic",
- "tonic-prost",
- "tonic-prost-build",
-]
-
-[[package]]
-name = "rustfs-rio"
-version = "0.0.5"
-dependencies = [
- "aes-gcm",
- "base64 0.22.1",
- "bytes",
- "crc32c",
- "crc32fast",
- "crc64fast-nvme",
- "faster-hex",
- "futures",
- "hex-simd",
- "http 1.3.1",
- "md-5 0.11.0-rc.3",
- "pin-project-lite",
- "rand 0.10.0-rc.5",
- "reqwest",
- "rustfs-utils",
- "s3s",
- "serde",
- "serde_json",
- "sha1 0.11.0-rc.3",
- "sha2 0.11.0-rc.3",
- "thiserror 2.0.17",
- "tokio",
- "tokio-test",
- "tokio-util",
- "tracing",
-]
-
-[[package]]
-name = "rustfs-s3select-api"
-version = "0.0.5"
-dependencies = [
- "async-trait",
- "bytes",
- "chrono",
- "datafusion",
- "futures",
- "futures-core",
- "http 1.3.1",
- "object_store",
- "pin-project-lite",
- "rustfs-common",
- "rustfs-ecstore",
- "s3s",
- "snafu",
- "tokio",
- "tokio-util",
- "tracing",
- "transform-stream",
- "url",
-]
-
-[[package]]
-name = "rustfs-s3select-query"
-version = "0.0.5"
-dependencies = [
- "async-recursion",
- "async-trait",
- "datafusion",
- "derive_builder 0.20.2",
- "futures",
- "parking_lot",
- "rustfs-s3select-api",
- "s3s",
- "snafu",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "rustfs-signer"
-version = "0.0.5"
-dependencies = [
- "base64-simd",
- "bytes",
- "http 1.3.1",
- "hyper 1.7.0",
- "rustfs-utils",
- "s3s",
- "serde_urlencoded",
- "time",
- "tracing",
-]
-
-[[package]]
-name = "rustfs-targets"
-version = "0.0.5"
-dependencies = [
- "async-trait",
- "reqwest",
- "rumqttc",
- "rustfs-config",
- "rustfs-utils",
- "serde",
- "serde_json",
- "snap",
- "thiserror 2.0.17",
- "tokio",
- "tracing",
- "url",
- "urlencoding",
- "uuid",
-]
-
-[[package]]
-name = "rustfs-utils"
-version = "0.0.5"
-dependencies = [
- "base64-simd",
- "blake3",
- "brotli 8.0.2",
- "bytes",
- "convert_case",
- "crc32fast",
- "flate2",
- "futures",
- "hashbrown 0.16.0",
- "hex-simd",
- "highway",
- "hmac 0.13.0-rc.3",
- "http 1.3.1",
- "hyper 1.7.0",
- "libc",
- "local-ip-address",
- "lz4",
- "md-5 0.11.0-rc.3",
- "netif",
- "nix 0.30.1",
- "rand 0.10.0-rc.5",
- "regex",
- "rustfs-config",
- "rustls 0.23.35",
- "rustls-pemfile 2.2.0",
- "rustls-pki-types",
- "s3s",
- "serde",
- "sha1 0.11.0-rc.3",
- "sha2 0.11.0-rc.3",
- "siphasher",
- "snap",
- "sysinfo",
- "tempfile",
- "thiserror 2.0.17",
- "tokio",
- "tracing",
- "transform-stream",
- "url",
- "winapi",
- "zstd",
-]
-
-[[package]]
-name = "rustfs-workers"
-version = "0.0.5"
-dependencies = [
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "rustfs-zip"
-version = "0.0.5"
-dependencies = [
- "astral-tokio-tar",
- "async-compression",
- "tokio",
- "tokio-stream",
 ]
 
 [[package]]

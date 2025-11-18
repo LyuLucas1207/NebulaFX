@@ -1,20 +1,8 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use chrono::{DateTime, Utc};
 use hashbrown::HashMap;
-use rustfs_targets::EventName;
+use nebulafx_targets::EventName;
 use serde::{Deserialize, Serialize};
 use url::form_urlencoded;
 
@@ -119,29 +107,29 @@ impl Event {
         user_metadata.insert("x-amz-meta-test".to_string(), "value".to_string());
         user_metadata.insert("x-amz-storage-storage-options".to_string(), "value".to_string());
         user_metadata.insert("x-amz-meta-".to_string(), "value".to_string());
-        user_metadata.insert("x-rustfs-meta-".to_string(), "rustfs-value".to_string());
+        user_metadata.insert("x-nebulafx-meta-".to_string(), "nebulafx-value".to_string());
         user_metadata.insert("x-request-id".to_string(), "request-id-123".to_string());
         user_metadata.insert("x-bucket".to_string(), "bucket".to_string());
         user_metadata.insert("x-object".to_string(), "object".to_string());
-        user_metadata.insert("x-rustfs-origin-endpoint".to_string(), "http://127.0.0.1".to_string());
-        user_metadata.insert("x-rustfs-user-metadata".to_string(), "metadata".to_string());
-        user_metadata.insert("x-rustfs-deployment-id".to_string(), "deployment-id-123".to_string());
-        user_metadata.insert("x-rustfs-origin-endpoint-code".to_string(), "http://127.0.0.1".to_string());
-        user_metadata.insert("x-rustfs-bucket-name".to_string(), "bucket".to_string());
-        user_metadata.insert("x-rustfs-object-key".to_string(), key.to_string());
-        user_metadata.insert("x-rustfs-object-size".to_string(), "1024".to_string());
-        user_metadata.insert("x-rustfs-object-etag".to_string(), "etag123".to_string());
-        user_metadata.insert("x-rustfs-object-version-id".to_string(), "1".to_string());
+        user_metadata.insert("x-nebulafx-origin-endpoint".to_string(), "http://127.0.0.1".to_string());
+        user_metadata.insert("x-nebulafx-user-metadata".to_string(), "metadata".to_string());
+        user_metadata.insert("x-nebulafx-deployment-id".to_string(), "deployment-id-123".to_string());
+        user_metadata.insert("x-nebulafx-origin-endpoint-code".to_string(), "http://127.0.0.1".to_string());
+        user_metadata.insert("x-nebulafx-bucket-name".to_string(), "bucket".to_string());
+        user_metadata.insert("x-nebulafx-object-key".to_string(), key.to_string());
+        user_metadata.insert("x-nebulafx-object-size".to_string(), "1024".to_string());
+        user_metadata.insert("x-nebulafx-object-etag".to_string(), "etag123".to_string());
+        user_metadata.insert("x-nebulafx-object-version-id".to_string(), "1".to_string());
         user_metadata.insert("x-request-time".to_string(), Utc::now().to_rfc3339());
 
         Event {
             event_version: "2.1".to_string(),
-            event_source: "rustfs:s3".to_string(),
+            event_source: "nebulafx:s3".to_string(),
             aws_region: "us-east-1".to_string(),
             event_time: Utc::now(),
             event_name,
             user_identity: Identity {
-                principal_id: "rustfs".to_string(),
+                principal_id: "nebulafx".to_string(),
             },
             request_parameters: HashMap::new(),
             response_elements: HashMap::new(),
@@ -151,9 +139,9 @@ impl Event {
                 bucket: Bucket {
                     name: bucket.to_string(),
                     owner_identity: Identity {
-                        principal_id: "rustfs".to_string(),
+                        principal_id: "nebulafx".to_string(),
                     },
-                    arn: format!("arn:rustfs:s3:::{bucket}"),
+                    arn: format!("arn:nebulafx:s3:::{bucket}"),
                 },
                 object: Object {
                     key: key.to_string(),
@@ -168,7 +156,7 @@ impl Event {
             source: Source {
                 host: "127.0.0.1".to_string(),
                 port: "9000".to_string(),
-                user_agent: "RustFS (linux; amd64) rustfs-rs/0.1".to_string(),
+                user_agent: "NebulaFX (linux; amd64) nebulafx-rs/0.1".to_string(),
             },
         }
     }
@@ -235,7 +223,7 @@ impl Event {
 
         Self {
             event_version: "2.1".to_string(),
-            event_source: "rustfs:s3".to_string(),
+            event_source: "nebulafx:s3".to_string(),
             aws_region: args.req_params.get("region").cloned().unwrap_or_default(),
             event_time: event_time.and_utc(),
             event_name: args.event_name,
@@ -262,7 +250,7 @@ fn initialize_response_elements(elements: &mut HashMap<String, String>, keys: &[
 pub struct EventArgs {
     pub event_name: EventName,
     pub bucket_name: String,
-    pub object: rustfs_ecstore::store_api::ObjectInfo,
+    pub object: nebulafx_ecstore::store_api::ObjectInfo,
     pub req_params: HashMap<String, String>,
     pub resp_elements: HashMap<String, String>,
     pub version_id: String,
@@ -273,7 +261,7 @@ pub struct EventArgs {
 impl EventArgs {
     // Helper function to check if it is a copy request
     pub fn is_replication_request(&self) -> bool {
-        self.req_params.contains_key("x-rustfs-source-replication-request")
+        self.req_params.contains_key("x-nebulafx-source-replication-request")
     }
 }
 
@@ -298,7 +286,7 @@ impl EventArgs {
 pub struct EventArgsBuilder {
     event_name: EventName,
     bucket_name: String,
-    object: rustfs_ecstore::store_api::ObjectInfo,
+    object: nebulafx_ecstore::store_api::ObjectInfo,
     req_params: HashMap<String, String>,
     resp_elements: HashMap<String, String>,
     version_id: String,
@@ -308,7 +296,7 @@ pub struct EventArgsBuilder {
 
 impl EventArgsBuilder {
     /// Creates a new builder with the required fields.
-    pub fn new(event_name: EventName, bucket_name: impl Into<String>, object: rustfs_ecstore::store_api::ObjectInfo) -> Self {
+    pub fn new(event_name: EventName, bucket_name: impl Into<String>, object: nebulafx_ecstore::store_api::ObjectInfo) -> Self {
         Self {
             event_name,
             bucket_name: bucket_name.into(),
@@ -330,7 +318,7 @@ impl EventArgsBuilder {
     }
 
     /// Sets the object information.
-    pub fn object(mut self, object: rustfs_ecstore::store_api::ObjectInfo) -> Self {
+    pub fn object(mut self, object: nebulafx_ecstore::store_api::ObjectInfo) -> Self {
         self.object = object;
         self
     }

@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::bucket::metadata::BucketMetadata;
 use aws_credential_types::Credentials as SdkCredentials;
@@ -28,13 +16,13 @@ use aws_sdk_s3::{Client as S3Client, Config as S3Config, operation::head_object:
 use aws_sdk_s3::{config::SharedCredentialsProvider, types::BucketVersioningStatus};
 use http::{HeaderMap, HeaderName, HeaderValue, StatusCode};
 use reqwest::Client as HttpClient;
-use rustfs_filemeta::{ReplicationStatusType, ReplicationType};
-use rustfs_utils::http::{
+use nebulafx_filemeta::{ReplicationStatusType, ReplicationType};
+use nebulafx_utils::http::{
     AMZ_BUCKET_REPLICATION_STATUS, AMZ_OBJECT_LOCK_BYPASS_GOVERNANCE, AMZ_OBJECT_LOCK_LEGAL_HOLD, AMZ_OBJECT_LOCK_MODE,
-    AMZ_OBJECT_LOCK_RETAIN_UNTIL_DATE, AMZ_STORAGE_CLASS, AMZ_WEBSITE_REDIRECT_LOCATION, RUSTFS_BUCKET_REPLICATION_CHECK,
-    RUSTFS_BUCKET_REPLICATION_DELETE_MARKER, RUSTFS_BUCKET_REPLICATION_REQUEST, RUSTFS_BUCKET_SOURCE_ETAG,
-    RUSTFS_BUCKET_SOURCE_MTIME, RUSTFS_BUCKET_SOURCE_VERSION_ID, RUSTFS_FORCE_DELETE, is_amz_header, is_minio_header,
-    is_rustfs_header, is_standard_header, is_storageclass_header,
+    AMZ_OBJECT_LOCK_RETAIN_UNTIL_DATE, AMZ_STORAGE_CLASS, AMZ_WEBSITE_REDIRECT_LOCATION, NEUBULAFX_BUCKET_REPLICATION_CHECK,
+    NEUBULAFX_BUCKET_REPLICATION_DELETE_MARKER, NEUBULAFX_BUCKET_REPLICATION_REQUEST, NEUBULAFX_BUCKET_SOURCE_ETAG,
+    NEUBULAFX_BUCKET_SOURCE_MTIME, NEUBULAFX_BUCKET_SOURCE_VERSION_ID, NEUBULAFX_FORCE_DELETE, is_amz_header, is_minio_header,
+    is_nebulafx_header, is_standard_header, is_storageclass_header,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -303,7 +291,7 @@ impl BucketTargetSys {
         // // In a real implementation, you would make actual HTTP requests
         // match self
         //     .hc_client
-        //     .get(format!("https://{}/rustfs/health/ready", endpoint))
+        //     .get(format!("https://{}/nebulafx/health/ready", endpoint))
         //     .timeout(Duration::from_secs(3))
         //     .send()
         //     .await
@@ -934,7 +922,7 @@ impl PutObjectOptions {
         }
 
         if self.expires.unix_timestamp() != 0 {
-            header.insert("Expires", HeaderValue::from_str(&self.expires.format(&Rfc3339).unwrap()).expect("err")); //rustfs invalid header
+            header.insert("Expires", HeaderValue::from_str(&self.expires.format(&Rfc3339).unwrap()).expect("err")); //nebulafx invalid header
         }
 
         if let Some(mode) = &self.mode {
@@ -971,7 +959,7 @@ impl PutObjectOptions {
         }
 
         for (k, v) in &self.user_metadata {
-            if is_amz_header(k) || is_standard_header(k) || is_storageclass_header(k) || is_rustfs_header(k) || is_minio_header(k)
+            if is_amz_header(k) || is_standard_header(k) || is_storageclass_header(k) || is_nebulafx_header(k) || is_minio_header(k)
             {
                 if let Ok(header_name) = HeaderName::from_bytes(k.as_bytes()) {
                     header.insert(header_name, HeaderValue::from_str(v).unwrap());
@@ -987,16 +975,16 @@ impl PutObjectOptions {
 
         if !self.internal.source_version_id.is_empty() {
             header.insert(
-                RUSTFS_BUCKET_SOURCE_VERSION_ID,
+                NEUBULAFX_BUCKET_SOURCE_VERSION_ID,
                 HeaderValue::from_str(&self.internal.source_version_id).expect("err"),
             );
         }
         if self.internal.source_etag.is_empty() {
-            header.insert(RUSTFS_BUCKET_SOURCE_ETAG, HeaderValue::from_str(&self.internal.source_etag).expect("err"));
+            header.insert(NEUBULAFX_BUCKET_SOURCE_ETAG, HeaderValue::from_str(&self.internal.source_etag).expect("err"));
         }
         if self.internal.source_mtime.unix_timestamp() != 0 {
             header.insert(
-                RUSTFS_BUCKET_SOURCE_MTIME,
+                NEUBULAFX_BUCKET_SOURCE_MTIME,
                 HeaderValue::from_str(&self.internal.source_mtime.unix_timestamp().to_string()).expect("err"),
             );
         }
@@ -1271,19 +1259,19 @@ impl TargetClient {
     ) -> Result<(), S3ClientError> {
         let mut headers = HeaderMap::new();
         if opts.force_delete {
-            headers.insert(RUSTFS_FORCE_DELETE, "true".parse().unwrap());
+            headers.insert(NEUBULAFX_FORCE_DELETE, "true".parse().unwrap());
         }
         if opts.governance_bypass {
             headers.insert(AMZ_OBJECT_LOCK_BYPASS_GOVERNANCE, "true".parse().unwrap());
         }
 
         if opts.replication_delete_marker {
-            headers.insert(RUSTFS_BUCKET_REPLICATION_DELETE_MARKER, "true".parse().unwrap());
+            headers.insert(NEUBULAFX_BUCKET_REPLICATION_DELETE_MARKER, "true".parse().unwrap());
         }
 
         if let Some(t) = opts.replication_mtime {
             headers.insert(
-                RUSTFS_BUCKET_SOURCE_MTIME,
+                NEUBULAFX_BUCKET_SOURCE_MTIME,
                 t.format(&Rfc3339).unwrap_or_default().as_str().parse().unwrap(),
             );
         }
@@ -1293,10 +1281,10 @@ impl TargetClient {
         }
 
         if opts.replication_request {
-            headers.insert(RUSTFS_BUCKET_REPLICATION_REQUEST, "true".parse().unwrap());
+            headers.insert(NEUBULAFX_BUCKET_REPLICATION_REQUEST, "true".parse().unwrap());
         }
         if opts.replication_validity_check {
-            headers.insert(RUSTFS_BUCKET_REPLICATION_CHECK, "true".parse().unwrap());
+            headers.insert(NEUBULAFX_BUCKET_REPLICATION_CHECK, "true".parse().unwrap());
         }
 
         match self

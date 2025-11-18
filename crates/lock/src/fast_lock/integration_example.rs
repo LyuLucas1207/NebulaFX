@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 // Example integration of FastObjectLockManager in set_disk.rs
 // This shows how to replace the current slow lock system
@@ -178,7 +166,7 @@ pub mod migration_guide {
     Step-by-step migration from old lock system:
 
     1. Replace namespace_lock field:
-       OLD: pub namespace_lock: Arc<rustfs_lock::NamespaceLock>
+       OLD: pub namespace_lock: Arc<nebulafx_lock::NamespaceLock>
        NEW: pub fast_lock_manager: Arc<FastObjectLockManager>
 
     2. Replace lock acquisition:

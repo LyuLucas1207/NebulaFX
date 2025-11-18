@@ -1,26 +1,14 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::{Error, Result};
 use async_trait::async_trait;
-use rustfs_common::heal_channel::{HealOpts, HealScanMode};
-use rustfs_ecstore::{
+use nebulafx_common::heal_channel::{HealOpts, HealScanMode};
+use nebulafx_ecstore::{
     disk::{DiskStore, endpoint::Endpoint},
     store::ECStore,
     store_api::{BucketInfo, ObjectIO, StorageAPI},
 };
-use rustfs_madmin::heal_commands::HealResultItem;
+use nebulafx_madmin::heal_commands::HealResultItem;
 use std::sync::Arc;
 use tracing::{debug, error, info, warn};
 
@@ -51,7 +39,7 @@ pub enum DiskStatus {
 #[async_trait]
 pub trait HealStorageAPI: Send + Sync {
     /// Get object meta
-    async fn get_object_meta(&self, bucket: &str, object: &str) -> Result<Option<rustfs_ecstore::store_api::ObjectInfo>>;
+    async fn get_object_meta(&self, bucket: &str, object: &str) -> Result<Option<nebulafx_ecstore::store_api::ObjectInfo>>;
 
     /// Get object data
     async fn get_object_data(&self, bucket: &str, object: &str) -> Result<Option<Vec<u8>>>;
@@ -127,14 +115,14 @@ impl ECStoreHealStorage {
 
 #[async_trait]
 impl HealStorageAPI for ECStoreHealStorage {
-    async fn get_object_meta(&self, bucket: &str, object: &str) -> Result<Option<rustfs_ecstore::store_api::ObjectInfo>> {
+    async fn get_object_meta(&self, bucket: &str, object: &str) -> Result<Option<nebulafx_ecstore::store_api::ObjectInfo>> {
         debug!("Getting object meta: {}/{}", bucket, object);
 
         match self.ecstore.get_object_info(bucket, object, &Default::default()).await {
             Ok(info) => Ok(Some(info)),
             Err(e) => {
                 // Map ObjectNotFound to None to align with Option return type
-                if matches!(e, rustfs_ecstore::error::StorageError::ObjectNotFound(_, _)) {
+                if matches!(e, nebulafx_ecstore::error::StorageError::ObjectNotFound(_, _)) {
                     debug!("Object meta not found: {}/{}", bucket, object);
                     Ok(None)
                 } else {
@@ -197,7 +185,7 @@ impl HealStorageAPI for ECStoreHealStorage {
     async fn put_object_data(&self, bucket: &str, object: &str, data: &[u8]) -> Result<()> {
         debug!("Putting object data: {}/{} ({} bytes)", bucket, object, data.len());
 
-        let mut reader = rustfs_ecstore::store_api::PutObjReader::from_vec(data.to_vec());
+        let mut reader = nebulafx_ecstore::store_api::PutObjReader::from_vec(data.to_vec());
         match (*self.ecstore)
             .put_object(bucket, object, &mut reader, &Default::default())
             .await
@@ -402,7 +390,7 @@ impl HealStorageAPI for ECStoreHealStorage {
             Ok(_) => Ok(true), // Object exists
             Err(e) => {
                 // Map ObjectNotFound to false, other errors to false as well for safety
-                if matches!(e, rustfs_ecstore::error::StorageError::ObjectNotFound(_, _)) {
+                if matches!(e, nebulafx_ecstore::error::StorageError::ObjectNotFound(_, _)) {
                     debug!("Object not found: {}/{}", bucket, object);
                     Ok(false)
                 } else {

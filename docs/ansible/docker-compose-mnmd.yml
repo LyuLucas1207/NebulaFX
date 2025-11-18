@@ -1,11 +1,11 @@
 ---
-- name: Prepare for RustFS installation
-  hosts: rustfs
+- name: Prepare for NebulaFX installation
+  hosts: nebulafx
   become: yes
   vars:
     ansible_python_interpreter: /usr/bin/python3
-    install_script_url: "https://rustfs.com/install_rustfs.sh"
-    docker_compose: "/opt/rustfs/docker-compose"
+    install_script_url: "https://nebulafx.com/install_nebulafx.sh"
+    docker_compose: "/opt/nebulafx/docker-compose"
   remote_user: root
 
   tasks:
@@ -43,22 +43,22 @@
       copy:
         content: |
           services:
-            rustfs:
-              image: rustfs/rustfs:latest
-              container_name: rustfs
-              hostname: rustfs
+            nebulafx:
+              image: nebulafx/nebulafx:latest
+              container_name: nebulafx
+              hostname: nebulafx
               network_mode: host
               environment:
                 # Use service names and correct disk indexing (1..4 to match mounted paths)
-                - RUSTFS_VOLUMES=http://rustfs-node{1...4}:9000/data/rustfs{1...4}
-                - RUSTFS_ADDRESS=0.0.0.0:9000
-                - RUSTFS_CONSOLE_ENABLE=true
-                - RUSTFS_CONSOLE_ADDRESS=0.0.0.0:9001
-                - RUSTFS_EXTERNAL_ADDRESS=0.0.0.0:9000  # Same as internal since no port mapping
-                - RUSTFS_ACCESS_KEY=rustfsadmin
-                - RUSTFS_SECRET_KEY=rustfsadmin
-                - RUSTFS_CMD=rustfs
-              command: ["sh", "-c", "sleep 3 && rustfs"]
+                - NEUBULAFX_VOLUMES=http://nebulafx-node{1...4}:9000/data/nebulafx{1...4}
+                - NEUBULAFX_ADDRESS=0.0.0.0:9000
+                - NEUBULAFX_CONSOLE_ENABLE=true
+                - NEUBULAFX_CONSOLE_ADDRESS=0.0.0.0:9001
+                - NEUBULAFX_EXTERNAL_ADDRESS=0.0.0.0:9000  # Same as internal since no port mapping
+                - NEUBULAFX_ACCESS_KEY=nebulafxadmin
+                - NEUBULAFX_SECRET_KEY=nebulafxadmin
+                - NEUBULAFX_CMD=nebulafx
+              command: ["sh", "-c", "sleep 3 && nebulafx"]
               healthcheck:
                 test:
                   [
@@ -73,27 +73,27 @@
                 - "9000:9000"  # API endpoint
                 - "9001:9001"  # Console
               volumes:
-                - rustfs-data1:/data/rustfs1
-                - rustfs-data2:/data/rustfs2
-                - rustfs-data3:/data/rustfs3
-                - rustfs-data4:/data/rustfs4
+                - nebulafx-data1:/data/nebulafx1
+                - nebulafx-data2:/data/nebulafx2
+                - nebulafx-data3:/data/nebulafx3
+                - nebulafx-data4:/data/nebulafx4
               extra_hosts:
-                - "rustfs-node1:172.20.92.202"
-                - "rustfs-node2:172.20.92.201"
-                - "rustfs-node3:172.20.92.200"
-                - "rustfs-node4:172.20.92.199"
+                - "nebulafx-node1:172.20.92.202"
+                - "nebulafx-node2:172.20.92.201"
+                - "nebulafx-node3:172.20.92.200"
+                - "nebulafx-node4:172.20.92.199"
 
           volumes:
-            rustfs-data1:
-            rustfs-data2:
-            rustfs-data3:
-            rustfs-data4:
+            nebulafx-data1:
+            nebulafx-data2:
+            nebulafx-data3:
+            nebulafx-data4:
 
         dest: "{{ docker_compose }}/docker-compose.yml"
         mode: '0644'
     
-    - name: Install rustfs using docker compose
-      tags: rustfs_install
+    - name: Install nebulafx using docker compose
+      tags: nebulafx_install
       command: docker compose -f "{{ docker_compose}}/docker-compose.yml" up -d
       args:
         chdir: "{{ docker_compose }}"
@@ -108,8 +108,8 @@
       debug:
         msg: "{{ docker_compose_output.stdout }}"
 
-    - name: Uninstall rustfs using docker compose
-      tags: rustfs_uninstall 
+    - name: Uninstall nebulafx using docker compose
+      tags: nebulafx_uninstall 
       command: docker compose -f "{{ docker_compose}}/docker-compose.yml" down
       args:
         chdir: "{{ docker_compose }}"

@@ -1,18 +1,6 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 
-use rustfs_ahm::scanner::{
+
+use nebulafx_ahm::scanner::{
     checkpoint::{CheckpointData, CheckpointManager},
     io_monitor::{AdvancedIOMonitor, IOMonitorConfig},
     io_throttler::{AdvancedIOThrottler, IOThrottlerConfig},
@@ -279,7 +267,7 @@ async fn test_scanner_performance_impact() {
     // simulate some io operations to trigger throttling mechanism
     for _ in 0..10 {
         let _current_metrics = io_monitor.get_current_metrics().await;
-        let metrics_snapshot = rustfs_ahm::scanner::io_throttler::MetricsSnapshot {
+        let metrics_snapshot = nebulafx_ahm::scanner::io_throttler::MetricsSnapshot {
             iops: 1000,
             latency: 100,
             cpu_usage: 80,

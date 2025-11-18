@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(unused_mut)]
@@ -29,7 +17,7 @@ use crate::client::{
     api_error_response::{http_resp_to_error_response, to_error_response},
     transition_api::{CreateBucketConfiguration, LocationConstraint, TransitionClient},
 };
-use rustfs_utils::hash::EMPTY_STRING_SHA256_HASH;
+use nebulafx_utils::hash::EMPTY_STRING_SHA256_HASH;
 use s3s::Body;
 use s3s::S3ErrorCode;
 
@@ -159,7 +147,7 @@ impl TransitionClient {
         }
 
         if signer_type == SignatureType::SignatureV2 {
-            let req = rustfs_signer::sign_v2(req, 0, &access_key_id, &secret_access_key, is_virtual_style);
+            let req = nebulafx_signer::sign_v2(req, 0, &access_key_id, &secret_access_key, is_virtual_style);
             return Ok(req);
         }
 
@@ -170,7 +158,7 @@ impl TransitionClient {
 
         req.headers_mut()
             .insert("X-Amz-Content-Sha256", content_sha256.parse().unwrap());
-        let req = rustfs_signer::sign_v4(req, 0, &access_key_id, &secret_access_key, &session_token, "us-east-1");
+        let req = nebulafx_signer::sign_v4(req, 0, &access_key_id, &secret_access_key, &session_token, "us-east-1");
         Ok(req)
     }
 }

@@ -1,42 +1,30 @@
-# Copyright 2024 RustFS Team
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+
 
 [package]
-name = "rustfs-policy"
+name = "nebulafx-policy"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
 homepage.workspace = true
-description = "Policy management for RustFS, providing a framework for defining and enforcing policies across the system."
-keywords = ["policy", "management", "enforcement", "rustfs", "Minio"]
+description = "Policy management for NebulaFX, providing a framework for defining and enforcing policies across the system."
+keywords = ["policy", "management", "enforcement", "nebulafx", "Minio"]
 categories = ["web-programming", "development-tools", "accessibility"]
-documentation = "https://docs.rs/rustfs-policy/latest/rustfs_policy/"
+documentation = "https://docs.rs/nebulafx-policy/latest/nebulafx_policy/"
 
 [lints]
 workspace = true
 
 [dependencies]
-rustfs-config = { workspace = true, features = ["constants","opa"] }
+nebulafx-config = { workspace = true, features = ["constants","opa"] }
 tokio = { workspace = true, features = ["full"] }
 time = { workspace = true, features = ["serde-human-readable"] }
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_json.workspace = true
 thiserror.workspace = true
 strum = { workspace = true, features = ["derive"] }
-rustfs-crypto = { workspace = true }
+nebulafx-crypto = { workspace = true }
 ipnetwork = { workspace = true, features = ["serde"] }
 rand.workspace = true
 base64-simd = { workspace = true }

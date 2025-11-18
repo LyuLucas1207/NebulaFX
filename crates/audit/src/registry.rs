@@ -1,4 +1,4 @@
-//  Copyright 2024 RustFS Team
+//  Copyright 2024 NebulaFX Team
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -15,14 +15,14 @@
 use crate::{AuditEntry, AuditError, AuditResult};
 use futures::{StreamExt, stream::FuturesUnordered};
 use hashbrown::{HashMap, HashSet};
-use rustfs_config::{
+use nebulafx_config::{
     DEFAULT_DELIMITER, ENABLE_KEY, ENV_PREFIX, MQTT_BROKER, MQTT_KEEP_ALIVE_INTERVAL, MQTT_PASSWORD, MQTT_QOS, MQTT_QUEUE_DIR,
     MQTT_QUEUE_LIMIT, MQTT_RECONNECT_INTERVAL, MQTT_TOPIC, MQTT_USERNAME, WEBHOOK_AUTH_TOKEN, WEBHOOK_BATCH_SIZE,
     WEBHOOK_CLIENT_CERT, WEBHOOK_CLIENT_KEY, WEBHOOK_ENDPOINT, WEBHOOK_HTTP_TIMEOUT, WEBHOOK_MAX_RETRY, WEBHOOK_QUEUE_DIR,
     WEBHOOK_QUEUE_LIMIT, WEBHOOK_RETRY_INTERVAL, audit::AUDIT_ROUTE_PREFIX,
 };
-use rustfs_ecstore::config::{Config, KVS};
-use rustfs_targets::{
+use nebulafx_ecstore::config::{Config, KVS};
+use nebulafx_targets::{
     Target, TargetError,
     target::{ChannelTargetType, TargetType, mqtt::MQTTArgs, webhook::WebhookArgs},
 };
@@ -276,13 +276,13 @@ impl AuditRegistry {
             }
 
             // 7. Save the new configuration to the system
-            let Some(store) = rustfs_ecstore::new_object_layer_fn() else {
+            let Some(store) = nebulafx_ecstore::new_object_layer_fn() else {
                 return Err(AuditError::StorageNotAvailable(
                     "Failed to save target configuration: server storage not initialized".to_string(),
                 ));
             };
 
-            match rustfs_ecstore::config::com::save_server_config(store, &new_config).await {
+            match nebulafx_ecstore::config::com::save_server_config(store, &new_config).await {
                 Ok(_) => info!("New audit configuration saved to system successfully"),
                 Err(e) => {
                     error!(error = %e, "Failed to save new audit configuration");
@@ -341,12 +341,12 @@ async fn create_audit_target(
     match target_type {
         val if val == ChannelTargetType::Webhook.as_str() => {
             let args = parse_webhook_args(id, config)?;
-            let target = rustfs_targets::target::webhook::WebhookTarget::new(id.to_string(), args)?;
+            let target = nebulafx_targets::target::webhook::WebhookTarget::new(id.to_string(), args)?;
             Ok(Box::new(target))
         }
         val if val == ChannelTargetType::Mqtt.as_str() => {
             let args = parse_mqtt_args(id, config)?;
-            let target = rustfs_targets::target::mqtt::MQTTTarget::new(id.to_string(), args)?;
+            let target = nebulafx_targets::target::mqtt::MQTTTarget::new(id.to_string(), args)?;
             Ok(Box::new(target))
         }
         _ => Err(TargetError::Configuration(format!("Unknown target type: {target_type}"))),

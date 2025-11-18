@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 mod audit;
 pub mod com;
@@ -22,10 +10,10 @@ pub mod storageclass;
 use crate::error::Result;
 use crate::store::ECStore;
 use com::{STORAGE_CLASS_SUB_SYS, lookup_configs, read_config_without_migrate};
-use rustfs_config::COMMENT_KEY;
-use rustfs_config::DEFAULT_DELIMITER;
-use rustfs_config::audit::{AUDIT_MQTT_SUB_SYS, AUDIT_WEBHOOK_SUB_SYS};
-use rustfs_config::notify::{NOTIFY_MQTT_SUB_SYS, NOTIFY_WEBHOOK_SUB_SYS};
+use nebulafx_config::COMMENT_KEY;
+use nebulafx_config::DEFAULT_DELIMITER;
+use nebulafx_config::audit::{AUDIT_MQTT_SUB_SYS, AUDIT_WEBHOOK_SUB_SYS};
+use nebulafx_config::notify::{NOTIFY_MQTT_SUB_SYS, NOTIFY_WEBHOOK_SUB_SYS};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::LazyLock;
@@ -36,11 +24,11 @@ pub static DEFAULT_KVS: LazyLock<OnceLock<HashMap<String, KVS>>> = LazyLock::new
 pub static GLOBAL_SERVER_CONFIG: LazyLock<OnceLock<Config>> = LazyLock::new(OnceLock::new);
 pub static GLOBAL_CONFIG_SYS: LazyLock<ConfigSys> = LazyLock::new(ConfigSys::new);
 
-pub const ENV_ACCESS_KEY: &str = "RUSTFS_ACCESS_KEY";
-pub const ENV_SECRET_KEY: &str = "RUSTFS_SECRET_KEY";
-pub const ENV_ROOT_USER: &str = "RUSTFS_ROOT_USER";
-pub const ENV_ROOT_PASSWORD: &str = "RUSTFS_ROOT_PASSWORD";
-pub static RUSTFS_CONFIG_PREFIX: &str = "config";
+pub const ENV_ACCESS_KEY: &str = "NEUBULAFX_ACCESS_KEY";
+pub const ENV_SECRET_KEY: &str = "NEUBULAFX_SECRET_KEY";
+pub const ENV_ROOT_USER: &str = "NEUBULAFX_ROOT_USER";
+pub const ENV_ROOT_PASSWORD: &str = "NEUBULAFX_ROOT_PASSWORD";
+pub static NEUBULAFX_CONFIG_PREFIX: &str = "config";
 
 pub struct ConfigSys {}
 

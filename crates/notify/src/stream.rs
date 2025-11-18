@@ -1,23 +1,11 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::{Event, integration::NotificationMetrics};
-use rustfs_targets::StoreError;
-use rustfs_targets::Target;
-use rustfs_targets::TargetError;
-use rustfs_targets::store::{Key, Store};
-use rustfs_targets::target::EntityTarget;
+use nebulafx_targets::StoreError;
+use nebulafx_targets::Target;
+use nebulafx_targets::TargetError;
+use nebulafx_targets::store::{Key, Store};
+use nebulafx_targets::target::EntityTarget;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::{Semaphore, mpsc};
@@ -147,7 +135,7 @@ pub async fn stream_events_with_batching(
 
     // Configuration parameters
     const DEFAULT_BATCH_SIZE: usize = 1;
-    let batch_size = std::env::var("RUSTFS_EVENT_BATCH_SIZE")
+    let batch_size = std::env::var("NEUBULAFX_EVENT_BATCH_SIZE")
         .ok()
         .and_then(|s| s.parse::<usize>().ok())
         .unwrap_or(DEFAULT_BATCH_SIZE);

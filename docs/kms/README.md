@@ -1,6 +1,6 @@
-# RustFS Key Management Service
+# NebulaFX Key Management Service
 
-The RustFS Key Management Service (KMS) provides end-to-end key orchestration, envelope encryption, and S3-compatible semantics for encrypted object storage. It sits between the RustFS API surface and the underlying encryption primitives, ensuring that data at rest and in flight remains protected while keeping operational workflows simple.
+The NebulaFX Key Management Service (KMS) provides end-to-end key orchestration, envelope encryption, and S3-compatible semantics for encrypted object storage. It sits between the NebulaFX API surface and the underlying encryption primitives, ensuring that data at rest and in flight remains protected while keeping operational workflows simple.
 
 ## Highlights
 
@@ -14,7 +14,7 @@ The RustFS Key Management Service (KMS) provides end-to-end key orchestration, e
 
 ```
        ┌──────────────────────────────────────────────────────────┐
-       │                       RustFS Frontend                     │
+       │                       NebulaFX Frontend                     │
        │  (S3 compatible API, IAM, policy engine, bucket logic)    │
        └──────────────┬───────────────────────────────────────────┘
                       │
@@ -40,8 +40,8 @@ The RustFS Key Management Service (KMS) provides end-to-end key orchestration, e
 
 | Component                     | Responsibility                                                         |
 |------------------------------|-------------------------------------------------------------------------|
-| `rustfs::kms::manager`       | Owns backend lifecycle, caching, and key orchestration.                |
-| `rustfs::kms::encryption`    | Encrypts/decrypts payloads, issues data keys, validates headers.       |
+| `nebulafx::kms::manager`       | Owns backend lifecycle, caching, and key orchestration.                |
+| `nebulafx::kms::encryption`    | Encrypts/decrypts payloads, issues data keys, validates headers.       |
 | Admin REST handlers          | Accept configuration requests (`configure`, `start`, `status`, etc.). |
 | Backends                     | `local` (filesystem) and `vault` (Transit) implementations.            |
 
@@ -56,11 +56,11 @@ Refer to [configuration.md](configuration.md) for static configuration details a
 
 ## Encryption Workflows
 
-RustFS KMS supports the same S3 semantics users expect:
+NebulaFX KMS supports the same S3 semantics users expect:
 
-- **SSE-S3** – RustFS manages the data key lifecycle and returns the `x-amz-server-side-encryption` header.
-- **SSE-KMS** – RustFS issues per-object data keys bound to the configured KMS backend, exposing the `x-amz-server-side-encryption` header with value `aws:kms`.
-- **SSE-C** – Clients provide a 256-bit key and MD5 checksum per request; RustFS uses KMS to encrypt metadata, while encrypted payloads are streamed with the customer key.
+- **SSE-S3** – NebulaFX manages the data key lifecycle and returns the `x-amz-server-side-encryption` header.
+- **SSE-KMS** – NebulaFX issues per-object data keys bound to the configured KMS backend, exposing the `x-amz-server-side-encryption` header with value `aws:kms`.
+- **SSE-C** – Clients provide a 256-bit key and MD5 checksum per request; NebulaFX uses KMS to encrypt metadata, while encrypted payloads are streamed with the customer key.
 
 Internally, every object follows the envelope-encryption flow below:
 
@@ -72,9 +72,9 @@ Internally, every object follows the envelope-encryption flow below:
 
 ## Quick Start
 
-1. **Build RustFS** – `cargo build --release` or run the project-specific build helper.
+1. **Build NebulaFX** – `cargo build --release` or run the project-specific build helper.
 2. **Prepare credentials** – ensure you have admin access keys; for Vault, export `VAULT_ADDR` and a root or scoped token.
-3. **Launch RustFS** – `./target/release/rustfs server` (KMS starts in `NotConfigured`).
+3. **Launch NebulaFX** – `./target/release/nebulafx server` (KMS starts in `NotConfigured`).
 4. **Configure the backend**:
 
    ```bash
@@ -83,14 +83,14 @@ Internally, every object follows the envelope-encryption flow below:
      --access_key admin --secret_key admin \
      -X POST -d '{
        "backend_type": "local",
-       "key_dir": "/var/lib/rustfs/kms-keys",
-       "default_key_id": "rustfs-master"
+       "key_dir": "/var/lib/nebulafx/kms-keys",
+       "default_key_id": "nebulafx-master"
      }' \
-     http://localhost:9000/rustfs/admin/v3/kms/configure
+     http://localhost:9000/nebulafx/admin/v3/kms/configure
    
    awscurl --service s3 --region us-east-1 \
      --access_key admin --secret_key admin \
-     -X POST http://localhost:9000/rustfs/admin/v3/kms/start
+     -X POST http://localhost:9000/nebulafx/admin/v3/kms/start
    ```
 
    ```bash
@@ -105,14 +105,14 @@ Internally, every object follows the envelope-encryption flow below:
        },
        "mount_path": "transit",
        "kv_mount": "secret",
-       "key_path_prefix": "rustfs/kms/keys",
-       "default_key_id": "rustfs-master"
+       "key_path_prefix": "nebulafx/kms/keys",
+       "default_key_id": "nebulafx-master"
      }' \
-     https://rustfs.example.com/rustfs/admin/v3/kms/configure
+     https://nebulafx.example.com/nebulafx/admin/v3/kms/configure
    
    awscurl --service s3 --region us-east-1 \
      --access_key admin --secret_key admin \
-     -X POST https://rustfs.example.com/rustfs/admin/v3/kms/start
+     -X POST https://nebulafx.example.com/nebulafx/admin/v3/kms/start
    ```
 
 5. **Verify**:
@@ -120,7 +120,7 @@ Internally, every object follows the envelope-encryption flow below:
    ```bash
    awscurl --service s3 --region us-east-1 \
      --access_key admin --secret_key admin \
-     http://localhost:9000/rustfs/admin/v3/kms/status
+     http://localhost:9000/nebulafx/admin/v3/kms/status
    ```
 
    The response should include `"status": "Running"` and the configured backend summary.
@@ -133,7 +133,7 @@ Internally, every object follows the envelope-encryption flow below:
 | [dynamic-configuration-guide.md](dynamic-configuration-guide.md) | Gradual rollout, rotation, and failover playbooks. |
 | [configuration.md](configuration.md) | Static configuration files, environment variables, Helm/Ansible hints. |
 | [api.md](api.md) | Rust crate interfaces (`ConfigureKmsRequest`, `KmsManager`, encryption helpers). |
-| [sse-integration.md](sse-integration.md) | Mapping between S3 headers and RustFS behaviour, client examples. |
+| [sse-integration.md](sse-integration.md) | Mapping between S3 headers and NebulaFX behaviour, client examples. |
 | [security.md](security.md) | Threat model, access control, TLS, auditing, secrets hygiene. |
 | [test_suite_integration.md](test_suite_integration.md) | Running e2e, Vault, and regression test suites. |
 | [troubleshooting.md](troubleshooting.md) | Common errors and recovery steps. |
@@ -146,6 +146,6 @@ Internally, every object follows the envelope-encryption flow below:
 | **Master Key** | Root key stored in the backend; encrypts data keys. |
 | **Data Encryption Key (DEK)** | Per-object key that encrypts payload chunks. |
 | **Envelope Encryption** | Wrapping DEKs with a higher-level key before persisting. |
-| **SSE-S3 / SSE-KMS / SSE-C** | Amazon S3-compatible encryption modes supported by RustFS. |
+| **SSE-S3 / SSE-KMS / SSE-C** | Amazon S3-compatible encryption modes supported by NebulaFX. |
 
 For deeper dives continue with the documents referenced above. EOF

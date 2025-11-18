@@ -1,18 +1,6 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 
-use rustfs_config::{RUSTFS_TLS_CERT, RUSTFS_TLS_KEY};
+
+use nebulafx_config::{NEUBULAFX_TLS_CERT, NEUBULAFX_TLS_KEY};
 use rustls::server::{ClientHello, ResolvesServerCert, ResolvesServerCertUsingSni};
 use rustls::sign::CertifiedKey;
 use rustls_pemfile::{certs, private_key};
@@ -59,7 +47,7 @@ pub fn certs_error(err: String) -> Error {
 
 /// Load all certificates and private keys in the directory
 /// This function loads all certificate and private key pairs from the specified directory.
-/// It looks for files named `rustfs_cert.pem` and `rustfs_key.pem` in each subdirectory.
+/// It looks for files named `nebulafx_cert.pem` and `nebulafx_key.pem` in each subdirectory.
 /// The root directory can also contain a default certificate/private key pair.
 pub fn load_all_certs_from_directory(
     dir_path: &str,
@@ -74,8 +62,8 @@ pub fn load_all_certs_from_directory(
     }
 
     // 1. First check whether there is a certificate/private key pair in the root directory
-    let root_cert_path = dir.join(RUSTFS_TLS_CERT);
-    let root_key_path = dir.join(RUSTFS_TLS_KEY);
+    let root_cert_path = dir.join(NEUBULAFX_TLS_CERT);
+    let root_key_path = dir.join(NEUBULAFX_TLS_KEY);
 
     if root_cert_path.exists() && root_key_path.exists() {
         debug!("find the root directory certificate: {:?}", root_cert_path);
@@ -108,8 +96,8 @@ pub fn load_all_certs_from_directory(
                 .ok_or_else(|| certs_error(format!("invalid domain name directory:{path:?}")))?;
 
             // find certificate and private key files
-            let cert_path = path.join(RUSTFS_TLS_CERT); // e.g., rustfs_cert.pem
-            let key_path = path.join(RUSTFS_TLS_KEY); // e.g., rustfs_key.pem
+            let cert_path = path.join(NEUBULAFX_TLS_CERT); // e.g., nebulafx_cert.pem
+            let key_path = path.join(NEUBULAFX_TLS_KEY); // e.g., nebulafx_key.pem
 
             if cert_path.exists() && key_path.exists() {
                 debug!("find the domain name certificate: {} in {:?}", domain_name, cert_path);
@@ -196,7 +184,7 @@ pub fn create_multi_cert_resolver(
 
 /// Checks if TLS key logging is enabled.
 pub fn tls_key_log() -> bool {
-    env::var("RUSTFS_TLS_KEYLOG")
+    env::var("NEUBULAFX_TLS_KEYLOG")
         .map(|v| {
             let v = v.trim();
             v.eq_ignore_ascii_case("1")
@@ -395,16 +383,16 @@ mod tests {
     #[test]
     fn test_filename_constants_consistency() {
         // Test that the constants match expected values
-        assert_eq!(RUSTFS_TLS_CERT, "rustfs_cert.pem");
-        assert_eq!(RUSTFS_TLS_KEY, "rustfs_key.pem");
+        assert_eq!(NEUBULAFX_TLS_CERT, "nebulafx_cert.pem");
+        assert_eq!(NEUBULAFX_TLS_KEY, "nebulafx_key.pem");
 
         // Test that constants are not empty
-        assert!(!RUSTFS_TLS_CERT.is_empty());
-        assert!(!RUSTFS_TLS_KEY.is_empty());
+        assert!(!NEUBULAFX_TLS_CERT.is_empty());
+        assert!(!NEUBULAFX_TLS_KEY.is_empty());
 
         // Test that constants have proper extensions
-        assert!(RUSTFS_TLS_CERT.ends_with(".pem"));
-        assert!(RUSTFS_TLS_KEY.ends_with(".pem"));
+        assert!(NEUBULAFX_TLS_CERT.ends_with(".pem"));
+        assert!(NEUBULAFX_TLS_KEY.ends_with(".pem"));
     }
 
     #[test]

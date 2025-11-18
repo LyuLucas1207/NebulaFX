@@ -1,17 +1,5 @@
 #![allow(clippy::map_entry)]
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(unused_mut)]
@@ -20,12 +8,12 @@
 #![allow(clippy::all)]
 
 use lazy_static::lazy_static;
-use rustfs_checksums::ChecksumAlgorithm;
+use nebulafx_checksums::ChecksumAlgorithm;
 use std::collections::HashMap;
 
 use crate::client::{api_put_object::PutObjectOptions, api_s3_datatypes::ObjectPart};
 use crate::{disk::DiskAPI, store_api::GetObjectReader};
-use rustfs_utils::crypto::{base64_decode, base64_encode};
+use nebulafx_utils::crypto::{base64_decode, base64_encode};
 use s3s::header::{
     X_AMZ_CHECKSUM_ALGORITHM, X_AMZ_CHECKSUM_CRC32, X_AMZ_CHECKSUM_CRC32C, X_AMZ_CHECKSUM_SHA1, X_AMZ_CHECKSUM_SHA256,
 };
@@ -154,7 +142,7 @@ impl ChecksumMode {
         }
     }
 
-    pub fn hasher(&self) -> Result<Box<dyn rustfs_checksums::http::HttpChecksum>, std::io::Error> {
+    pub fn hasher(&self) -> Result<Box<dyn nebulafx_checksums::http::HttpChecksum>, std::io::Error> {
         match /*C_ChecksumMask & **/self {
             ChecksumMode::ChecksumCRC32 => {
                 return Ok(ChecksumAlgorithm::Crc32.into_impl());

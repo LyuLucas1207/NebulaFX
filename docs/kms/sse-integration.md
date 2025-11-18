@@ -1,14 +1,14 @@
 # Server-Side Encryption Integration
 
-RustFS implements Amazon S3-compatible server-side encryption semantics. This document outlines how each mode maps to KMS operations and how clients should format requests.
+NebulaFX implements Amazon S3-compatible server-side encryption semantics. This document outlines how each mode maps to KMS operations and how clients should format requests.
 
 ## Supported Modes
 
 | Mode | Request Headers | Managed by | Notes |
 |------|-----------------|------------|-------|
-| `SSE-S3` | `x-amz-server-side-encryption: AES256` | RustFS KMS using the configured default key. | Simplest option; clients do not manage keys. |
-| `SSE-KMS` | `x-amz-server-side-encryption: aws:kms`<br>`x-amz-server-side-encryption-aws-kms-key-id: <key-id>` (optional) | RustFS KMS + backend (Vault/Local). | Specify a key-id to override the default. |
-| `SSE-C` | `x-amz-server-side-encryption-customer-algorithm: AES256`<br>`x-amz-server-side-encryption-customer-key: <Base64 key>`<br>`x-amz-server-side-encryption-customer-key-MD5: <Base64 MD5>` | Customer provided | RustFS never stores the plaintext key; clients must supply it on every request. |
+| `SSE-S3` | `x-amz-server-side-encryption: AES256` | NebulaFX KMS using the configured default key. | Simplest option; clients do not manage keys. |
+| `SSE-KMS` | `x-amz-server-side-encryption: aws:kms`<br>`x-amz-server-side-encryption-aws-kms-key-id: <key-id>` (optional) | NebulaFX KMS + backend (Vault/Local). | Specify a key-id to override the default. |
+| `SSE-C` | `x-amz-server-side-encryption-customer-algorithm: AES256`<br>`x-amz-server-side-encryption-customer-key: <Base64 key>`<br>`x-amz-server-side-encryption-customer-key-MD5: <Base64 MD5>` | Customer provided | NebulaFX never stores the plaintext key; clients must supply it on every request. |
 
 ## Request Examples
 
@@ -37,7 +37,7 @@ aws s3api put-object \
   --ssekms-key-id rotation-2024-09
 ```
 
-If `--ssekms-key-id` is omitted, RustFS uses the configured `default_key_id`.
+If `--ssekms-key-id` is omitted, NebulaFX uses the configured `default_key_id`.
 
 ### SSE-C Multipart Upload
 

@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::policy;
 
@@ -25,7 +13,7 @@ pub enum Error {
     StringError(String),
 
     #[error("crypto: {0}")]
-    CryptoError(#[from] rustfs_crypto::Error),
+    CryptoError(#[from] nebulafx_crypto::Error),
 
     #[error("user '{0}' does not exist")]
     NoSuchUser(String),
@@ -211,7 +199,7 @@ mod tests {
     #[test]
     fn test_policy_error_from_crypto_error() {
         // Test conversion from crypto::Error - use an actual variant
-        let crypto_error = rustfs_crypto::Error::ErrUnexpectedHeader;
+        let crypto_error = nebulafx_crypto::Error::ErrUnexpectedHeader;
         let policy_error: Error = crypto_error.into();
 
         match policy_error {

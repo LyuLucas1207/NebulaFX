@@ -1,24 +1,12 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 
-use rustfs_utils::{XHost, check_local_server_addr, get_host_ip, is_local_host};
+
+use nebulafx_utils::{XHost, check_local_server_addr, get_host_ip, is_local_host};
 use tracing::{error, info, instrument, warn};
 
 use crate::{
     disk::endpoint::{Endpoint, EndpointType},
     disks_layout::DisksLayout,
-    global::global_rustfs_port,
+    global::global_nebulafx_port,
 };
 use std::io::{Error, Result};
 use std::{
@@ -242,7 +230,7 @@ impl PoolEndpointList {
                 let host = ep.url.host().unwrap();
                 let host_ip_set = if let Some(set) = host_ip_cache.get(&host) {
                     info!(
-                        target: "rustfs::ecstore::endpoints",
+                        target: "nebulafx::ecstore::endpoints",
                         host = %host,
                         endpoint = %ep.to_string(),
                         from = "cache",
@@ -258,7 +246,7 @@ impl PoolEndpointList {
                         }
                     };
                     info!(
-                        target: "rustfs::ecstore::endpoints",
+                        target: "nebulafx::ecstore::endpoints",
                         host = %host,
                         endpoint = %ep.to_string(),
                         from = "get_host_ip",
@@ -609,7 +597,7 @@ impl EndpointServerPools {
                     continue;
                 }
                 let host = endpoint.host_port();
-                if endpoint.is_local && endpoint.url.port() == Some(global_rustfs_port()) && local.is_none() {
+                if endpoint.is_local && endpoint.url.port() == Some(global_nebulafx_port()) && local.is_none() {
                     local = Some(host.clone());
                 }
 
@@ -647,7 +635,7 @@ impl EndpointServerPools {
 
 #[cfg(test)]
 mod test {
-    use rustfs_utils::must_get_local_ips;
+    use nebulafx_utils::must_get_local_ips;
 
     use super::*;
     use std::path::Path;

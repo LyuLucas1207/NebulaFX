@@ -1,4 +1,4 @@
-//  Copyright 2024 RustFS Team
+//  Copyright 2024 NebulaFX Team
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 //! Tests for audit configuration parsing and validation
 
-use rustfs_ecstore::config::KVS;
+use nebulafx_ecstore::config::KVS;
 
 #[test]
 fn test_webhook_valid_fields() {
@@ -80,15 +80,15 @@ fn test_config_section_names() {
 #[test]
 fn test_environment_variable_parsing() {
     // Test environment variable prefix patterns
-    let env_prefix = "RUSTFS_";
+    let env_prefix = "NEUBULAFX_";
     let audit_webhook_prefix = format!("{env_prefix}AUDIT_WEBHOOK_");
     let audit_mqtt_prefix = format!("{env_prefix}AUDIT_MQTT_");
 
-    assert_eq!(audit_webhook_prefix, "RUSTFS_AUDIT_WEBHOOK_");
-    assert_eq!(audit_mqtt_prefix, "RUSTFS_AUDIT_MQTT_");
+    assert_eq!(audit_webhook_prefix, "NEUBULAFX_AUDIT_WEBHOOK_");
+    assert_eq!(audit_mqtt_prefix, "NEUBULAFX_AUDIT_MQTT_");
 
     // Test instance parsing
-    let example_env_var = "RUSTFS_AUDIT_WEBHOOK_ENABLE_PRIMARY";
+    let example_env_var = "NEUBULAFX_AUDIT_WEBHOOK_ENABLE_PRIMARY";
     assert!(example_env_var.starts_with(&audit_webhook_prefix));
 
     let suffix = &example_env_var[audit_webhook_prefix.len()..];

@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use anyhow::Result;
 use rmcp::{
@@ -102,16 +90,16 @@ fn default_max_content_size() -> usize {
 }
 
 #[derive(Debug, Clone)]
-pub struct RustfsMcpServer {
+pub struct NEUBULAFXMcpServer {
     s3_client: S3Client,
     _config: Config,
     tool_router: ToolRouter<Self>,
 }
 
 #[tool_router(router = tool_router)]
-impl RustfsMcpServer {
+impl NEUBULAFXMcpServer {
     pub async fn new(config: Config) -> Result<Self> {
-        info!("Creating RustFS MCP Server");
+        info!("Creating NebulaFX MCP Server");
 
         let s3_client = S3Client::new(&config).await?;
 
@@ -602,7 +590,7 @@ impl RustfsMcpServer {
 }
 
 #[tool_handler(router = self.tool_router)]
-impl ServerHandler for RustfsMcpServer {
+impl ServerHandler for NEUBULAFXMcpServer {
     fn get_info(&self) -> ServerInfo {
         ServerInfo {
             protocol_version: ProtocolVersion::V_2024_11_05,
@@ -612,9 +600,9 @@ impl ServerHandler for RustfsMcpServer {
                 }),
                 ..Default::default()
             },
-            instructions: Some("RustFS MCP Server providing S3 operations through Model Context Protocol".into()),
+            instructions: Some("NebulaFX MCP Server providing S3 operations through Model Context Protocol".into()),
             server_info: Implementation {
-                name: "rustfs-mcp-server".into(),
+                name: "nebulafx-mcp-server".into(),
                 version: env!("CARGO_PKG_VERSION").into(),
                 ..Default::default()
             },
@@ -643,7 +631,7 @@ mod tests {
             ..Config::default()
         };
 
-        let result = RustfsMcpServer::new(config).await;
+        let result = NEUBULAFXMcpServer::new(config).await;
         assert!(result.is_err() || result.is_ok());
     }
 

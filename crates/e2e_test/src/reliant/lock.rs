@@ -1,25 +1,13 @@
 #![cfg(test)]
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use async_trait::async_trait;
-use rustfs_ecstore::disk::endpoint::Endpoint;
-use rustfs_lock::client::{LockClient, local::LocalClient, remote::RemoteClient};
-use rustfs_lock::types::{LockInfo, LockResponse, LockStats};
-use rustfs_lock::{LockId, LockMetadata, LockPriority, LockType};
-use rustfs_lock::{LockRequest, NamespaceLock, NamespaceLockManager};
-use rustfs_protos::{node_service_time_out_client, proto_gen::node_service::GenerallyLockRequest};
+use nebulafx_ecstore::disk::endpoint::Endpoint;
+use nebulafx_lock::client::{LockClient, local::LocalClient, remote::RemoteClient};
+use nebulafx_lock::types::{LockInfo, LockResponse, LockStats};
+use nebulafx_lock::{LockId, LockMetadata, LockPriority, LockType};
+use nebulafx_lock::{LockRequest, NamespaceLock, NamespaceLockManager};
+use nebulafx_protos::{node_service_time_out_client, proto_gen::node_service::GenerallyLockRequest};
 use serial_test::serial;
 use std::{collections::HashMap, error::Error, sync::Arc, time::Duration};
 use tokio::time::sleep;
@@ -68,7 +56,7 @@ async fn create_unique_clients(endpoints: &[Endpoint]) -> Result<Vec<Arc<dyn Loc
 
 #[tokio::test]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_guard_drop_releases_exclusive_lock_local() -> Result<(), Box<dyn Error>> {
     // Single local client; no external server required
     let client: Arc<dyn LockClient> = Arc::new(LocalClient::new());
@@ -103,7 +91,7 @@ async fn test_guard_drop_releases_exclusive_lock_local() -> Result<(), Box<dyn E
 
 #[tokio::test]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_guard_shared_then_write_after_drop() -> Result<(), Box<dyn Error>> {
     // Two shared read guards should coexist; write should be blocked until they drop
     let client: Arc<dyn LockClient> = Arc::new(LocalClient::new());
@@ -141,7 +129,7 @@ async fn test_guard_shared_then_write_after_drop() -> Result<(), Box<dyn Error>>
 
 #[tokio::test]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_lock_unlock_rpc() -> Result<(), Box<dyn Error>> {
     let args = LockRequest {
         lock_id: LockId::new_deterministic("dandan"),
@@ -196,7 +184,7 @@ impl FailingMockClient {
 
 #[async_trait]
 impl LockClient for FailingMockClient {
-    async fn acquire_exclusive(&self, request: &LockRequest) -> rustfs_lock::error::Result<LockResponse> {
+    async fn acquire_exclusive(&self, request: &LockRequest) -> nebulafx_lock::error::Result<LockResponse> {
         if self.should_fail_acquire {
             // Simulate network timeout or remote node failure
             return Ok(LockResponse::failure("Simulated remote node failure", Duration::from_millis(100)));
@@ -204,37 +192,37 @@ impl LockClient for FailingMockClient {
         self.local_client.acquire_exclusive(request).await
     }
 
-    async fn acquire_shared(&self, request: &LockRequest) -> rustfs_lock::error::Result<LockResponse> {
+    async fn acquire_shared(&self, request: &LockRequest) -> nebulafx_lock::error::Result<LockResponse> {
         if self.should_fail_acquire {
             return Ok(LockResponse::failure("Simulated remote node failure", Duration::from_millis(100)));
         }
         self.local_client.acquire_shared(request).await
     }
 
-    async fn release(&self, lock_id: &LockId) -> rustfs_lock::error::Result<bool> {
+    async fn release(&self, lock_id: &LockId) -> nebulafx_lock::error::Result<bool> {
         if self.should_fail_release {
-            return Err(rustfs_lock::error::LockError::internal("Simulated release failure"));
+            return Err(nebulafx_lock::error::LockError::internal("Simulated release failure"));
         }
         self.local_client.release(lock_id).await
     }
 
-    async fn refresh(&self, lock_id: &LockId) -> rustfs_lock::error::Result<bool> {
+    async fn refresh(&self, lock_id: &LockId) -> nebulafx_lock::error::Result<bool> {
         self.local_client.refresh(lock_id).await
     }
 
-    async fn force_release(&self, lock_id: &LockId) -> rustfs_lock::error::Result<bool> {
+    async fn force_release(&self, lock_id: &LockId) -> nebulafx_lock::error::Result<bool> {
         self.local_client.force_release(lock_id).await
     }
 
-    async fn check_status(&self, lock_id: &LockId) -> rustfs_lock::error::Result<Option<LockInfo>> {
+    async fn check_status(&self, lock_id: &LockId) -> nebulafx_lock::error::Result<Option<LockInfo>> {
         self.local_client.check_status(lock_id).await
     }
 
-    async fn get_stats(&self) -> rustfs_lock::error::Result<LockStats> {
+    async fn get_stats(&self) -> nebulafx_lock::error::Result<LockStats> {
         self.local_client.get_stats().await
     }
 
-    async fn close(&self) -> rustfs_lock::error::Result<()> {
+    async fn close(&self) -> nebulafx_lock::error::Result<()> {
         self.local_client.close().await
     }
 
@@ -388,7 +376,7 @@ async fn test_transactional_lock_rollback_on_release_failure() -> Result<(), Box
 
 #[tokio::test]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_lock_unlock_ns_lock() -> Result<(), Box<dyn Error>> {
     let endpoints = get_cluster_endpoints();
     let clients = create_unique_clients(&endpoints).await?;
@@ -411,7 +399,7 @@ async fn test_lock_unlock_ns_lock() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_concurrent_lock_attempts() -> Result<(), Box<dyn Error>> {
     let endpoints = get_cluster_endpoints();
     let clients = create_unique_clients(&endpoints).await?;
@@ -457,7 +445,7 @@ async fn test_concurrent_lock_attempts() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_read_write_lock_compatibility() -> Result<(), Box<dyn Error>> {
     let endpoints = get_cluster_endpoints();
     let clients = create_unique_clients(&endpoints).await?;
@@ -500,7 +488,7 @@ async fn test_read_write_lock_compatibility() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_lock_timeout() -> Result<(), Box<dyn Error>> {
     let endpoints = get_cluster_endpoints();
     let clients = create_unique_clients(&endpoints).await?;
@@ -530,7 +518,7 @@ async fn test_lock_timeout() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_batch_lock_operations() -> Result<(), Box<dyn Error>> {
     let endpoints = get_cluster_endpoints();
     let clients = create_unique_clients(&endpoints).await?;
@@ -571,7 +559,7 @@ async fn test_batch_lock_operations() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_multiple_namespaces() -> Result<(), Box<dyn Error>> {
     let endpoints = get_cluster_endpoints();
     let clients = create_unique_clients(&endpoints).await?;
@@ -599,7 +587,7 @@ async fn test_multiple_namespaces() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_rpc_read_lock() -> Result<(), Box<dyn Error>> {
     let args = LockRequest {
         lock_id: LockId::new_deterministic("read_resource"),
@@ -654,7 +642,7 @@ async fn test_rpc_read_lock() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_lock_refresh() -> Result<(), Box<dyn Error>> {
     let args = LockRequest {
         lock_id: LockId::new_deterministic("refresh_resource"),
@@ -698,7 +686,7 @@ async fn test_lock_refresh() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_force_unlock() -> Result<(), Box<dyn Error>> {
     let args = LockRequest {
         lock_id: LockId::new_deterministic("force_resource"),
@@ -747,7 +735,7 @@ async fn test_force_unlock() -> Result<(), Box<dyn Error>> {
 
 #[tokio::test]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_global_lock_map_sharing() -> Result<(), Box<dyn Error>> {
     let endpoints = get_cluster_endpoints();
     let clients = create_unique_clients(&endpoints).await?;

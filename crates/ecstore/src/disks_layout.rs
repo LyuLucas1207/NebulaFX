@@ -1,18 +1,6 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 
-use rustfs_utils::string::{ArgPattern, find_ellipses_patterns, has_ellipses};
+
+use nebulafx_utils::string::{ArgPattern, find_ellipses_patterns, has_ellipses};
 use serde::Deserialize;
 use std::collections::HashSet;
 use std::env;
@@ -22,7 +10,7 @@ use tracing::debug;
 /// Supported set sizes this is used to find the optimal
 /// single set size.
 const SET_SIZES: [usize; 15] = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
-const ENV_RUSTFS_ERASURE_SET_DRIVE_COUNT: &str = "RUSTFS_ERASURE_SET_DRIVE_COUNT";
+const ENV_NEUBULAFX_ERASURE_SET_DRIVE_COUNT: &str = "NEUBULAFX_ERASURE_SET_DRIVE_COUNT";
 
 #[derive(Deserialize, Debug, Default)]
 pub struct PoolDisksLayout {
@@ -108,8 +96,8 @@ impl DisksLayout {
 
         let is_ellipses = args.iter().any(|v| has_ellipses(&[v]));
 
-        let set_drive_count_env = env::var(ENV_RUSTFS_ERASURE_SET_DRIVE_COUNT).unwrap_or_else(|err| {
-            debug!("{} not set use default:0, {:?}", ENV_RUSTFS_ERASURE_SET_DRIVE_COUNT, err);
+        let set_drive_count_env = env::var(ENV_NEUBULAFX_ERASURE_SET_DRIVE_COUNT).unwrap_or_else(|err| {
+            debug!("{} not set use default:0, {:?}", ENV_NEUBULAFX_ERASURE_SET_DRIVE_COUNT, err);
             "0".to_string()
         });
         let set_drive_count: usize = set_drive_count_env.parse().map_err(Error::other)?;
@@ -457,7 +445,7 @@ fn get_total_sizes(arg_patterns: &[ArgPattern]) -> Vec<usize> {
 
 #[cfg(test)]
 mod test {
-    use rustfs_utils::string::Pattern;
+    use nebulafx_utils::string::Pattern;
 
     use super::*;
 
@@ -703,7 +691,7 @@ mod test {
             // Invalid range.
             TestCase {
                 num: 3,
-                arg: "http://rustfs{2...3}/export/set{1...0}",
+                arg: "http://nebulafx{2...3}/export/set{1...0}",
                 ..Default::default()
             },
             // Range cannot be smaller than 4 minimum.
@@ -749,7 +737,7 @@ mod test {
             // Valid input for distributed setup.
             TestCase {
                 num: 8,
-                arg: "http://rustfs{2...3}/export/set{1...64}",
+                arg: "http://nebulafx{2...3}/export/set{1...64}",
                 es: EndpointSet {
                     _arg_patterns: vec![ArgPattern::new(vec![
                         Pattern {
@@ -758,7 +746,7 @@ mod test {
                         },
                         Pattern {
                             seq: get_sequences(2, 3, 0),
-                            prefix: "http://rustfs".to_owned(),
+                            prefix: "http://nebulafx".to_owned(),
                             suffix: "/export/set".to_owned(),
                         },
                     ])],
@@ -770,11 +758,11 @@ mod test {
             // Supporting some advanced cases.
             TestCase {
                 num: 9,
-                arg: "http://rustfs{1...64}.mydomain.net/data",
+                arg: "http://nebulafx{1...64}.mydomain.net/data",
                 es: EndpointSet {
                     _arg_patterns: vec![ArgPattern::new(vec![Pattern {
                         seq: get_sequences(1, 64, 0),
-                        prefix: "http://rustfs".to_owned(),
+                        prefix: "http://nebulafx".to_owned(),
                         suffix: ".mydomain.net/data".to_owned(),
                     }])],
                     set_indexes: vec![vec![16, 16, 16, 16]],
@@ -784,7 +772,7 @@ mod test {
             },
             TestCase {
                 num: 10,
-                arg: "http://rack{1...4}.mydomain.rustfs{1...16}/data",
+                arg: "http://rack{1...4}.mydomain.nebulafx{1...16}/data",
                 es: EndpointSet {
                     _arg_patterns: vec![ArgPattern::new(vec![
                         Pattern {
@@ -795,7 +783,7 @@ mod test {
                         Pattern {
                             seq: get_sequences(1, 4, 0),
                             prefix: "http://rack".to_owned(),
-                            suffix: ".mydomain.rustfs".to_owned(),
+                            suffix: ".mydomain.nebulafx".to_owned(),
                         },
                     ])],
                     set_indexes: vec![vec![16, 16, 16, 16]],
@@ -806,7 +794,7 @@ mod test {
             // Supporting kubernetes cases.
             TestCase {
                 num: 11,
-                arg: "http://rustfs{0...15}.mydomain.net/data{0...1}",
+                arg: "http://nebulafx{0...15}.mydomain.net/data{0...1}",
                 es: EndpointSet {
                     _arg_patterns: vec![ArgPattern::new(vec![
                         Pattern {
@@ -815,7 +803,7 @@ mod test {
                         },
                         Pattern {
                             seq: get_sequences(0, 15, 0),
-                            prefix: "http://rustfs".to_owned(),
+                            prefix: "http://nebulafx".to_owned(),
                             suffix: ".mydomain.net/data".to_owned(),
                         },
                     ])],
@@ -857,7 +845,7 @@ mod test {
             // More than 2 ellipses are supported as well.
             TestCase {
                 num: 14,
-                arg: "http://rustfs{2...3}/export/set{1...64}/test{1...2}",
+                arg: "http://nebulafx{2...3}/export/set{1...64}/test{1...2}",
                 es: EndpointSet {
                     _arg_patterns: vec![ArgPattern::new(vec![
                         Pattern {
@@ -871,7 +859,7 @@ mod test {
                         },
                         Pattern {
                             seq: get_sequences(2, 3, 0),
-                            prefix: "http://rustfs".to_owned(),
+                            prefix: "http://nebulafx".to_owned(),
                             suffix: "/export/set".to_owned(),
                         },
                     ])],

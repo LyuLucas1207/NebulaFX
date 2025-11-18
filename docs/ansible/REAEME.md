@@ -1,6 +1,6 @@
-# Install rustfs with mnmd mode using ansible
+# Install nebulafx with mnmd mode using ansible
 
-This chapter show how to install rustfs with mnmd(multiple nodes multiple disks) using ansible playbook.Two installation method are available, namely binary and docker compose.
+This chapter show how to install nebulafx with mnmd(multiple nodes multiple disks) using ansible playbook.Two installation method are available, namely binary and docker compose.
 
 ## Requirements
 
@@ -13,36 +13,36 @@ This chapter show how to install rustfs with mnmd(multiple nodes multiple disks)
 
 ### Installation
 
-For binary installation([script installation](https://rustfs.com/en/download/),you should modify the below part of the playbook,
+For binary installation([script installation](https://nebulafx.com/en/download/),you should modify the below part of the playbook,
 
 ```
 - name: Modify Target Server's hosts file
   blockinfile:
     path: /etc/hosts
     block: |
-      172.92.20.199  rustfs-node1
-      172.92.20.200  rustfs-node2
-      172.92.20.201  rustfs-node3
-      172.92.20.202  rustfs-node4
+      172.92.20.199  nebulafx-node1
+      172.92.20.200  nebulafx-node2
+      172.92.20.201  nebulafx-node3
+      172.92.20.202  nebulafx-node4
 ```
 
 Replacing the IP with your nodes' **private IP**.If you have more than 4 nodes, adding the ip in order.
 
-Running the command to install rustfs
+Running the command to install nebulafx
 
 ```
-ansible-playbook --skip-tags rustfs_uninstall binary-mnmd.yml
+ansible-playbook --skip-tags nebulafx_uninstall binary-mnmd.yml
 ```
 
-After installation success, you can access the rustfs cluster via any node's public ip and 9000 port. Both default username and password are `rustfsadmin`.
+After installation success, you can access the nebulafx cluster via any node's public ip and 9000 port. Both default username and password are `nebulafxadmin`.
 
 
 ### Uninstallation
 
-Running the command to uninstall rustfs
+Running the command to uninstall nebulafx
 
 ```
-ansible-playbook --tags rustfs_uninstall binary-mnmd.yml
+ansible-playbook --tags nebulafx_uninstall binary-mnmd.yml
 ```
 
 ## Docker compose installation and uninstallation
@@ -79,25 +79,25 @@ For docker compose installation,you should also modify the below part of the pla
 
 ```
 extra_hosts:
-  - "rustfs-node1:172.20.92.202"
-  - "rustfs-node2:172.20.92.201"
-  - "rustfs-node3:172.20.92.200"
-  - "rustfs-node4:172.20.92.199"
+  - "nebulafx-node1:172.20.92.202"
+  - "nebulafx-node2:172.20.92.201"
+  - "nebulafx-node3:172.20.92.200"
+  - "nebulafx-node4:172.20.92.199"
 ```
 
 Replacing the IP with your nodes' **private IP**.If you have more than 4 nodes, adding the ip in order.
 
-Running the command to install rustfs,
+Running the command to install nebulafx,
 
 ```
 ansible-playbook --skip-tags docker_uninstall docker-compose-mnmd.yml
 ```
 
-After installation success, you can access the rustfs cluster via any node's public ip and 9000 port. Both default username and password are `rustfsadmin`.
+After installation success, you can access the nebulafx cluster via any node's public ip and 9000 port. Both default username and password are `nebulafxadmin`.
 
 ### Uninstallation
 
-Running the command to uninstall rustfs
+Running the command to uninstall nebulafx
 
 ```
 ansible-playbook --tags docker_uninstall docker-compose-mnmd.yml

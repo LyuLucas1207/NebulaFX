@@ -1,22 +1,10 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 //! Common utilities for all E2E tests
 //!
 //! This module provides general-purpose functionality needed across
 //! different test modules, including:
-//! - RustFS server process management
+//! - NebulaFX server process management
 //! - AWS S3 client creation and configuration
 //! - Basic health checks and server readiness detection
 //! - Common test constants and utilities
@@ -44,31 +32,31 @@ pub fn workspace_root() -> PathBuf {
     path
 }
 
-/// Resolve the RustFS binary relative to the workspace.
+/// Resolve the NebulaFX binary relative to the workspace.
 /// Always builds the binary to ensure it's up to date.
-pub fn rustfs_binary_path() -> PathBuf {
-    if let Some(path) = std::env::var_os("CARGO_BIN_EXE_rustfs") {
+pub fn nebulafx_binary_path() -> PathBuf {
+    if let Some(path) = std::env::var_os("CARGO_BIN_EXE_nebulafx") {
         return PathBuf::from(path);
     }
 
     // Always build the binary to ensure it's up to date
-    info!("Building RustFS binary to ensure it's up to date...");
-    build_rustfs_binary();
+    info!("Building NebulaFX binary to ensure it's up to date...");
+    build_nebulafx_binary();
 
     let mut binary_path = workspace_root();
     binary_path.push("target");
     let profile_dir = if cfg!(debug_assertions) { "debug" } else { "release" };
     binary_path.push(profile_dir);
-    binary_path.push(format!("rustfs{}", std::env::consts::EXE_SUFFIX));
+    binary_path.push(format!("nebulafx{}", std::env::consts::EXE_SUFFIX));
 
-    info!("Using RustFS binary at {:?}", binary_path);
+    info!("Using NebulaFX binary at {:?}", binary_path);
     binary_path
 }
 
-/// Build the RustFS binary using cargo
-fn build_rustfs_binary() {
+/// Build the NebulaFX binary using cargo
+fn build_nebulafx_binary() {
     let workspace = workspace_root();
-    info!("Building RustFS binary from workspace: {:?}", workspace);
+    info!("Building NebulaFX binary from workspace: {:?}", workspace);
 
     let _profile = if cfg!(debug_assertions) {
         info!("Building in debug mode");
@@ -79,14 +67,14 @@ fn build_rustfs_binary() {
     };
 
     let mut cmd = Command::new("cargo");
-    cmd.current_dir(&workspace).args(["build", "--bin", "rustfs"]);
+    cmd.current_dir(&workspace).args(["build", "--bin", "nebulafx"]);
 
     if !cfg!(debug_assertions) {
         cmd.arg("--release");
     }
 
     info!(
-        "Executing: cargo build --bin rustfs {}",
+        "Executing: cargo build --bin nebulafx {}",
         if cfg!(debug_assertions) { "" } else { "--release" }
     );
 
@@ -94,10 +82,10 @@ fn build_rustfs_binary() {
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        panic!("Failed to build RustFS binary. Error: {stderr}");
+        panic!("Failed to build NebulaFX binary. Error: {stderr}");
     }
 
-    info!("✅ RustFS binary built successfully");
+    info!("✅ NebulaFX binary built successfully");
 }
 
 fn awscurl_binary_path() -> PathBuf {
@@ -112,12 +100,12 @@ static INIT: Once = Once::new();
 /// Initialize tracing for all E2E tests
 pub fn init_logging() {
     INIT.call_once(|| {
-        tracing_subscriber::fmt().with_env_filter("rustfs=info,e2e_test=debug").init();
+        tracing_subscriber::fmt().with_env_filter("nebulafx=info,e2e_test=debug").init();
     });
 }
 
-/// RustFS server environment for E2E testing
-pub struct RustFSTestEnvironment {
+/// NebulaFX server environment for E2E testing
+pub struct NebulaFXTestEnvironment {
     pub temp_dir: String,
     pub address: String,
     pub url: String,
@@ -126,10 +114,10 @@ pub struct RustFSTestEnvironment {
     pub process: Option<Child>,
 }
 
-impl RustFSTestEnvironment {
+impl NebulaFXTestEnvironment {
     /// Create a new test environment with unique temporary directory and port
     pub async fn new() -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
-        let temp_dir = format!("/tmp/rustfs_e2e_test_{}", Uuid::new_v4());
+        let temp_dir = format!("/tmp/nebulafx_e2e_test_{}", Uuid::new_v4());
         fs::create_dir_all(&temp_dir).await?;
 
         // Use a unique port for each test environment
@@ -149,7 +137,7 @@ impl RustFSTestEnvironment {
 
     /// Create a new test environment with specific address
     pub async fn with_address(address: &str) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
-        let temp_dir = format!("/tmp/rustfs_e2e_test_{}", Uuid::new_v4());
+        let temp_dir = format!("/tmp/nebulafx_e2e_test_{}", Uuid::new_v4());
         fs::create_dir_all(&temp_dir).await?;
 
         let url = format!("http://{address}");
@@ -173,22 +161,22 @@ impl RustFSTestEnvironment {
         Ok(port)
     }
 
-    /// Kill any existing RustFS processes
+    /// Kill any existing NebulaFX processes
     pub async fn cleanup_existing_processes(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        info!("Cleaning up any existing RustFS processes");
-        let output = Command::new("pkill").args(["-f", "rustfs"]).output();
+        info!("Cleaning up any existing NebulaFX processes");
+        let output = Command::new("pkill").args(["-f", "nebulafx"]).output();
 
         if let Ok(output) = output {
             if output.status.success() {
-                info!("Killed existing RustFS processes");
+                info!("Killed existing NebulaFX processes");
                 sleep(Duration::from_millis(1000)).await;
             }
         }
         Ok(())
     }
 
-    /// Start RustFS server with basic configuration
-    pub async fn start_rustfs_server(&mut self, extra_args: Vec<&str>) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// Start NebulaFX server with basic configuration
+    pub async fn start_nebulafx_server(&mut self, extra_args: Vec<&str>) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         self.cleanup_existing_processes().await?;
 
         let mut args = vec![
@@ -206,9 +194,9 @@ impl RustFSTestEnvironment {
         // Add temp directory as the last argument
         args.push(&self.temp_dir);
 
-        info!("Starting RustFS server with args: {:?}", args);
+        info!("Starting NebulaFX server with args: {:?}", args);
 
-        let binary_path = rustfs_binary_path();
+        let binary_path = nebulafx_binary_path();
         let process = Command::new(&binary_path).args(&args).spawn()?;
 
         self.process = Some(process);
@@ -219,18 +207,18 @@ impl RustFSTestEnvironment {
         Ok(())
     }
 
-    /// Wait for RustFS server to be ready by checking TCP connectivity
+    /// Wait for NebulaFX server to be ready by checking TCP connectivity
     pub async fn wait_for_server_ready(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        info!("Waiting for RustFS server to be ready on {}", self.address);
+        info!("Waiting for NebulaFX server to be ready on {}", self.address);
 
         for i in 0..30 {
             if TcpStream::connect(&self.address).await.is_ok() {
-                info!("✅ RustFS server is ready after {} attempts", i + 1);
+                info!("✅ NebulaFX server is ready after {} attempts", i + 1);
                 return Ok(());
             }
 
             if i == 29 {
-                return Err("RustFS server failed to become ready within 30 seconds".into());
+                return Err("NebulaFX server failed to become ready within 30 seconds".into());
             }
 
             sleep(Duration::from_secs(1)).await;
@@ -239,7 +227,7 @@ impl RustFSTestEnvironment {
         Ok(())
     }
 
-    /// Create an AWS S3 client configured for this RustFS instance
+    /// Create an AWS S3 client configured for this NebulaFX instance
     pub fn create_s3_client(&self) -> Client {
         let credentials = Credentials::new(&self.access_key, &self.secret_key, None, None, "e2e-test");
         let config = Config::builder()
@@ -269,21 +257,21 @@ impl RustFSTestEnvironment {
         Ok(())
     }
 
-    /// Stop the RustFS server
+    /// Stop the NebulaFX server
     pub fn stop_server(&mut self) {
         if let Some(mut process) = self.process.take() {
-            info!("Stopping RustFS server");
+            info!("Stopping NebulaFX server");
             if let Err(e) = process.kill() {
-                error!("Failed to kill RustFS process: {}", e);
+                error!("Failed to kill NebulaFX process: {}", e);
             } else {
                 let _ = process.wait();
-                info!("RustFS server stopped");
+                info!("NebulaFX server stopped");
             }
         }
     }
 }
 
-impl Drop for RustFSTestEnvironment {
+impl Drop for NebulaFXTestEnvironment {
     fn drop(&mut self) {
         self.stop_server();
 

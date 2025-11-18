@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 //! HashReader implementation with generic support
 //!
@@ -35,10 +23,10 @@
 //!
 //! ### New generic approach:
 //! ```rust
-//! use rustfs_rio::{HashReader, HardLimitReader, EtagReader};
+//! use nebulafx_rio::{HashReader, HardLimitReader, EtagReader};
 //! use tokio::io::BufReader;
 //! use std::io::Cursor;
-//! use rustfs_rio::WarpReader;
+//! use nebulafx_rio::WarpReader;
 //!
 //! # tokio_test::block_on(async {
 //! let data = b"hello world";
@@ -55,7 +43,7 @@
 //! // Method 2: With manual wrapping to recreate original logic
 //! let reader2 = BufReader::new(Cursor::new(&data[..]));
 //! let reader2 = Box::new(WarpReader::new(reader2));
-//! let wrapped_reader: Box<dyn rustfs_rio::Reader> = if size > 0 {
+//! let wrapped_reader: Box<dyn nebulafx_rio::Reader> = if size > 0 {
 //!     if !diskable_md5 {
 //!         // Wrap with both HardLimitReader and EtagReader
 //!         let hard_limit = HardLimitReader::new(reader2, size);
@@ -80,10 +68,10 @@
 //! The `HashReaderDetector` trait allows detection of existing HashReader instances:
 //!
 //! ```rust
-//! use rustfs_rio::{HashReader, HashReaderDetector};
+//! use nebulafx_rio::{HashReader, HashReaderDetector};
 //! use tokio::io::BufReader;
 //! use std::io::Cursor;
-//! use rustfs_rio::WarpReader;
+//! use nebulafx_rio::WarpReader;
 //!
 //! # tokio_test::block_on(async {
 //! let data = b"test";
@@ -650,7 +638,7 @@ mod tests {
         use md5::{Digest, Md5};
         use rand::Rng;
         use rand::RngCore;
-        use rustfs_utils::compress::CompressionAlgorithm;
+        use nebulafx_utils::compress::CompressionAlgorithm;
 
         // Generate 1MB random data
         let size = 1024 * 1024;
@@ -757,7 +745,7 @@ mod tests {
     #[tokio::test]
     async fn test_compression_with_compressible_data() {
         use crate::{CompressReader, DecompressReader};
-        use rustfs_utils::compress::CompressionAlgorithm;
+        use nebulafx_utils::compress::CompressionAlgorithm;
 
         // Create highly compressible data (repeated pattern)
         let pattern = b"Hello, World! This is a test pattern that should compress well. ";
@@ -801,7 +789,7 @@ mod tests {
     #[tokio::test]
     async fn test_compression_algorithms() {
         use crate::{CompressReader, DecompressReader};
-        use rustfs_utils::compress::CompressionAlgorithm;
+        use nebulafx_utils::compress::CompressionAlgorithm;
 
         let data = b"This is test data for compression algorithm testing. ".repeat(1000);
         println!("Testing with {} bytes of data", data.len());

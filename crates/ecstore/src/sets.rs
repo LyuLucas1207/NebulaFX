@@ -1,17 +1,5 @@
 #![allow(clippy::map_entry)]
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use std::{collections::HashMap, sync::Arc};
 
@@ -38,15 +26,15 @@ use crate::{
 };
 use futures::future::join_all;
 use http::HeaderMap;
-use rustfs_common::heal_channel::HealOpts;
-use rustfs_common::{
+use nebulafx_common::heal_channel::HealOpts;
+use nebulafx_common::{
     globals::GLOBAL_Local_Node_Name,
     heal_channel::{DriveState, HealItemType},
 };
-use rustfs_filemeta::FileInfo;
+use nebulafx_filemeta::FileInfo;
 
-use rustfs_madmin::heal_commands::{HealDriveInfo, HealResultItem};
-use rustfs_utils::{crc_hash, path::path_join_buf, sip_hash};
+use nebulafx_madmin::heal_commands::{HealDriveInfo, HealResultItem};
+use nebulafx_utils::{crc_hash, path::path_join_buf, sip_hash};
 use tokio::sync::RwLock;
 use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
@@ -165,7 +153,7 @@ impl Sets {
             // Note: write_quorum was used for the old lock system, no longer needed with FastLock
             let _write_quorum = set_drive_count - parity_count;
             // Create fast lock manager for high performance
-            let fast_lock_manager = Arc::new(rustfs_lock::FastObjectLockManager::new());
+            let fast_lock_manager = Arc::new(nebulafx_lock::FastObjectLockManager::new());
 
             let set_disks = SetDisks::new(
                 fast_lock_manager,
@@ -366,11 +354,11 @@ impl ObjectIO for Sets {
 #[async_trait::async_trait]
 impl StorageAPI for Sets {
     #[tracing::instrument(skip(self))]
-    async fn backend_info(&self) -> rustfs_madmin::BackendInfo {
+    async fn backend_info(&self) -> nebulafx_madmin::BackendInfo {
         unimplemented!()
     }
     #[tracing::instrument(skip(self))]
-    async fn storage_info(&self) -> rustfs_madmin::StorageInfo {
+    async fn storage_info(&self) -> nebulafx_madmin::StorageInfo {
         let mut futures = Vec::with_capacity(self.disk_set.len());
 
         for set in self.disk_set.iter() {
@@ -385,13 +373,13 @@ impl StorageAPI for Sets {
             disks.extend_from_slice(&res.disks);
         }
 
-        rustfs_madmin::StorageInfo {
+        nebulafx_madmin::StorageInfo {
             disks,
             ..Default::default()
         }
     }
     #[tracing::instrument(skip(self))]
-    async fn local_storage_info(&self) -> rustfs_madmin::StorageInfo {
+    async fn local_storage_info(&self) -> nebulafx_madmin::StorageInfo {
         let mut futures = Vec::with_capacity(self.disk_set.len());
 
         for set in self.disk_set.iter() {
@@ -405,7 +393,7 @@ impl StorageAPI for Sets {
         for res in results.into_iter() {
             disks.extend_from_slice(&res.disks);
         }
-        rustfs_madmin::StorageInfo {
+        nebulafx_madmin::StorageInfo {
             disks,
             ..Default::default()
         }

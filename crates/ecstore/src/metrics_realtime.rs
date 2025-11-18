@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::{
     admin_server_info::get_local_server_property,
@@ -19,13 +7,13 @@ use crate::{
     // utils::os::get_drive_stats,
 };
 use chrono::Utc;
-use rustfs_common::{
-    globals::{GLOBAL_Local_Node_Name, GLOBAL_Rustfs_Addr},
+use nebulafx_common::{
+    globals::{GLOBAL_Local_Node_Name, GLOBAL_NEUBULAFX_Addr},
     heal_channel::DriveState,
     metrics::global_metrics,
 };
-use rustfs_madmin::metrics::{DiskIOStats, DiskMetric, RealtimeMetrics};
-use rustfs_utils::os::get_drive_stats;
+use nebulafx_madmin::metrics::{DiskIOStats, DiskMetric, RealtimeMetrics};
+use nebulafx_utils::os::get_drive_stats;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use tracing::{debug, info};
@@ -86,7 +74,7 @@ pub async fn collect_local_metrics(types: MetricType, opts: &CollectMetricsOpts)
         return real_time_metrics;
     }
 
-    let mut by_host_name = GLOBAL_Rustfs_Addr.read().await.clone();
+    let mut by_host_name = GLOBAL_NEUBULAFX_Addr.read().await.clone();
     if !opts.hosts.is_empty() {
         let server = get_local_server_property().await;
         if opts.hosts.contains(&server.endpoint) {

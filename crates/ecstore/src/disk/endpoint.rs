@@ -1,20 +1,8 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use super::error::{Error, Result};
 use path_absolutize::Absolutize;
-use rustfs_utils::{is_local_host, is_socket_addr};
+use nebulafx_utils::{is_local_host, is_socket_addr};
 use std::{fmt::Display, path::Path};
 use tracing::debug;
 use url::{ParseError, Url};
@@ -85,7 +73,7 @@ impl TryFrom<&str> for Endpoint {
                 // On windows having a preceding SlashSeparator will cause problems, if the
                 // command line already has C:/<export-folder/ in it. Final resulting
                 // path on windows might become C:/C:/ this will cause problems
-                // of starting rustfs server properly in distributed mode on windows.
+                // of starting nebulafx server properly in distributed mode on windows.
                 // As a special case make sure to trim the separator.
                 #[cfg(windows)]
                 let path = Path::new(&path[1..]).absolutize()?;
@@ -214,7 +202,7 @@ impl Endpoint {
 fn url_parse_from_file_path(value: &str) -> Result<Url> {
     // Only check if the arg is an ip address and ask for scheme since its absent.
     // localhost, example.com, any FQDN cannot be disambiguated from a regular file path such as
-    // /mnt/export1. So we go ahead and start the rustfs server in FS modes in these cases.
+    // /mnt/export1. So we go ahead and start the nebulafx server in FS modes in these cases.
     let addr: Vec<&str> = value.splitn(2, '/').collect();
     if is_socket_addr(addr[0]) {
         return Err(Error::other("invalid URL endpoint format: missing scheme http or https"));
@@ -494,7 +482,7 @@ mod test {
     #[test]
     fn test_endpoint_with_special_paths() {
         // Test with complex paths
-        let complex_path = "/var/lib/rustfs/data/bucket1";
+        let complex_path = "/var/lib/nebulafx/data/bucket1";
         let endpoint = Endpoint::try_from(complex_path).unwrap();
         assert_eq!(endpoint.get_file_path(), complex_path);
         assert!(endpoint.is_local);

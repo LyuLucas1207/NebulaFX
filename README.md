@@ -1,12 +1,12 @@
-RustFS
+NebulaFX
 
 简体中文 | English
 
 
 ### 概述 Overview
 
-- 简介: RustFS 是一个以 Rust 编写的高性能分布式对象存储系统，提供与 S3 兼容的 API、可观测性、策略与鉴权、审计、KMS 等能力，适合云原生与边缘场景。
-- Brief: RustFS is a high‑performance distributed object storage written in Rust. It offers S3‑compatible APIs, observability, IAM/policy, audit, KMS, and more for cloud‑native and edge workloads.
+- 简介: NebulaFX 是一个以 Rust 编写的高性能分布式对象存储系统，提供与 S3 兼容的 API、可观测性、策略与鉴权、审计、KMS 等能力，适合云原生与边缘场景。
+- Brief: NebulaFX is a high‑performance distributed object storage written in Rust. It offers S3‑compatible APIs, observability, IAM/policy, audit, KMS, and more for cloud‑native and edge workloads.
 
 
 ### 主要特性 Key Features
@@ -39,7 +39,7 @@ RustFS
 ├─ entrypoint.sh             # 容器入口
 ├─ docs/                     # 文档与示例（环境变量、性能测试、KMS 等）
 ├─ scripts/                  # 启动/测试/探针/基准等脚本
-├─ rustfs/                   # 核心二进制 crate（服务入口）
+├─ nebulafx/                   # 核心二进制 crate（服务入口）
 │  ├─ src/
 │  │  ├─ main.rs             # 服务器入口（S3 + Console API 端点）
 │  │  ├─ server/             # HTTP/server 组装、生命周期与优雅关闭
@@ -76,7 +76,7 @@ make clippy        # 静态检查
 make test          # 单测+文档测试
 
 # 本地构建/运行
-make build         # Release 构建二进制（rustfs）
+make build         # Release 构建二进制（nebulafx）
 make build-dev     # Debug 构建
 make run           # 以开发预设运行（端口: 9000）
 
@@ -89,7 +89,7 @@ make docker-dev-local
 最小运行示例 Minimal run:
 
 ```bash
-cargo run --bin rustfs -- ./deploy/data/dev{1...8} --address 0.0.0.0:9000
+cargo run --bin nebulafx -- ./deploy/data/dev{1...8} --address 0.0.0.0:9000
 # 或 Or
 make run
 ```
@@ -97,16 +97,16 @@ make run
 
 ### 配置与环境 Configuration & Env
 
-- CLI/配置: 见 `rustfs/src/config`，常用参数包括 `--address`、`--volumes`、`--region`、`--access-key`、`--secret-key`、KMS 相关选项等。
+- CLI/配置: 见 `nebulafx/src/config`，常用参数包括 `--address`、`--volumes`、`--region`、`--access-key`、`--secret-key`、KMS 相关选项等。
 - 环境变量: 参考 `docs/ENVIRONMENT_VARIABLES.md`，可控制日志、可观测性、更新检查、后台服务启停等：
-  - `RUST_LOG`、`RUSTFS_OBS_LOGGER_LEVEL`、`RUSTFS_LOG_JSON`
-  - `RUSTFS_ENABLE_SCANNER`、`RUSTFS_ENABLE_HEAL`
+  - `RUST_LOG`、`NEUBULAFX_OBS_LOGGER_LEVEL`、`NEUBULAFX_LOG_JSON`
+  - `NEUBULAFX_ENABLE_SCANNER`、`NEUBULAFX_ENABLE_HEAL`
   - `ENV_UPDATE_CHECK`（默认启用）
 
-- CLI/config: See `rustfs/src/config`. Common flags: `--address`, `--volumes`, `--region`, `--access-key`, `--secret-key`, and KMS options.
+- CLI/config: See `nebulafx/src/config`. Common flags: `--address`, `--volumes`, `--region`, `--access-key`, `--secret-key`, and KMS options.
 - Environment variables: See `docs/ENVIRONMENT_VARIABLES.md`. Control logging/observability, update checks, background services:
-  - `RUST_LOG`, `RUSTFS_OBS_LOGGER_LEVEL`, `RUSTFS_LOG_JSON`
-  - `RUSTFS_ENABLE_SCANNER`, `RUSTFS_ENABLE_HEAL`
+  - `RUST_LOG`, `NEUBULAFX_OBS_LOGGER_LEVEL`, `NEUBULAFX_LOG_JSON`
+  - `NEUBULAFX_ENABLE_SCANNER`, `NEUBULAFX_ENABLE_HEAL`
   - `ENV_UPDATE_CHECK` (enabled by default)
 
 

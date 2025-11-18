@@ -1,19 +1,7 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::policy::Args as PArgs;
-use rustfs_config::{ENV_PREFIX, opa::*};
+use nebulafx_config::{ENV_PREFIX, opa::*};
 use serde::Deserialize;
 use serde_json::json;
 use std::{collections::HashMap, env, time::Duration};
@@ -220,8 +208,8 @@ mod tests {
         // Use temp_env to temporarily set environment variables
         temp_env::with_vars(
             [
-                ("RUSTFS_POLICY_PLUGIN_URL", Some("http://localhost:8181/v1/data/rustfs/authz/allow")),
-                ("RUSTFS_POLICY_PLUGIN_AUTH_TOKEN", Some("test-token")),
+                ("NEUBULAFX_POLICY_PLUGIN_URL", Some("http://localhost:8181/v1/data/nebulafx/authz/allow")),
+                ("NEUBULAFX_POLICY_PLUGIN_AUTH_TOKEN", Some("test-token")),
             ],
             || {
                 assert!(check().is_ok());
@@ -231,8 +219,8 @@ mod tests {
 
     #[test]
     fn test_check_missing_required_env() {
-        temp_env::with_var_unset("RUSTFS_POLICY_PLUGIN_URL", || {
-            temp_env::with_var("RUSTFS_POLICY_PLUGIN_AUTH_TOKEN", Some("test-token"), || {
+        temp_env::with_var_unset("NEUBULAFX_POLICY_PLUGIN_URL", || {
+            temp_env::with_var("NEUBULAFX_POLICY_PLUGIN_AUTH_TOKEN", Some("test-token"), || {
                 let result = check();
                 assert!(result.is_err());
                 assert!(result.unwrap_err().contains("Missing required env var"));
@@ -244,8 +232,8 @@ mod tests {
     fn test_check_invalid_env_vars() {
         temp_env::with_vars(
             [
-                ("RUSTFS_POLICY_PLUGIN_URL", Some("http://localhost:8181/v1/data/rustfs/authz/allow")),
-                ("RUSTFS_POLICY_PLUGIN_INVALID", Some("invalid-value")),
+                ("NEUBULAFX_POLICY_PLUGIN_URL", Some("http://localhost:8181/v1/data/nebulafx/authz/allow")),
+                ("NEUBULAFX_POLICY_PLUGIN_INVALID", Some("invalid-value")),
             ],
             || {
                 let result = check();
@@ -257,7 +245,7 @@ mod tests {
 
     #[test]
     fn test_lookup_config_not_enabled() {
-        temp_env::with_var_unset("RUSTFS_POLICY_PLUGIN_URL", || {
+        temp_env::with_var_unset("NEUBULAFX_POLICY_PLUGIN_URL", || {
             let rt = tokio::runtime::Runtime::new().unwrap();
             let result = rt.block_on(async { lookup_config().await });
 

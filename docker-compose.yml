@@ -1,58 +1,46 @@
-# Copyright 2024 RustFS Team
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+
 
 version: "3.8"
 
 services:
-  # RustFS main service
-  rustfs:
+  # NebulaFX main service
+  nebulafx:
     security_opt:
       - "no-new-privileges:true"
-    image: rustfs/rustfs:latest
-    container_name: rustfs-server
+    image: nebulafx/nebulafx:latest
+    container_name: nebulafx-server
     build:
       context: .
       dockerfile: Dockerfile.source
       args:
         TARGETPLATFORM: linux/amd64
     ports:
-      - "9000:9000" # S3 API port (Console API endpoints available at /rustfs/console/*)
+      - "9000:9000" # S3 API port (Console API endpoints available at /nebulafx/console/*)
     environment:
-      - RUSTFS_VOLUMES=/data/rustfs{0..3}  # Define 4 storage volumes
-      - RUSTFS_ADDRESS=0.0.0.0:9000
-      # 已移除：RUSTFS_CONSOLE_ADDRESS 和 RUSTFS_CONSOLE_ENABLE（Console API 始终通过主服务器提供）
-      - RUSTFS_EXTERNAL_ADDRESS=:9000  # Same as internal since no port mapping
-      - RUSTFS_CORS_ALLOWED_ORIGINS=*
-      - RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS=*
-      - RUSTFS_ACCESS_KEY=rustfsadmin
-      - RUSTFS_SECRET_KEY=rustfsadmin
-      - RUSTFS_LOG_LEVEL=info
-      - RUSTFS_TLS_PATH=/opt/tls
-      - RUSTFS_OBS_ENDPOINT=http://otel-collector:4317
+      - NEUBULAFX_VOLUMES=/data/nebulafx{0..3}  # Define 4 storage volumes
+      - NEUBULAFX_ADDRESS=0.0.0.0:9000
+      # 已移除：NEUBULAFX_CONSOLE_ADDRESS 和 NEUBULAFX_CONSOLE_ENABLE（Console API 始终通过主服务器提供）
+      - NEUBULAFX_EXTERNAL_ADDRESS=:9000  # Same as internal since no port mapping
+      - NEUBULAFX_CORS_ALLOWED_ORIGINS=*
+      - NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS=*
+      - NEUBULAFX_ACCESS_KEY=nebulafxadmin
+      - NEUBULAFX_SECRET_KEY=nebulafxadmin
+      - NEUBULAFX_LOG_LEVEL=info
+      - NEUBULAFX_TLS_PATH=/opt/tls
+      - NEUBULAFX_OBS_ENDPOINT=http://otel-collector:4317
     volumes:
       - deploy/data/pro:/data
       - deploy/logs:/app/logs
       - deploy/data/certs/:/opt/tls # TLS configuration, you should create tls directory and put your tls files in it and then specify the path here
     networks:
-      - rustfs-network
+      - nebulafx-network
     restart: unless-stopped
     healthcheck:
       test:
         [
           "CMD",
           "sh", "-c",
-          "curl -f http://localhost:9000/health && curl -f http://localhost:9000/rustfs/console/health"
+          "curl -f http://localhost:9000/health && curl -f http://localhost:9000/nebulafx/console/health"
         ]
       interval: 30s
       timeout: 10s
@@ -62,37 +50,37 @@ services:
       - otel-collector
 
   # Development environment
-  rustfs-dev:
-    image: rustfs/rustfs:devenv
-    container_name: rustfs-dev
+  nebulafx-dev:
+    image: nebulafx/nebulafx:devenv
+    container_name: nebulafx-dev
     build:
       context: .
       dockerfile: Dockerfile.source
       # Pure development environment
     ports:
-      - "9010:9000" # S3 API port (Console API endpoints available at /rustfs/console/*)
+      - "9010:9000" # S3 API port (Console API endpoints available at /nebulafx/console/*)
     environment:
-      - RUSTFS_VOLUMES=/data/rustfs{1..4}
-      - RUSTFS_ADDRESS=0.0.0.0:9000
-      # 已移除：RUSTFS_CONSOLE_ADDRESS 和 RUSTFS_CONSOLE_ENABLE（Console API 始终通过主服务器提供）
-      - RUSTFS_EXTERNAL_ADDRESS=:9010  # External port mapping 9010 -> 9000
-      - RUSTFS_CORS_ALLOWED_ORIGINS=*
-      - RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS=*
-      - RUSTFS_ACCESS_KEY=devadmin
-      - RUSTFS_SECRET_KEY=devadmin
-      - RUSTFS_LOG_LEVEL=debug
+      - NEUBULAFX_VOLUMES=/data/nebulafx{1..4}
+      - NEUBULAFX_ADDRESS=0.0.0.0:9000
+      # 已移除：NEUBULAFX_CONSOLE_ADDRESS 和 NEUBULAFX_CONSOLE_ENABLE（Console API 始终通过主服务器提供）
+      - NEUBULAFX_EXTERNAL_ADDRESS=:9010  # External port mapping 9010 -> 9000
+      - NEUBULAFX_CORS_ALLOWED_ORIGINS=*
+      - NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS=*
+      - NEUBULAFX_ACCESS_KEY=devadmin
+      - NEUBULAFX_SECRET_KEY=devadmin
+      - NEUBULAFX_LOG_LEVEL=debug
     volumes:
       - .:/app # Mount source code to /app for development
       - deploy/data/dev:/data
     networks:
-      - rustfs-network
+      - nebulafx-network
     restart: unless-stopped
     healthcheck:
       test:
         [
           "CMD",
           "sh", "-c",
-          "curl -f http://localhost:9000/health && curl -f http://localhost:9000/rustfs/console/health"
+          "curl -f http://localhost:9000/health && curl -f http://localhost:9000/nebulafx/console/health"
         ]
       interval: 30s
       timeout: 10s
@@ -115,7 +103,7 @@ services:
       - "8888:8888" # Prometheus metrics
       - "8889:8889" # Prometheus exporter metrics
     networks:
-      - rustfs-network
+      - nebulafx-network
     restart: unless-stopped
     profiles:
       - observability
@@ -130,7 +118,7 @@ services:
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     networks:
-      - rustfs-network
+      - nebulafx-network
     restart: unless-stopped
     profiles:
       - observability
@@ -152,7 +140,7 @@ services:
       - "--storage.tsdb.retention.time=200h"
       - "--web.enable-lifecycle"
     networks:
-      - rustfs-network
+      - nebulafx-network
     restart: unless-stopped
     profiles:
       - observability
@@ -171,7 +159,7 @@ services:
       - ./.docker/observability/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./.docker/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
     networks:
-      - rustfs-network
+      - nebulafx-network
     restart: unless-stopped
     profiles:
       - observability
@@ -185,7 +173,7 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - rustfs-network
+      - nebulafx-network
     restart: unless-stopped
     profiles:
       - cache
@@ -201,30 +189,30 @@ services:
       - ./.docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./.docker/nginx/ssl:/etc/nginx/ssl:ro
     networks:
-      - rustfs-network
+      - nebulafx-network
     restart: unless-stopped
     profiles:
       - proxy
     depends_on:
-      - rustfs
+      - nebulafx
 
 networks:
-  rustfs-network:
+  nebulafx-network:
     driver: bridge
     ipam:
       config:
         - subnet: 172.20.0.0/16
 
 volumes:
-  rustfs_data_0:
+  nebulafx_data_0:
     driver: local
-  rustfs_data_1:
+  nebulafx_data_1:
     driver: local
-  rustfs_data_2:
+  nebulafx_data_2:
     driver: local
-  rustfs_data_3:
+  nebulafx_data_3:
     driver: local
-  rustfs_dev_data:
+  nebulafx_dev_data:
     driver: local
   prometheus_data:
     driver: local

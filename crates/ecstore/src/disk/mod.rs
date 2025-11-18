@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 pub mod endpoint;
 pub mod error;
@@ -21,10 +9,10 @@ pub mod fs;
 pub mod local;
 pub mod os;
 
-pub const RUSTFS_META_BUCKET: &str = ".rustfs.sys";
-pub const RUSTFS_META_MULTIPART_BUCKET: &str = ".rustfs.sys/multipart";
-pub const RUSTFS_META_TMP_BUCKET: &str = ".rustfs.sys/tmp";
-pub const RUSTFS_META_TMP_DELETED_BUCKET: &str = ".rustfs.sys/tmp/.trash";
+pub const NEUBULAFX_META_BUCKET: &str = ".nebulafx.sys";
+pub const NEUBULAFX_META_MULTIPART_BUCKET: &str = ".nebulafx.sys/multipart";
+pub const NEUBULAFX_META_TMP_BUCKET: &str = ".nebulafx.sys/tmp";
+pub const NEUBULAFX_META_TMP_DELETED_BUCKET: &str = ".nebulafx.sys/tmp/.trash";
 pub const BUCKET_META_PREFIX: &str = "buckets";
 pub const FORMAT_CONFIG_FILE: &str = "format.json";
 pub const STORAGE_FORMAT_FILE: &str = "xl.meta";
@@ -36,8 +24,8 @@ use endpoint::Endpoint;
 use error::DiskError;
 use error::{Error, Result};
 use local::LocalDisk;
-use rustfs_filemeta::{FileInfo, ObjectPartInfo, RawFileInfo};
-use rustfs_madmin::info_commands::DiskMetrics;
+use nebulafx_filemeta::{FileInfo, ObjectPartInfo, RawFileInfo};
+use nebulafx_madmin::info_commands::DiskMetrics;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, path::PathBuf, sync::Arc};
 use time::OffsetDateTime;
@@ -962,10 +950,10 @@ mod tests {
     /// Test constants
     #[test]
     fn test_constants() {
-        assert_eq!(RUSTFS_META_BUCKET, ".rustfs.sys");
-        assert_eq!(RUSTFS_META_MULTIPART_BUCKET, ".rustfs.sys/multipart");
-        assert_eq!(RUSTFS_META_TMP_BUCKET, ".rustfs.sys/tmp");
-        assert_eq!(RUSTFS_META_TMP_DELETED_BUCKET, ".rustfs.sys/tmp/.trash");
+        assert_eq!(NEUBULAFX_META_BUCKET, ".nebulafx.sys");
+        assert_eq!(NEUBULAFX_META_MULTIPART_BUCKET, ".nebulafx.sys/multipart");
+        assert_eq!(NEUBULAFX_META_TMP_BUCKET, ".nebulafx.sys/tmp");
+        assert_eq!(NEUBULAFX_META_TMP_DELETED_BUCKET, ".nebulafx.sys/tmp/.trash");
         assert_eq!(BUCKET_META_PREFIX, "buckets");
         assert_eq!(FORMAT_CONFIG_FILE, "format.json");
         assert_eq!(STORAGE_FORMAT_FILE, "xl.meta");

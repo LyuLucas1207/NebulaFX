@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use s3s::dto::{BucketLifecycleConfiguration, ExpirationStatus, LifecycleRule, ReplicationConfiguration, ReplicationRuleStatus};
 use serde::{Deserialize, Serialize};
@@ -22,8 +10,8 @@ use tokio::sync::{broadcast, mpsc};
 use uuid::Uuid;
 
 pub const HEAL_DELETE_DANGLING: bool = true;
-pub const RUSTFS_RESERVED_BUCKET: &str = "rustfs";
-pub const RUSTFS_RESERVED_BUCKET_PATH: &str = "/rustfs";
+pub const NEUBULAFX_RESERVED_BUCKET: &str = "nebulafx";
+pub const NEUBULAFX_RESERVED_BUCKET_PATH: &str = "/nebulafx";
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum HealItemType {

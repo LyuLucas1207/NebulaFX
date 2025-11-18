@@ -1,27 +1,15 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::{
     Event, error::NotificationError, notifier::EventNotifier, registry::TargetRegistry, rules::BucketNotificationConfig, stream,
 };
 use hashbrown::HashMap;
-use rustfs_ecstore::config::{Config, KVS};
-use rustfs_targets::EventName;
-use rustfs_targets::arn::TargetID;
-use rustfs_targets::store::{Key, Store};
-use rustfs_targets::target::EntityTarget;
-use rustfs_targets::{StoreError, Target};
+use nebulafx_ecstore::config::{Config, KVS};
+use nebulafx_targets::EventName;
+use nebulafx_targets::arn::TargetID;
+use nebulafx_targets::store::{Key, Store};
+use nebulafx_targets::target::EntityTarget;
+use nebulafx_targets::{StoreError, Target};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
@@ -114,7 +102,7 @@ impl NotificationSystem {
             config: Arc::new(RwLock::new(config)),
             stream_cancellers: Arc::new(RwLock::new(HashMap::new())),
             concurrency_limiter: Arc::new(Semaphore::new(
-                std::env::var("RUSTFS_TARGET_STREAM_CONCURRENCY")
+                std::env::var("NEUBULAFX_TARGET_STREAM_CONCURRENCY")
                     .ok()
                     .and_then(|s| s.parse().ok())
                     .unwrap_or(20),
@@ -198,13 +186,13 @@ impl NotificationSystem {
     where
         F: FnMut(&mut Config) -> bool, // The closure returns a boolean value indicating whether the configuration has been changed
     {
-        let Some(store) = rustfs_ecstore::global::new_object_layer_fn() else {
+        let Some(store) = nebulafx_ecstore::global::new_object_layer_fn() else {
             return Err(NotificationError::StorageNotAvailable(
                 "Failed to save target configuration: server storage not initialized".to_string(),
             ));
         };
 
-        let mut new_config = rustfs_ecstore::config::com::read_config_without_migrate(store.clone())
+        let mut new_config = nebulafx_ecstore::config::com::read_config_without_migrate(store.clone())
             .await
             .map_err(|e| NotificationError::ReadConfig(e.to_string()))?;
 

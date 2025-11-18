@@ -1,23 +1,11 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use datafusion::sql::sqlparser::dialect::Dialect;
 
 #[derive(Debug, Default)]
-pub struct RustFsDialect;
+pub struct NEUBULAFXDialect;
 
-impl Dialect for RustFsDialect {
+impl Dialect for NEUBULAFXDialect {
     fn is_identifier_start(&self, ch: char) -> bool {
         ch.is_alphabetic() || ch == '_' || ch == '#' || ch == '@'
     }
@@ -36,25 +24,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_rustfs_dialect_creation() {
-        let _dialect = RustFsDialect;
+    fn test_nebulafx_dialect_creation() {
+        let _dialect = NEUBULAFXDialect;
 
         // Test that dialect can be created successfully
-        assert!(std::mem::size_of::<RustFsDialect>() == 0, "Dialect should be zero-sized");
+        assert!(std::mem::size_of::<NEUBULAFXDialect>() == 0, "Dialect should be zero-sized");
     }
 
     #[test]
-    fn test_rustfs_dialect_debug() {
-        let dialect = RustFsDialect;
+    fn test_nebulafx_dialect_debug() {
+        let dialect = NEUBULAFXDialect;
 
         let debug_str = format!("{dialect:?}");
         assert!(!debug_str.is_empty(), "Debug output should not be empty");
-        assert!(debug_str.contains("RustFsDialect"), "Debug output should contain dialect name");
+        assert!(debug_str.contains("NEUBULAFXDialect"), "Debug output should contain dialect name");
     }
 
     #[test]
     fn test_is_identifier_start_alphabetic() {
-        let dialect = RustFsDialect;
+        let dialect = NEUBULAFXDialect;
 
         // Test alphabetic characters
         assert!(dialect.is_identifier_start('a'), "Lowercase letter should be valid identifier start");
@@ -70,7 +58,7 @@ mod tests {
 
     #[test]
     fn test_is_identifier_start_special_chars() {
-        let dialect = RustFsDialect;
+        let dialect = NEUBULAFXDialect;
 
         // Test special characters that are allowed
         assert!(dialect.is_identifier_start('_'), "Underscore should be valid identifier start");
@@ -80,7 +68,7 @@ mod tests {
 
     #[test]
     fn test_is_identifier_start_invalid_chars() {
-        let dialect = RustFsDialect;
+        let dialect = NEUBULAFXDialect;
 
         // Test characters that should not be valid identifier starts
         assert!(!dialect.is_identifier_start('0'), "Digit should not be valid identifier start");
@@ -119,7 +107,7 @@ mod tests {
 
     #[test]
     fn test_is_identifier_part_alphabetic() {
-        let dialect = RustFsDialect;
+        let dialect = NEUBULAFXDialect;
 
         // Test alphabetic characters
         assert!(dialect.is_identifier_part('a'), "Lowercase letter should be valid identifier part");
@@ -135,7 +123,7 @@ mod tests {
 
     #[test]
     fn test_is_identifier_part_digits() {
-        let dialect = RustFsDialect;
+        let dialect = NEUBULAFXDialect;
 
         // Test ASCII digits
         assert!(dialect.is_identifier_part('0'), "Digit 0 should be valid identifier part");
@@ -146,7 +134,7 @@ mod tests {
 
     #[test]
     fn test_is_identifier_part_special_chars() {
-        let dialect = RustFsDialect;
+        let dialect = NEUBULAFXDialect;
 
         // Test special characters that are allowed
         assert!(dialect.is_identifier_part('_'), "Underscore should be valid identifier part");
@@ -157,7 +145,7 @@ mod tests {
 
     #[test]
     fn test_is_identifier_part_invalid_chars() {
-        let dialect = RustFsDialect;
+        let dialect = NEUBULAFXDialect;
 
         // Test characters that should not be valid identifier parts
         assert!(!dialect.is_identifier_part(' '), "Space should not be valid identifier part");
@@ -193,14 +181,14 @@ mod tests {
 
     #[test]
     fn test_supports_group_by_expr() {
-        let dialect = RustFsDialect;
+        let dialect = NEUBULAFXDialect;
 
-        assert!(dialect.supports_group_by_expr(), "RustFsDialect should support GROUP BY expressions");
+        assert!(dialect.supports_group_by_expr(), "NEUBULAFXDialect should support GROUP BY expressions");
     }
 
     #[test]
     fn test_identifier_validation_comprehensive() {
-        let dialect = RustFsDialect;
+        let dialect = NEUBULAFXDialect;
 
         // Test valid identifier patterns
         let valid_starts = ['a', 'A', 'z', 'Z', '_', '#', '@', 'α', 'ü'];
@@ -223,7 +211,7 @@ mod tests {
 
     #[test]
     fn test_identifier_edge_cases() {
-        let dialect = RustFsDialect;
+        let dialect = NEUBULAFXDialect;
 
         // Test edge cases with control characters
         assert!(!dialect.is_identifier_start('\0'), "Null character should not be valid identifier start");
@@ -244,7 +232,7 @@ mod tests {
 
     #[test]
     fn test_identifier_unicode_support() {
-        let dialect = RustFsDialect;
+        let dialect = NEUBULAFXDialect;
 
         // Test various Unicode categories
         let unicode_letters = ['α', 'β', 'γ', 'Α', 'Β', 'Γ', 'ñ', 'ü', 'ç', 'ø', 'æ', 'ß'];
@@ -257,7 +245,7 @@ mod tests {
 
     #[test]
     fn test_identifier_ascii_digits() {
-        let dialect = RustFsDialect;
+        let dialect = NEUBULAFXDialect;
 
         // Test all ASCII digits
         for digit in '0'..='9' {
@@ -271,7 +259,7 @@ mod tests {
 
     #[test]
     fn test_dialect_consistency() {
-        let dialect = RustFsDialect;
+        let dialect = NEUBULAFXDialect;
 
         // Test that all valid identifier starts are also valid identifier parts
         let test_chars = [
@@ -290,7 +278,7 @@ mod tests {
 
     #[test]
     fn test_dialect_memory_efficiency() {
-        let dialect = RustFsDialect;
+        let dialect = NEUBULAFXDialect;
 
         // Test that dialect doesn't use excessive memory
         let dialect_size = std::mem::size_of_val(&dialect);
@@ -299,7 +287,7 @@ mod tests {
 
     #[test]
     fn test_dialect_trait_implementation() {
-        let dialect = RustFsDialect;
+        let dialect = NEUBULAFXDialect;
 
         // Test that dialect properly implements the Dialect trait
         let dialect_ref: &dyn Dialect = &dialect;
@@ -317,8 +305,8 @@ mod tests {
 
     #[test]
     fn test_dialect_clone_and_default() {
-        let dialect1 = RustFsDialect;
-        let dialect2 = RustFsDialect;
+        let dialect1 = NEUBULAFXDialect;
+        let dialect2 = NEUBULAFXDialect;
 
         // Test that multiple instances behave the same
         let test_chars = ['a', 'A', '0', '_', '#', '@', '$', ' ', '.'];

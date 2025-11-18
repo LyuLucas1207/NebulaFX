@@ -1,23 +1,23 @@
-[![RustFS](https://rustfs.com/images/rustfs-github.png)](https://rustfs.com)
+[![NebulaFX](https://nebulafx.com/images/nebulafx-github.png)](https://nebulafx.com)
 
-# RustFS ECStore - Erasure Coding Storage
+# NebulaFX ECStore - Erasure Coding Storage
 
 <p align="center">
-  <strong>High-performance erasure coding storage engine for RustFS distributed object storage</strong>
+  <strong>High-performance erasure coding storage engine for NebulaFX distributed object storage</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/rustfs/rustfs/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/rustfs/rustfs/actions/workflows/ci.yml/badge.svg" /></a>
-  <a href="https://docs.rustfs.com/en/">📖 Documentation</a>
-  · <a href="https://github.com/rustfs/rustfs/issues">🐛 Bug Reports</a>
-  · <a href="https://github.com/rustfs/rustfs/discussions">💬 Discussions</a>
+  <a href="https://github.com/nebulafx/nebulafx/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nebulafx/nebulafx/actions/workflows/ci.yml/badge.svg" /></a>
+  <a href="https://docs.nebulafx.com/en/">📖 Documentation</a>
+  · <a href="https://github.com/nebulafx/nebulafx/issues">🐛 Bug Reports</a>
+  · <a href="https://github.com/nebulafx/nebulafx/discussions">💬 Discussions</a>
 </p>
 
 ---
 
 ## 📖 Overview
 
-**RustFS ECStore** provides erasure coding storage capabilities for the [RustFS](https://rustfs.com) distributed object storage system. For the complete RustFS experience, please visit the [main RustFS repository](https://github.com/rustfs/rustfs).
+**NebulaFX ECStore** provides erasure coding storage capabilities for the [NebulaFX](https://nebulafx.com) distributed object storage system. For the complete NebulaFX experience, please visit the [main NebulaFX repository](https://github.com/nebulafx/nebulafx).
 
 ## ✨ Features
 
@@ -30,14 +30,14 @@
 
 ## 📚 Documentation
 
-For comprehensive documentation, examples, and usage guides, please visit the main [RustFS repository](https://github.com/rustfs/rustfs).
+For comprehensive documentation, examples, and usage guides, please visit the main [NebulaFX repository](https://github.com/nebulafx/nebulafx).
 
 ## 📄 License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](../../LICENSE) file for details.
 
 ```
-Copyright 2024 RustFS Team
+Copyright 2024 NebulaFX Team
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -55,10 +55,10 @@ limitations under the License.
 ---
 
 <p align="center">
-  <strong>RustFS</strong> is a trademark of RustFS, Inc.<br>
+  <strong>NebulaFX</strong> is a trademark of NebulaFX, Inc.<br>
   All other trademarks are the property of their respective owners.
 </p>
 
 <p align="center">
-  Made with ❤️ by the RustFS Storage Team
+  Made with ❤️ by the NebulaFX Storage Team
 </p>

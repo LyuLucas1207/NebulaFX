@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::StorageAPI;
 use crate::admin_server_info::get_commit_id;
@@ -21,10 +9,10 @@ use crate::rpc::PeerRestClient;
 use crate::{endpoints::EndpointServerPools, new_object_layer_fn};
 use futures::future::join_all;
 use lazy_static::lazy_static;
-use rustfs_madmin::health::{Cpus, MemInfo, OsInfo, Partitions, ProcInfo, SysConfig, SysErrors, SysService};
-use rustfs_madmin::metrics::RealtimeMetrics;
-use rustfs_madmin::net::NetInfo;
-use rustfs_madmin::{ItemState, ServerProperties};
+use nebulafx_madmin::health::{Cpus, MemInfo, OsInfo, Partitions, ProcInfo, SysConfig, SysErrors, SysService};
+use nebulafx_madmin::metrics::RealtimeMetrics;
+use nebulafx_madmin::net::NetInfo;
+use nebulafx_madmin::{ItemState, ServerProperties};
 use std::collections::hash_map::DefaultHasher;
 use std::future::Future;
 use std::hash::{Hash, Hasher};
@@ -188,7 +176,7 @@ impl NotificationSys {
         join_all(futures).await
     }
 
-    pub async fn storage_info<S: StorageAPI>(&self, api: &S) -> rustfs_madmin::StorageInfo {
+    pub async fn storage_info<S: StorageAPI>(&self, api: &S) -> nebulafx_madmin::StorageInfo {
         let mut futures = Vec::with_capacity(self.peer_clients.len());
 
         for client in self.peer_clients.iter() {
@@ -196,7 +184,7 @@ impl NotificationSys {
                 if let Some(client) = client {
                     match client.local_storage_info().await {
                         Ok(info) => Some(info),
-                        Err(_) => Some(rustfs_madmin::StorageInfo {
+                        Err(_) => Some(nebulafx_madmin::StorageInfo {
                             disks: get_offline_disks(&client.host.to_string(), &get_global_endpoints()),
                             ..Default::default()
                         }),
@@ -217,7 +205,7 @@ impl NotificationSys {
         }
 
         let backend = api.backend_info().await;
-        rustfs_madmin::StorageInfo { disks, backend }
+        nebulafx_madmin::StorageInfo { disks, backend }
     }
 
     pub async fn server_info(&self) -> Vec<ServerProperties> {
@@ -730,13 +718,13 @@ fn offline_server_properties(host: &str, endpoints: &EndpointServerPools) -> Ser
     }
 }
 
-fn get_offline_disks(offline_host: &str, endpoints: &EndpointServerPools) -> Vec<rustfs_madmin::Disk> {
+fn get_offline_disks(offline_host: &str, endpoints: &EndpointServerPools) -> Vec<nebulafx_madmin::Disk> {
     let mut offline_disks = Vec::new();
 
     for pool in endpoints.as_ref() {
         for ep in pool.endpoints.as_ref() {
             if (offline_host.is_empty() && ep.is_local) || offline_host == ep.host_port() {
-                offline_disks.push(rustfs_madmin::Disk {
+                offline_disks.push(nebulafx_madmin::Disk {
                     endpoint: ep.to_string(),
                     state: ItemState::Offline.to_string().to_owned(),
                     pool_index: ep.pool_idx,

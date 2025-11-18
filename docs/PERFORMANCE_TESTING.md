@@ -1,10 +1,10 @@
-# RustFS Performance Testing Guide
+# NebulaFX Performance Testing Guide
 
-This document describes the recommended tools and workflows for benchmarking RustFS and analyzing performance bottlenecks.
+This document describes the recommended tools and workflows for benchmarking NebulaFX and analyzing performance bottlenecks.
 
 ## Overview
 
-RustFS exposes several complementary tooling options:
+NebulaFX exposes several complementary tooling options:
 
 1. **Profiling** – collect CPU samples through the built-in `pprof` endpoints.
 2. **Load testing** – drive concurrent requests with dedicated client utilities.
@@ -14,11 +14,11 @@ RustFS exposes several complementary tooling options:
 
 ### 1. Enable profiling support
 
-Set the profiling environment variable before launching RustFS:
+Set the profiling environment variable before launching NebulaFX:
 
 ```bash
-export RUSTFS_ENABLE_PROFILING=true
-./rustfs
+export NEUBULAFX_ENABLE_PROFILING=true
+./nebulafx
 ```
 
 ### 2. Install required tooling
@@ -49,22 +49,22 @@ The repository ships with a helper script for common profiling flows:
 
 ```bash
 # Show command help
-./scripts/profile_rustfs.sh help
+./scripts/profile_nebulafx.sh help
 
 # Check profiler status
-./scripts/profile_rustfs.sh status
+./scripts/profile_nebulafx.sh status
 
 # Capture a 30 second flame graph
-./scripts/profile_rustfs.sh flamegraph
+./scripts/profile_nebulafx.sh flamegraph
 
 # Download protobuf-formatted samples
-./scripts/profile_rustfs.sh protobuf
+./scripts/profile_nebulafx.sh protobuf
 
 # Collect both formats
-./scripts/profile_rustfs.sh both
+./scripts/profile_nebulafx.sh both
 
 # Provide custom arguments
-./scripts/profile_rustfs.sh -d 60 -u http://192.168.1.100:9000 both
+./scripts/profile_nebulafx.sh -d 60 -u http://192.168.1.100:9000 both
 ```
 
 ### Method 2: Run the Python end-to-end tester
@@ -96,7 +96,7 @@ For quick smoke checks, a lightweight bash script is also provided:
 ### 1. Flame graph (SVG)
 
 - **Purpose**: Visualize CPU time distribution.
-- **File name**: `rustfs_profile_TIMESTAMP.svg`
+- **File name**: `nebulafx_profile_TIMESTAMP.svg`
 - **How to view**: Open the SVG in a browser.
 - **Interpretation tips**:
   - Width reflects CPU time per function.
@@ -105,18 +105,18 @@ For quick smoke checks, a lightweight bash script is also provided:
 
 ```bash
 # Example: open the file in a browser
-open profiles/rustfs_profile_20240911_143000.svg
+open profiles/nebulafx_profile_20240911_143000.svg
 ```
 
 ### 2. Protobuf samples
 
 - **Purpose**: Feed data to the `go tool pprof` command.
-- **File name**: `rustfs_profile_TIMESTAMP.pb`
+- **File name**: `nebulafx_profile_TIMESTAMP.pb`
 - **Tooling**: `go tool pprof`
 
 ```bash
 # Analyze the protobuf output
-go tool pprof profiles/rustfs_profile_20240911_143000.pb
+go tool pprof profiles/nebulafx_profile_20240911_143000.pb
 
 # Common pprof commands
 (pprof) top        # Show hottest call sites
@@ -131,7 +131,7 @@ go tool pprof profiles/rustfs_profile_20240911_143000.pb
 ### Check profiling status
 
 ```bash
-curl "http://127.0.0.1:9000/rustfs/admin/debug/pprof/status"
+curl "http://127.0.0.1:9000/nebulafx/admin/debug/pprof/status"
 ```
 
 Sample response:
@@ -147,11 +147,11 @@ Sample response:
 
 ```bash
 # Fetch a 30-second flame graph
-curl "http://127.0.0.1:9000/rustfs/admin/debug/pprof/profile?seconds=30&format=flamegraph" \
+curl "http://127.0.0.1:9000/nebulafx/admin/debug/pprof/profile?seconds=30&format=flamegraph" \
   -o profile.svg
 
 # Fetch protobuf output
-curl "http://127.0.0.1:9000/rustfs/admin/debug/pprof/profile?seconds=30&format=protobuf" \
+curl "http://127.0.0.1:9000/nebulafx/admin/debug/pprof/profile?seconds=30&format=protobuf" \
   -o profile.pb
 ```
 
@@ -169,8 +169,8 @@ Use the Python harness to exercise a complete S3 workflow:
 # Basic configuration
 tester = S3LoadTester(
     endpoint="http://127.0.0.1:9000",
-    access_key="rustfsadmin",
-    secret_key="rustfsadmin"
+    access_key="nebulafxadmin",
+    secret_key="nebulafxadmin"
 )
 
 # Execute the load test
@@ -206,7 +206,7 @@ wait
 
 ### 1. Environment preparation
 
-- Confirm that `RUSTFS_ENABLE_PROFILING=true` is set.
+- Confirm that `NEUBULAFX_ENABLE_PROFILING=true` is set.
 - Use an isolated benchmark environment to avoid interference.
 - Reserve disk space for generated profile artifacts.
 
@@ -241,8 +241,8 @@ Error: `{"enabled":"false"}`
 **Fix**:
 
 ```bash
-export RUSTFS_ENABLE_PROFILING=true
-# Restart RustFS
+export NEUBULAFX_ENABLE_PROFILING=true
+# Restart NebulaFX
 ```
 
 ### 2. Connection refused
@@ -250,7 +250,7 @@ export RUSTFS_ENABLE_PROFILING=true
 Error: `Connection refused`
 
 **Checklist**:
-- Confirm RustFS is running.
+- Confirm NebulaFX is running.
 - Ensure the port number is correct (default 9000).
 - Verify firewall rules.
 
@@ -267,18 +267,18 @@ If artifacts become too large:
 
 | Variable | Default | Description |
 |------|--------|------|
-| `RUSTFS_ENABLE_PROFILING` | `false` | Enable profiling support |
-| `RUSTFS_URL` | `http://127.0.0.1:9000` | RustFS endpoint |
+| `NEUBULAFX_ENABLE_PROFILING` | `false` | Enable profiling support |
+| `NEUBULAFX_URL` | `http://127.0.0.1:9000` | NebulaFX endpoint |
 | `PROFILE_DURATION` | `30` | Profiling duration in seconds |
 | `OUTPUT_DIR` | `./profiles` | Output directory |
 
 ### Script arguments
 
 ```bash
-./scripts/profile_rustfs.sh [OPTIONS] [COMMAND]
+./scripts/profile_nebulafx.sh [OPTIONS] [COMMAND]
 
 OPTIONS:
-  -u, --url URL           RustFS URL
+  -u, --url URL           NebulaFX URL
   -d, --duration SECONDS  Profile duration
   -o, --output DIR        Output directory
 
@@ -292,19 +292,19 @@ COMMANDS:
 ## Output Locations
 
 - **Script output**: `./profiles/`
-- **Python script**: `/tmp/rustfs_profiles/`
-- **File naming**: `rustfs_profile_TIMESTAMP.{svg|pb}`
+- **Python script**: `/tmp/nebulafx_profiles/`
+- **File naming**: `nebulafx_profile_TIMESTAMP.{svg|pb}`
 
 ## Example Workflow
 
-1. **Launch RustFS**
+1. **Launch NebulaFX**
    ```bash
-   RUSTFS_ENABLE_PROFILING=true ./rustfs
+   NEUBULAFX_ENABLE_PROFILING=true ./nebulafx
    ```
 
 2. **Verify profiling availability**
    ```bash
-   ./scripts/profile_rustfs.sh status
+   ./scripts/profile_nebulafx.sh status
    ```
 
 3. **Start a load test**
@@ -314,16 +314,16 @@ COMMANDS:
 
 4. **Collect samples**
    ```bash
-   ./scripts/profile_rustfs.sh -d 60 both
+   ./scripts/profile_nebulafx.sh -d 60 both
    ```
 
 5. **Inspect the results**
    ```bash
    # Review the flame graph
-   open profiles/rustfs_profile_*.svg
+   open profiles/nebulafx_profile_*.svg
 
    # Or analyze the protobuf output
-   go tool pprof profiles/rustfs_profile_*.pb
+   go tool pprof profiles/nebulafx_profile_*.pb
    ```
 
-Following this workflow helps you understand RustFS performance characteristics, locate bottlenecks, and implement targeted optimizations.
+Following this workflow helps you understand NebulaFX performance characteristics, locate bottlenecks, and implement targeted optimizations.

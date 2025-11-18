@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::heal::{
     progress::HealProgress,
@@ -19,8 +7,8 @@ use crate::heal::{
 };
 use crate::{Error, Result};
 use futures::future::join_all;
-use rustfs_common::heal_channel::{HealOpts, HealScanMode};
-use rustfs_ecstore::disk::DiskStore;
+use nebulafx_common::heal_channel::{HealOpts, HealScanMode};
+use nebulafx_ecstore::disk::DiskStore;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{error, info, warn};
@@ -243,7 +231,7 @@ impl ErasureSetHealer {
         resume_manager: &ResumeManager,
         checkpoint_manager: &CheckpointManager,
     ) -> Result<()> {
-        info!(target: "rustfs:ahm:heal_bucket_with_resume" ,"Starting heal for bucket: {} from object index {}", bucket, current_object_index);
+        info!(target: "nebulafx:ahm:heal_bucket_with_resume" ,"Starting heal for bucket: {} from object index {}", bucket, current_object_index);
 
         // 1. get bucket info
         let _bucket_info = match self.storage.get_bucket_info(bucket).await? {
@@ -281,7 +269,7 @@ impl ErasureSetHealer {
 
             if !object_exists {
                 info!(
-                    target: "rustfs:ahm:heal_bucket_with_resume" ,"Object {}/{} no longer exists, skipping heal (likely deleted intentionally)",
+                    target: "nebulafx:ahm:heal_bucket_with_resume" ,"Object {}/{} no longer exists, skipping heal (likely deleted intentionally)",
                     bucket, object
                 );
                 checkpoint_manager.add_processed_object(object.clone()).await?;

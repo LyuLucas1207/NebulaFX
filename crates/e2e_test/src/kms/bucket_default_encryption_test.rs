@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 //! Bucket Default Encryption Configuration Integration Tests
 //!
@@ -35,7 +23,7 @@ async fn test_bucket_default_sse_s3_put_object() -> Result<(), Box<dyn std::erro
     info!("Testing bucket default SSE-S3 encryption impact on put_object");
 
     let mut kms_env = LocalKMSTestEnvironment::new().await?;
-    let _default_key_id = kms_env.start_rustfs_for_local_kms().await?;
+    let _default_key_id = kms_env.start_nebulafx_for_local_kms().await?;
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
     let s3_client = kms_env.base_env.create_s3_client();
@@ -158,7 +146,7 @@ async fn test_bucket_default_sse_kms_put_object() -> Result<(), Box<dyn std::err
     info!("Testing bucket default SSE-KMS encryption impact on put_object");
 
     let mut kms_env = LocalKMSTestEnvironment::new().await?;
-    let default_key_id = kms_env.start_rustfs_for_local_kms().await?;
+    let default_key_id = kms_env.start_nebulafx_for_local_kms().await?;
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
     let s3_client = kms_env.base_env.create_s3_client();
@@ -278,7 +266,7 @@ async fn test_bucket_default_encryption_multipart_upload() -> Result<(), Box<dyn
     info!("Testing bucket default encryption impact on create_multipart_upload");
 
     let mut kms_env = LocalKMSTestEnvironment::new().await?;
-    let default_key_id = kms_env.start_rustfs_for_local_kms().await?;
+    let default_key_id = kms_env.start_nebulafx_for_local_kms().await?;
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
     let s3_client = kms_env.base_env.create_s3_client();
@@ -434,7 +422,7 @@ async fn test_explicit_encryption_overrides_bucket_default() -> Result<(), Box<d
     info!("Testing explicitly specified encryption parameters override bucket default configuration");
 
     let mut kms_env = LocalKMSTestEnvironment::new().await?;
-    let default_key_id = kms_env.start_rustfs_for_local_kms().await?;
+    let default_key_id = kms_env.start_nebulafx_for_local_kms().await?;
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
     let s3_client = kms_env.base_env.create_s3_client();

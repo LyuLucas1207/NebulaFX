@@ -10,8 +10,8 @@ use serial_test::serial;
 use std::error::Error;
 
 const ENDPOINT: &str = "http://localhost:9000";
-const ACCESS_KEY: &str = "rustfsadmin";
-const SECRET_KEY: &str = "rustfsadmin";
+const ACCESS_KEY: &str = "nebulafxadmin";
+const SECRET_KEY: &str = "nebulafxadmin";
 const BUCKET: &str = "api-test";
 
 async fn create_aws_s3_client() -> Result<Client, Box<dyn Error>> {
@@ -90,7 +90,7 @@ fn generate_test_key(prefix: &str) -> String {
 
 #[tokio::test]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_conditional_put_okay() -> Result<(), Box<dyn std::error::Error>> {
     let client = create_aws_s3_client().await?;
     setup_test_bucket(&client).await?;
@@ -133,7 +133,7 @@ async fn test_conditional_put_okay() -> Result<(), Box<dyn std::error::Error>> {
 
 #[tokio::test]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_conditional_put_failed() -> Result<(), Box<dyn std::error::Error>> {
     let client = create_aws_s3_client().await?;
     setup_test_bucket(&client).await?;
@@ -196,7 +196,7 @@ async fn test_conditional_put_failed() -> Result<(), Box<dyn std::error::Error>>
 
 #[tokio::test]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_conditional_put_when_object_does_not_exist() -> Result<(), Box<dyn std::error::Error>> {
     let client = create_aws_s3_client().await?;
     setup_test_bucket(&client).await?;
@@ -241,7 +241,7 @@ async fn test_conditional_put_when_object_does_not_exist() -> Result<(), Box<dyn
 
 #[tokio::test]
 #[serial]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn test_conditional_multi_part_upload() -> Result<(), Box<dyn std::error::Error>> {
     let client = create_aws_s3_client().await?;
     setup_test_bucket(&client).await?;

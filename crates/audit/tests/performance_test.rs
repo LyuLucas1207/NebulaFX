@@ -1,4 +1,4 @@
-//  Copyright 2024 RustFS Team
+//  Copyright 2024 NebulaFX Team
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 //! Performance and observability tests for audit system
 
-use rustfs_audit::*;
+use nebulafx_audit::*;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::time::timeout;
@@ -26,7 +26,7 @@ async fn test_audit_system_startup_performance() {
     let start = Instant::now();
 
     // Create minimal config for testing
-    let config = rustfs_ecstore::config::Config(std::collections::HashMap::new());
+    let config = nebulafx_ecstore::config::Config(std::collections::HashMap::new());
 
     // System should start quickly even with empty config
     let _result = timeout(Duration::from_secs(5), system.start(config)).await;
@@ -47,12 +47,12 @@ async fn test_concurrent_target_creation() {
     let mut registry = AuditRegistry::new();
 
     // Create config with multiple webhook instances
-    let mut config = rustfs_ecstore::config::Config(std::collections::HashMap::new());
+    let mut config = nebulafx_ecstore::config::Config(std::collections::HashMap::new());
     let mut webhook_section = std::collections::HashMap::new();
 
     // Create multiple instances for concurrent creation test
     for i in 1..=5 {
-        let mut kvs = rustfs_ecstore::config::KVS::new();
+        let mut kvs = nebulafx_ecstore::config::KVS::new();
         kvs.insert("enable".to_string(), "on".to_string());
         kvs.insert("endpoint".to_string(), format!("http://localhost:302{i}/webhook"));
         webhook_section.insert(format!("instance_{i}"), kvs);
@@ -90,7 +90,7 @@ async fn test_audit_log_dispatch_performance() {
     let system = AuditSystem::new();
 
     // Create minimal config
-    let config = rustfs_ecstore::config::Config(HashMap::new());
+    let config = nebulafx_ecstore::config::Config(HashMap::new());
     let start_result = system.start(config).await;
     if start_result.is_err() {
         println!("AuditSystem failed to start: {start_result:?}");
@@ -98,7 +98,7 @@ async fn test_audit_log_dispatch_performance() {
     }
 
     use chrono::Utc;
-    use rustfs_targets::EventName;
+    use nebulafx_targets::EventName;
     use serde_json::json;
     use std::collections::HashMap;
     let id = 1;
@@ -180,32 +180,32 @@ async fn test_system_state_transitions() {
     let system = AuditSystem::new();
 
     // Initial state should be stopped
-    assert_eq!(system.get_state().await, rustfs_audit::system::AuditSystemState::Stopped);
+    assert_eq!(system.get_state().await, nebulafx_audit::system::AuditSystemState::Stopped);
 
     // Start system
-    let config = rustfs_ecstore::config::Config(std::collections::HashMap::new());
+    let config = nebulafx_ecstore::config::Config(std::collections::HashMap::new());
     let start_result = system.start(config).await;
 
     // Should be running (or failed due to server storage)
     let state = system.get_state().await;
     match start_result {
         Ok(_) => {
-            assert_eq!(state, rustfs_audit::system::AuditSystemState::Running);
+            assert_eq!(state, nebulafx_audit::system::AuditSystemState::Running);
         }
         Err(_) => {
             // Expected in test environment due to server storage not being initialized
-            assert_eq!(state, rustfs_audit::system::AuditSystemState::Stopped);
+            assert_eq!(state, nebulafx_audit::system::AuditSystemState::Stopped);
         }
     }
 
     // Clean up
     let _ = system.close().await;
-    assert_eq!(system.get_state().await, rustfs_audit::system::AuditSystemState::Stopped);
+    assert_eq!(system.get_state().await, nebulafx_audit::system::AuditSystemState::Stopped);
 }
 
 #[test]
 fn test_event_name_mask_performance() {
-    use rustfs_targets::EventName;
+    use nebulafx_targets::EventName;
 
     // Test that event name mask calculation is efficient
     let events = vec![
@@ -234,7 +234,7 @@ fn test_event_name_mask_performance() {
 
 #[test]
 fn test_event_name_expansion_performance() {
-    use rustfs_targets::EventName;
+    use nebulafx_targets::EventName;
 
     // Test that event name expansion is efficient
     let compound_events = vec![

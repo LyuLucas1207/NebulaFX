@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use super::{GroupInfo, MappedPolicy, Store, UserType};
 use crate::error::{Error, Result, is_err_config_not_found, is_err_no_such_group};
@@ -20,19 +8,19 @@ use crate::{
     manager::{extract_jwt_claims, get_default_policyes},
 };
 use futures::future::join_all;
-use rustfs_ecstore::StorageAPI as _;
-use rustfs_ecstore::store_api::{ObjectInfoOrErr, WalkOptions};
-use rustfs_ecstore::{
+use nebulafx_ecstore::StorageAPI as _;
+use nebulafx_ecstore::store_api::{ObjectInfoOrErr, WalkOptions};
+use nebulafx_ecstore::{
     config::{
-        RUSTFS_CONFIG_PREFIX,
+        NEUBULAFX_CONFIG_PREFIX,
         com::{delete_config, read_config, read_config_with_metadata, save_config},
     },
     global::get_global_action_cred,
     store::ECStore,
     store_api::{ObjectInfo, ObjectOptions},
 };
-use rustfs_policy::{auth::UserIdentity, policy::PolicyDoc};
-use rustfs_utils::path::{SLASH_SEPARATOR, path_join_buf};
+use nebulafx_policy::{auth::UserIdentity, policy::PolicyDoc};
+use nebulafx_utils::path::{SLASH_SEPARATOR, path_join_buf};
 use serde::{Serialize, de::DeserializeOwned};
 use std::sync::LazyLock;
 use std::{collections::HashMap, sync::Arc};
@@ -40,22 +28,22 @@ use tokio::sync::mpsc::{self, Sender};
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, info, warn};
 
-pub static IAM_CONFIG_PREFIX: LazyLock<String> = LazyLock::new(|| format!("{RUSTFS_CONFIG_PREFIX}/iam"));
-pub static IAM_CONFIG_USERS_PREFIX: LazyLock<String> = LazyLock::new(|| format!("{RUSTFS_CONFIG_PREFIX}/iam/users/"));
+pub static IAM_CONFIG_PREFIX: LazyLock<String> = LazyLock::new(|| format!("{NEUBULAFX_CONFIG_PREFIX}/iam"));
+pub static IAM_CONFIG_USERS_PREFIX: LazyLock<String> = LazyLock::new(|| format!("{NEUBULAFX_CONFIG_PREFIX}/iam/users/"));
 pub static IAM_CONFIG_SERVICE_ACCOUNTS_PREFIX: LazyLock<String> =
-    LazyLock::new(|| format!("{RUSTFS_CONFIG_PREFIX}/iam/service-accounts/"));
-pub static IAM_CONFIG_GROUPS_PREFIX: LazyLock<String> = LazyLock::new(|| format!("{RUSTFS_CONFIG_PREFIX}/iam/groups/"));
-pub static IAM_CONFIG_POLICIES_PREFIX: LazyLock<String> = LazyLock::new(|| format!("{RUSTFS_CONFIG_PREFIX}/iam/policies/"));
-pub static IAM_CONFIG_STS_PREFIX: LazyLock<String> = LazyLock::new(|| format!("{RUSTFS_CONFIG_PREFIX}/iam/sts/"));
-pub static IAM_CONFIG_POLICY_DB_PREFIX: LazyLock<String> = LazyLock::new(|| format!("{RUSTFS_CONFIG_PREFIX}/iam/policydb/"));
+    LazyLock::new(|| format!("{NEUBULAFX_CONFIG_PREFIX}/iam/service-accounts/"));
+pub static IAM_CONFIG_GROUPS_PREFIX: LazyLock<String> = LazyLock::new(|| format!("{NEUBULAFX_CONFIG_PREFIX}/iam/groups/"));
+pub static IAM_CONFIG_POLICIES_PREFIX: LazyLock<String> = LazyLock::new(|| format!("{NEUBULAFX_CONFIG_PREFIX}/iam/policies/"));
+pub static IAM_CONFIG_STS_PREFIX: LazyLock<String> = LazyLock::new(|| format!("{NEUBULAFX_CONFIG_PREFIX}/iam/sts/"));
+pub static IAM_CONFIG_POLICY_DB_PREFIX: LazyLock<String> = LazyLock::new(|| format!("{NEUBULAFX_CONFIG_PREFIX}/iam/policydb/"));
 pub static IAM_CONFIG_POLICY_DB_USERS_PREFIX: LazyLock<String> =
-    LazyLock::new(|| format!("{RUSTFS_CONFIG_PREFIX}/iam/policydb/users/"));
+    LazyLock::new(|| format!("{NEUBULAFX_CONFIG_PREFIX}/iam/policydb/users/"));
 pub static IAM_CONFIG_POLICY_DB_STS_USERS_PREFIX: LazyLock<String> =
-    LazyLock::new(|| format!("{RUSTFS_CONFIG_PREFIX}/iam/policydb/sts-users/"));
+    LazyLock::new(|| format!("{NEUBULAFX_CONFIG_PREFIX}/iam/policydb/sts-users/"));
 pub static IAM_CONFIG_POLICY_DB_SERVICE_ACCOUNTS_PREFIX: LazyLock<String> =
-    LazyLock::new(|| format!("{RUSTFS_CONFIG_PREFIX}/iam/policydb/service-accounts/"));
+    LazyLock::new(|| format!("{NEUBULAFX_CONFIG_PREFIX}/iam/policydb/service-accounts/"));
 pub static IAM_CONFIG_POLICY_DB_GROUPS_PREFIX: LazyLock<String> =
-    LazyLock::new(|| format!("{RUSTFS_CONFIG_PREFIX}/iam/policydb/groups/"));
+    LazyLock::new(|| format!("{NEUBULAFX_CONFIG_PREFIX}/iam/policydb/groups/"));
 
 const IAM_IDENTITY_FILE: &str = "identity.json";
 const IAM_POLICY_FILE: &str = "policy.json";
@@ -123,19 +111,19 @@ pub struct ObjectStore {
 }
 
 impl ObjectStore {
-    const BUCKET_NAME: &'static str = ".rustfs.sys";
+    const BUCKET_NAME: &'static str = ".nebulafx.sys";
 
     pub fn new(object_api: Arc<ECStore>) -> Self {
         Self { object_api }
     }
 
     fn decrypt_data(data: &[u8]) -> Result<Vec<u8>> {
-        let de = rustfs_crypto::decrypt_data(get_global_action_cred().unwrap_or_default().secret_key.as_bytes(), data)?;
+        let de = nebulafx_crypto::decrypt_data(get_global_action_cred().unwrap_or_default().secret_key.as_bytes(), data)?;
         Ok(de)
     }
 
     fn encrypt_data(data: &[u8]) -> Result<Vec<u8>> {
-        let en = rustfs_crypto::encrypt_data(get_global_action_cred().unwrap_or_default().secret_key.as_bytes(), data)?;
+        let en = nebulafx_crypto::encrypt_data(get_global_action_cred().unwrap_or_default().secret_key.as_bytes(), data)?;
         Ok(en)
     }
 
@@ -230,7 +218,7 @@ impl ObjectStore {
         let mut futures = Vec::with_capacity(names.len());
 
         for name in names {
-            let policy_name = rustfs_utils::path::dir(name);
+            let policy_name = nebulafx_utils::path::dir(name);
             futures.push(async move {
                 match self.load_policy(&policy_name).await {
                     Ok(p) => Ok(p),
@@ -262,7 +250,7 @@ impl ObjectStore {
         let mut futures = Vec::with_capacity(names.len());
 
         for name in names {
-            let user_name = rustfs_utils::path::dir(name);
+            let user_name = nebulafx_utils::path::dir(name);
             futures.push(async move {
                 match self.load_user_identity(&user_name, user_type).await {
                     Ok(res) => Ok(res),
@@ -500,7 +488,7 @@ impl Store for ObjectStore {
             }
 
             if let Some(item) = v.item {
-                let name = rustfs_utils::path::dir(&item);
+                let name = nebulafx_utils::path::dir(&item);
                 self.load_user(&name, user_type, m).await?;
             }
         }
@@ -562,7 +550,7 @@ impl Store for ObjectStore {
             }
 
             if let Some(item) = v.item {
-                let name = rustfs_utils::path::dir(&item);
+                let name = nebulafx_utils::path::dir(&item);
                 if let Err(err) = self.load_group(&name, m).await {
                     if !is_err_no_such_group(&err) {
                         return Err(err);
@@ -630,7 +618,7 @@ impl Store for ObjectStore {
             }
 
             if let Some(item) = v.item {
-                let name = rustfs_utils::path::dir(&item);
+                let name = nebulafx_utils::path::dir(&item);
                 self.load_policy_doc(&name, m).await?;
             }
         }
@@ -730,7 +718,7 @@ impl Store for ObjectStore {
                             continue;
                         }
 
-                        let policy_name = rustfs_utils::path::dir(&policies_list[idx]);
+                        let policy_name = nebulafx_utils::path::dir(&policies_list[idx]);
 
                         info!("load policy: {}", policy_name);
 
@@ -746,7 +734,7 @@ impl Store for ObjectStore {
                         continue;
                     }
 
-                    let policy_name = rustfs_utils::path::dir(&policies_list[idx]);
+                    let policy_name = nebulafx_utils::path::dir(&policies_list[idx]);
                     info!("load policy: {}", policy_name);
                     policy_docs_cache.insert(policy_name, p);
                 }
@@ -774,7 +762,7 @@ impl Store for ObjectStore {
                             continue;
                         }
 
-                        let name = rustfs_utils::path::dir(&item_name_list[idx]);
+                        let name = nebulafx_utils::path::dir(&item_name_list[idx]);
                         info!("load reg user: {}", name);
                         user_items_cache.insert(name, p);
                     }
@@ -788,7 +776,7 @@ impl Store for ObjectStore {
                         continue;
                     }
 
-                    let name = rustfs_utils::path::dir(&item_name_list[idx]);
+                    let name = nebulafx_utils::path::dir(&item_name_list[idx]);
                     info!("load reg user: {}", name);
                     user_items_cache.insert(name, p);
                 }
@@ -804,7 +792,7 @@ impl Store for ObjectStore {
             let mut items_cache = CacheEntity::default();
 
             for item in item_name_list.iter() {
-                let name = rustfs_utils::path::dir(item);
+                let name = nebulafx_utils::path::dir(item);
                 info!("load group: {}", name);
                 if let Err(err) = self.load_group(&name, &mut items_cache).await {
                     return Err(Error::other(format!("load group failed: {err}")));
@@ -883,7 +871,7 @@ impl Store for ObjectStore {
             let mut items_cache = HashMap::default();
 
             for item in item_name_list.iter() {
-                let name = rustfs_utils::path::dir(item);
+                let name = nebulafx_utils::path::dir(item);
                 info!("load svc user: {}", name);
                 if let Err(err) = self.load_user(&name, UserType::Svc, &mut items_cache).await {
                     if !is_err_no_such_user(&err) {
@@ -920,7 +908,7 @@ impl Store for ObjectStore {
             for item in item_name_list.iter() {
                 info!("load sts user path: {}", item);
 
-                let name = rustfs_utils::path::dir(item);
+                let name = nebulafx_utils::path::dir(item);
                 info!("load sts user: {}", name);
                 if let Err(err) = self.load_user(&name, UserType::Sts, &mut sts_items_cache).await {
                     info!("load sts user failed: {}", err);

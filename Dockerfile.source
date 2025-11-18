@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1.6
-# Multi-stage Dockerfile for RustFS - LOCAL DEVELOPMENT ONLY
+# Multi-stage Dockerfile for NebulaFX - LOCAL DEVELOPMENT ONLY
 #
-# IMPORTANT: This Dockerfile builds RustFS from source for local development and testing.
+# IMPORTANT: This Dockerfile builds NebulaFX from source for local development and testing.
 # CI/CD uses the production Dockerfile with prebuilt binaries instead.
 #
 # Example:
-#   docker build -f Dockerfile.source -t rustfs:dev-local .
-#   docker run --rm -p 9000:9000 rustfs:dev-local
+#   docker build -f Dockerfile.source -t nebulafx:dev-local .
+#   docker run --rm -p 9000:9000 nebulafx:dev-local
 #
 # Supports cross-compilation for amd64 and arm64 via TARGETPLATFORM.
 
@@ -64,15 +64,15 @@ ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
 ENV CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
 ENV CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++
 
-WORKDIR /usr/src/rustfs
+WORKDIR /usr/src/nebulafx
 
 # Layered copy to maximize caching:
 # 1) top-level manifests
 COPY Cargo.toml Cargo.lock ./
 # 2) workspace member manifests (adjust if workspace layout changes)
-COPY rustfs/Cargo.toml rustfs/Cargo.toml
+COPY nebulafx/Cargo.toml nebulafx/Cargo.toml
 COPY crates/*/Cargo.toml crates/
-COPY cli/rustfs-gui/Cargo.toml cli/rustfs-gui/Cargo.toml
+COPY cli/nebulafx-gui/Cargo.toml cli/nebulafx-gui/Cargo.toml
 
 # Pre-fetch dependencies for better caching
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
@@ -93,24 +93,24 @@ ENV CARGO_NET_GIT_FETCH_WITH_CLI=true \
 # Generate protobuf/flatbuffers code (uses protoc/flatc from distro)
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    --mount=type=cache,target=/usr/src/rustfs/target \
+    --mount=type=cache,target=/usr/src/nebulafx/target \
     cargo run --bin gproto
 
-# Build RustFS (target depends on TARGETPLATFORM)
+# Build NebulaFX (target depends on TARGETPLATFORM)
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    --mount=type=cache,target=/usr/src/rustfs/target \
+    --mount=type=cache,target=/usr/src/nebulafx/target \
     set -eux; \
     case "${TARGETPLATFORM:-linux/amd64}" in \
     linux/amd64) \
     echo "Building for x86_64-unknown-linux-gnu"; \
-    cargo build --release --locked --target x86_64-unknown-linux-gnu --bin rustfs -j "$(nproc)"; \
-    install -m 0755 target/x86_64-unknown-linux-gnu/release/rustfs /usr/local/bin/rustfs \
+    cargo build --release --locked --target x86_64-unknown-linux-gnu --bin nebulafx -j "$(nproc)"; \
+    install -m 0755 target/x86_64-unknown-linux-gnu/release/nebulafx /usr/local/bin/nebulafx \
     ;; \
     linux/arm64) \
     echo "Building for aarch64-unknown-linux-gnu"; \
-    cargo build --release --locked --target aarch64-unknown-linux-gnu --bin rustfs -j "$(nproc)"; \
-    install -m 0755 target/aarch64-unknown-linux-gnu/release/rustfs /usr/local/bin/rustfs \
+    cargo build --release --locked --target aarch64-unknown-linux-gnu --bin nebulafx -j "$(nproc)"; \
+    install -m 0755 target/aarch64-unknown-linux-gnu/release/nebulafx /usr/local/bin/nebulafx \
     ;; \
     *) \
     echo "Unsupported TARGETPLATFORM=${TARGETPLATFORM}" >&2; exit 1 \
@@ -125,11 +125,11 @@ FROM ubuntu:22.04
 ARG BUILD_DATE
 ARG VCS_REF
 
-LABEL name="RustFS (dev-local)" \
-    maintainer="RustFS Team" \
+LABEL name="NebulaFX (dev-local)" \
+    maintainer="NebulaFX Team" \
     build-date="${BUILD_DATE}" \
     vcs-ref="${VCS_REF}" \
-    description="RustFS - local development image built from source (NOT for production)."
+    description="NebulaFX - local development image built from source (NOT for production)."
 
 # Minimal runtime deps: certificates + tzdata + coreutils (for chroot --userspec)
 RUN set -eux; \
@@ -143,37 +143,37 @@ RUN set -eux; \
 
 # Create a conventional runtime user/group (final switch happens in entrypoint via chroot --userspec)
 RUN set -eux; \
-    groupadd -g 1000 rustfs; \
-    useradd -u 1000 -g rustfs -M -s /usr/sbin/nologin rustfs
+    groupadd -g 1000 nebulafx; \
+    useradd -u 1000 -g nebulafx -M -s /usr/sbin/nologin nebulafx
 
 WORKDIR /app
 
 # Prepare data/log directories with sane defaults
 RUN set -eux; \
     mkdir -p /data /logs; \
-    chown -R rustfs:rustfs /data /logs /app; \
+    chown -R nebulafx:nebulafx /data /logs /app; \
     chmod 0750 /data /logs
 
 # Copy the freshly built binary and the entrypoint
-COPY --from=builder /usr/local/bin/rustfs /usr/bin/rustfs
+COPY --from=builder /usr/local/bin/nebulafx /usr/bin/nebulafx
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /usr/bin/rustfs /entrypoint.sh
+RUN chmod +x /usr/bin/nebulafx /entrypoint.sh
 
 # Default environment (override in docker run/compose as needed)
-ENV RUSTFS_ADDRESS=":9000" \
-    RUSTFS_ACCESS_KEY="rustfsadmin" \
-    RUSTFS_SECRET_KEY="rustfsadmin" \
-    RUSTFS_VOLUMES="/data" \
+ENV NEUBULAFX_ADDRESS=":9000" \
+    NEUBULAFX_ACCESS_KEY="nebulafxadmin" \
+    NEUBULAFX_SECRET_KEY="nebulafxadmin" \
+    NEUBULAFX_VOLUMES="/data" \
     RUST_LOG="warn" \
-    RUSTFS_OBS_LOG_DIRECTORY="/logs" \
-    RUSTFS_USERNAME="rustfs" \
-    RUSTFS_GROUPNAME="rustfs" \
-    RUSTFS_UID="1000" \
-    RUSTFS_GID="1000"
+    NEUBULAFX_OBS_LOG_DIRECTORY="/logs" \
+    NEUBULAFX_USERNAME="nebulafx" \
+    NEUBULAFX_GROUPNAME="nebulafx" \
+    NEUBULAFX_UID="1000" \
+    NEUBULAFX_GID="1000"
 
 EXPOSE 9000
 VOLUME ["/data", "/logs"]
 
 # Keep root here; entrypoint will drop privileges using chroot --userspec
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["/usr/bin/rustfs"]
+CMD ["/usr/bin/nebulafx"]

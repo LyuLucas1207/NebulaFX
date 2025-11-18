@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::target::{ChannelTargetType, EntityTarget, TargetType};
 use crate::{
@@ -21,7 +9,7 @@ use crate::{
 };
 use async_trait::async_trait;
 use reqwest::{Client, StatusCode, Url};
-use rustfs_config::notify::STORE_EXTENSION;
+use nebulafx_config::notify::STORE_EXTENSION;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use std::{
@@ -128,7 +116,7 @@ where
         // Build HTTP client
         let mut client_builder = Client::builder()
             .timeout(Duration::from_secs(30))
-            .user_agent(rustfs_utils::get_user_agent(rustfs_utils::ServiceType::Basis));
+            .user_agent(nebulafx_utils::get_user_agent(nebulafx_utils::ServiceType::Basis));
 
         // Supplementary certificate processing logic
         if !args.client_cert.is_empty() && !args.client_key.is_empty() {
@@ -152,10 +140,10 @@ where
         // Build storage
         let queue_store = if !args.queue_dir.is_empty() {
             let queue_dir =
-                PathBuf::from(&args.queue_dir).join(format!("rustfs-{}-{}", ChannelTargetType::Webhook.as_str(), target_id.id));
+                PathBuf::from(&args.queue_dir).join(format!("nebulafx-{}-{}", ChannelTargetType::Webhook.as_str(), target_id.id));
 
             let extension = match args.target_type {
-                TargetType::AuditLog => rustfs_config::audit::AUDIT_STORE_EXTENSION,
+                TargetType::AuditLog => nebulafx_config::audit::AUDIT_STORE_EXTENSION,
                 TargetType::NotifyEvent => STORE_EXTENSION,
             };
 

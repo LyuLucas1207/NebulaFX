@@ -1,31 +1,31 @@
-# RustFS KMS Developer API
+# NebulaFX KMS Developer API
 
-This document targets developers extending RustFS or embedding the KMS primitives directly. The `rustfs-kms` crate exposes building blocks for configuration, backend orchestration, and data-key lifecycle management.
+This document targets developers extending NebulaFX or embedding the KMS primitives directly. The `nebulafx-kms` crate exposes building blocks for configuration, backend orchestration, and data-key lifecycle management.
 
 ## Crate Overview
 
-Add the crate to your workspace (already included in RustFS):
+Add the crate to your workspace (already included in NebulaFX):
 
 ```toml
 [dependencies]
-rustfs-kms = { path = "crates/kms" }
+nebulafx-kms = { path = "crates/kms" }
 ```
 
 Key namespaces:
 
 | Module | Purpose |
 |--------|---------|
-| `rustfs_kms::config` | Typed configuration objects for local/vault backends. |
-| `rustfs_kms::manager::KmsManager` | High-level coordinator that proxies operations to a backend. |
-| `rustfs_kms::encryption::service::EncryptionService` | Frontend consumed by RustFS S3 handlers. |
-| `rustfs_kms::backends` | Backend trait definitions and concrete implementations. |
-| `rustfs_kms::types` | Request/response DTOs used by the REST handlers and manager. |
-| `rustfs_kms::service_manager` | Async runtime that powers `/kms/configure`, `/kms/start`, etc. |
+| `nebulafx_kms::config` | Typed configuration objects for local/vault backends. |
+| `nebulafx_kms::manager::KmsManager` | High-level coordinator that proxies operations to a backend. |
+| `nebulafx_kms::encryption::service::EncryptionService` | Frontend consumed by NebulaFX S3 handlers. |
+| `nebulafx_kms::backends` | Backend trait definitions and concrete implementations. |
+| `nebulafx_kms::types` | Request/response DTOs used by the REST handlers and manager. |
+| `nebulafx_kms::service_manager` | Async runtime that powers `/kms/configure`, `/kms/start`, etc. |
 
 ## Constructing a Configuration
 
 ```rust
-use rustfs_kms::config::{BackendConfig, KmsBackend, KmsConfig, LocalConfig, VaultConfig, VaultAuthMethod};
+use nebulafx_kms::config::{BackendConfig, KmsBackend, KmsConfig, LocalConfig, VaultConfig, VaultAuthMethod};
 
 let config = KmsConfig {
     backend: KmsBackend::Vault,
@@ -35,10 +35,10 @@ let config = KmsConfig {
         namespace: None,
         mount_path: "transit".into(),
         kv_mount: "secret".into(),
-        key_path_prefix: "rustfs/kms/keys".into(),
+        key_path_prefix: "nebulafx/kms/keys".into(),
         tls: None,
     }),
-    default_key_id: Some("rustfs-master".into()),
+    default_key_id: Some("nebulafx-master".into()),
     timeout: std::time::Duration::from_secs(30),
     retry_attempts: 3,
     enable_cache: true,
@@ -49,7 +49,7 @@ let config = KmsConfig {
 To build configurations from the admin REST payloads, use `api_types::ConfigureKmsRequest`:
 
 ```rust
-use rustfs_kms::api_types::{ConfigureKmsRequest, ConfigureVaultKmsRequest};
+use nebulafx_kms::api_types::{ConfigureKmsRequest, ConfigureVaultKmsRequest};
 
 let request = ConfigureKmsRequest::Vault(ConfigureVaultKmsRequest {
     address: "https://vault.example.com:8200".into(),
@@ -57,8 +57,8 @@ let request = ConfigureKmsRequest::Vault(ConfigureVaultKmsRequest {
     namespace: None,
     mount_path: Some("transit".into()),
     kv_mount: Some("secret".into()),
-    key_path_prefix: Some("rustfs/kms/keys".into()),
-    default_key_id: Some("rustfs-master".into()),
+    key_path_prefix: Some("nebulafx/kms/keys".into()),
+    default_key_id: Some("nebulafx-master".into()),
     skip_tls_verify: Some(false),
     timeout_seconds: Some(30),
     retry_attempts: Some(5),
@@ -75,7 +75,7 @@ let kms_config: KmsConfig = (&request).into();
 The admin layer interacts with a `ServiceManager` singleton that wraps `KmsManager`:
 
 ```rust
-use rustfs_kms::{init_global_kms_service_manager, get_global_kms_service_manager};
+use nebulafx_kms::{init_global_kms_service_manager, get_global_kms_service_manager};
 
 let manager = init_global_kms_service_manager();
 manager.configure(config).await?;
@@ -87,8 +87,8 @@ let status = manager.get_status().await; // -> KmsServiceStatus::Running
 `get_global_encryption_service()` returns the `EncryptionService` façade that the S3 request handlers call. The service exposes async methods mirroring AWS KMS semantics:
 
 ```rust
-use rustfs_kms::types::{CreateKeyRequest, KeyUsage, GenerateDataKeyRequest, KeySpec};
-use rustfs_kms::get_global_encryption_service;
+use nebulafx_kms::types::{CreateKeyRequest, KeyUsage, GenerateDataKeyRequest, KeySpec};
+use nebulafx_kms::get_global_encryption_service;
 
 let service = get_global_encryption_service().await.expect("service not initialised");
 
@@ -147,13 +147,13 @@ Both rely on `ObjectCipher` implementations defined in `crates/kms/src/encryptio
 
 ## Testing Utilities
 
-- `rustfs_kms::mock` contains in-memory backends used by unit tests.
+- `nebulafx_kms::mock` contains in-memory backends used by unit tests.
 - The e2e crate (`crates/e2e_test`) exposes helpers such as `LocalKMSTestEnvironment` and `VaultTestEnvironment` for integration testing.
 - Run the full suite: `cargo test --workspace --exclude e2e_test` for unit coverage, `cargo test -p e2e_test kms:: -- --nocapture` for end-to-end validation.
 
 ## Error Handling Conventions
 
-All public async methods return `rustfs_kms::error::Result<T>`. Errors are categorised as:
+All public async methods return `nebulafx_kms::error::Result<T>`. Errors are categorised as:
 
 | Variant | Meaning |
 |---------|---------|
@@ -162,7 +162,7 @@ All public async methods return `rustfs_kms::error::Result<T>`. Errors are categ
 | `KmsError::Crypto`        | Integrity or cryptographic failure. |
 | `KmsError::Cache`         | Cache lookup or eviction failure. |
 
-Map these errors to HTTP responses using the helper macros in `rustfs/src/admin/handlers`.
+Map these errors to HTTP responses using the helper macros in `nebulafx/src/admin/handlers`.
 
 ---
 

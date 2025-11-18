@@ -1,23 +1,23 @@
-[![RustFS](https://rustfs.com/images/rustfs-github.png)](https://rustfs.com)
+[![NebulaFX](https://nebulafx.com/images/nebulafx-github.png)](https://nebulafx.com)
 
-# RustFS Protos - Protocol Buffer Definitions
+# NebulaFX Protos - Protocol Buffer Definitions
 
 <p align="center">
-  <strong>Protocol buffer definitions and gRPC services for RustFS distributed object storage</strong>
+  <strong>Protocol buffer definitions and gRPC services for NebulaFX distributed object storage</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/rustfs/rustfs/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/rustfs/rustfs/actions/workflows/ci.yml/badge.svg" /></a>
-  <a href="https://docs.rustfs.com/en/">📖 Documentation</a>
-  · <a href="https://github.com/rustfs/rustfs/issues">🐛 Bug Reports</a>
-  · <a href="https://github.com/rustfs/rustfs/discussions">💬 Discussions</a>
+  <a href="https://github.com/nebulafx/nebulafx/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/nebulafx/nebulafx/actions/workflows/ci.yml/badge.svg" /></a>
+  <a href="https://docs.nebulafx.com/en/">📖 Documentation</a>
+  · <a href="https://github.com/nebulafx/nebulafx/issues">🐛 Bug Reports</a>
+  · <a href="https://github.com/nebulafx/nebulafx/discussions">💬 Discussions</a>
 </p>
 
 ---
 
 ## 📖 Overview
 
-**RustFS Protos** provides protocol buffer definitions and gRPC services for the [RustFS](https://rustfs.com) distributed object storage system. For the complete RustFS experience, please visit the [main RustFS repository](https://github.com/rustfs/rustfs).
+**NebulaFX Protos** provides protocol buffer definitions and gRPC services for the [NebulaFX](https://nebulafx.com) distributed object storage system. For the complete NebulaFX experience, please visit the [main NebulaFX repository](https://github.com/nebulafx/nebulafx).
 
 ## ✨ Features
 
@@ -36,7 +36,7 @@ cargo run --bin gproto
 
 ## 📚 Documentation
 
-For comprehensive documentation, examples, and usage guides, please visit the main [RustFS repository](https://github.com/rustfs/rustfs).
+For comprehensive documentation, examples, and usage guides, please visit the main [NebulaFX repository](https://github.com/nebulafx/nebulafx).
 
 ## 📄 License
 

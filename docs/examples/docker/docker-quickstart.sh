@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# RustFS Docker Quick Start Script
+# NebulaFX Docker Quick Start Script
 # This script provides easy deployment commands for different scenarios
 
 set -e
@@ -13,7 +13,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 log() {
-    echo -e "${GREEN}[RustFS]${NC} $1"
+    echo -e "${GREEN}[NebulaFX]${NC} $1"
 }
 
 info() {
@@ -32,7 +32,7 @@ error() {
 print_banner() {
     echo -e "${BLUE}"
     echo "=================================================="
-    echo "         RustFS Docker Quick Start"
+    echo "         NebulaFX Docker Quick Start"
     echo "         Console & Endpoint Separation"
     echo "=================================================="
     echo -e "${NC}"
@@ -49,87 +49,87 @@ check_docker() {
 
 # Quick start - basic deployment
 quick_basic() {
-    log "Starting RustFS basic deployment..."
+    log "Starting NebulaFX basic deployment..."
     
     docker run -d \
-        --name rustfs-quick \
+        --name nebulafx-quick \
         -p 9000:9000 \
         -p 9001:9001 \
-        -e RUSTFS_EXTERNAL_ADDRESS=":9000" \
-        -e RUSTFS_CORS_ALLOWED_ORIGINS="http://localhost:9001" \
-        -v rustfs-quick-data:/data \
-        rustfs/rustfs:latest
+        -e NEUBULAFX_EXTERNAL_ADDRESS=":9000" \
+        -e NEUBULAFX_CORS_ALLOWED_ORIGINS="http://localhost:9001" \
+        -v nebulafx-quick-data:/data \
+        nebulafx/nebulafx:latest
     
     echo
-    info "✅ RustFS deployed successfully!"
+    info "✅ NebulaFX deployed successfully!"
     info "🌐 API Endpoint:  http://localhost:9000"
-    info "🖥️  Console UI:    http://localhost:9001/rustfs/console/"
-    info "🔐 Credentials:   rustfsadmin / rustfsadmin"
+    info "🖥️  Console UI:    http://localhost:9001/nebulafx/console/"
+    info "🔐 Credentials:   nebulafxadmin / nebulafxadmin"
     info "🏥 Health Check:  curl http://localhost:9000/health"
     echo
-    info "To stop: docker stop rustfs-quick"
-    info "To remove: docker rm rustfs-quick && docker volume rm rustfs-quick-data"
+    info "To stop: docker stop nebulafx-quick"
+    info "To remove: docker rm nebulafx-quick && docker volume rm nebulafx-quick-data"
 }
 
 # Development deployment with debug logging
 quick_dev() {
-    log "Starting RustFS development environment..."
+    log "Starting NebulaFX development environment..."
     
     docker run -d \
-        --name rustfs-dev \
+        --name nebulafx-dev \
         -p 9010:9000 \
         -p 9011:9001 \
-        -e RUSTFS_EXTERNAL_ADDRESS=":9010" \
-        -e RUSTFS_CORS_ALLOWED_ORIGINS="*" \
-        -e RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS="*" \
-        -e RUSTFS_ACCESS_KEY="dev-admin" \
-        -e RUSTFS_SECRET_KEY="dev-secret" \
+        -e NEUBULAFX_EXTERNAL_ADDRESS=":9010" \
+        -e NEUBULAFX_CORS_ALLOWED_ORIGINS="*" \
+        -e NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS="*" \
+        -e NEUBULAFX_ACCESS_KEY="dev-admin" \
+        -e NEUBULAFX_SECRET_KEY="dev-secret" \
         -e RUST_LOG="debug" \
-        -v rustfs-dev-data:/data \
-        rustfs/rustfs:latest
+        -v nebulafx-dev-data:/data \
+        nebulafx/nebulafx:latest
     
     echo
-    info "✅ RustFS development environment ready!"
+    info "✅ NebulaFX development environment ready!"
     info "🌐 API Endpoint:  http://localhost:9010"
-    info "🖥️  Console UI:    http://localhost:9011/rustfs/console/"
+    info "🖥️  Console UI:    http://localhost:9011/nebulafx/console/"
     info "🔐 Credentials:   dev-admin / dev-secret"
     info "📊 Debug logging enabled"
     echo
-    info "To stop: docker stop rustfs-dev"
+    info "To stop: docker stop nebulafx-dev"
 }
 
 # Production-like deployment
 quick_prod() {
-    log "Starting RustFS production-like deployment..."
+    log "Starting NebulaFX production-like deployment..."
     
     # Generate secure credentials
     ACCESS_KEY="prod-$(openssl rand -hex 8)"
     SECRET_KEY="$(openssl rand -hex 24)"
     
     docker run -d \
-        --name rustfs-prod \
+        --name nebulafx-prod \
         -p 9020:9000 \
         -p 127.0.0.1:9021:9001 \
-        -e RUSTFS_EXTERNAL_ADDRESS=":9020" \
-        -e RUSTFS_CORS_ALLOWED_ORIGINS="https://myapp.com" \
-        -e RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS="https://admin.myapp.com" \
-        -e RUSTFS_CONSOLE_RATE_LIMIT_ENABLE="true" \
-        -e RUSTFS_CONSOLE_RATE_LIMIT_RPM="60" \
-        -e RUSTFS_ACCESS_KEY="$ACCESS_KEY" \
-        -e RUSTFS_SECRET_KEY="$SECRET_KEY" \
-        -v rustfs-prod-data:/data \
-        rustfs/rustfs:latest
+        -e NEUBULAFX_EXTERNAL_ADDRESS=":9020" \
+        -e NEUBULAFX_CORS_ALLOWED_ORIGINS="https://myapp.com" \
+        -e NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS="https://admin.myapp.com" \
+        -e NEUBULAFX_CONSOLE_RATE_LIMIT_ENABLE="true" \
+        -e NEUBULAFX_CONSOLE_RATE_LIMIT_RPM="60" \
+        -e NEUBULAFX_ACCESS_KEY="$ACCESS_KEY" \
+        -e NEUBULAFX_SECRET_KEY="$SECRET_KEY" \
+        -v nebulafx-prod-data:/data \
+        nebulafx/nebulafx:latest
     
     # Save credentials
-    echo "RUSTFS_ACCESS_KEY=$ACCESS_KEY" > rustfs-prod-credentials.txt
-    echo "RUSTFS_SECRET_KEY=$SECRET_KEY" >> rustfs-prod-credentials.txt
-    chmod 600 rustfs-prod-credentials.txt
+    echo "NEUBULAFX_ACCESS_KEY=$ACCESS_KEY" > nebulafx-prod-credentials.txt
+    echo "NEUBULAFX_SECRET_KEY=$SECRET_KEY" >> nebulafx-prod-credentials.txt
+    chmod 600 nebulafx-prod-credentials.txt
     
     echo
-    info "✅ RustFS production deployment ready!"
+    info "✅ NebulaFX production deployment ready!"
     info "🌐 API Endpoint:  http://localhost:9020 (public)"
-    info "🖥️  Console UI:    http://127.0.0.1:9021/rustfs/console/ (localhost only)"
-    info "🔐 Credentials saved to rustfs-prod-credentials.txt"
+    info "🖥️  Console UI:    http://127.0.0.1:9021/nebulafx/console/ (localhost only)"
+    info "🔐 Credentials saved to nebulafx-prod-credentials.txt"
     info "🔒 Console restricted to localhost for security"
     echo
     warn "⚠️  Change default CORS origins for production use"
@@ -137,52 +137,52 @@ quick_prod() {
 
 # Stop and cleanup
 cleanup() {
-    log "Cleaning up RustFS deployments..."
+    log "Cleaning up NebulaFX deployments..."
     
-    docker stop rustfs-quick rustfs-dev rustfs-prod 2>/dev/null || true
-    docker rm rustfs-quick rustfs-dev rustfs-prod 2>/dev/null || true
+    docker stop nebulafx-quick nebulafx-dev nebulafx-prod 2>/dev/null || true
+    docker rm nebulafx-quick nebulafx-dev nebulafx-prod 2>/dev/null || true
     
     info "Containers stopped and removed"
     echo
     info "To also remove data volumes, run:"
-    info "docker volume rm rustfs-quick-data rustfs-dev-data rustfs-prod-data"
+    info "docker volume rm nebulafx-quick-data nebulafx-dev-data nebulafx-prod-data"
 }
 
 # Show status of all deployments
 status() {
-    log "RustFS deployment status:"
+    log "NebulaFX deployment status:"
     echo
     
-    if docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -q rustfs; then
+    if docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -q nebulafx; then
         docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | head -n1
-        docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep rustfs
+        docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep nebulafx
     else
-        info "No RustFS containers are currently running"
+        info "No NebulaFX containers are currently running"
     fi
     
     echo
     info "Available endpoints:"
     
-    if docker ps --filter "name=rustfs-quick" --format "{{.Names}}" | grep -q rustfs-quick; then
-        echo "  Basic:   http://localhost:9000 (API) | http://localhost:9001/rustfs/console/ (Console)"
+    if docker ps --filter "name=nebulafx-quick" --format "{{.Names}}" | grep -q nebulafx-quick; then
+        echo "  Basic:   http://localhost:9000 (API) | http://localhost:9001/nebulafx/console/ (Console)"
     fi
     
-    if docker ps --filter "name=rustfs-dev" --format "{{.Names}}" | grep -q rustfs-dev; then
-        echo "  Dev:     http://localhost:9010 (API) | http://localhost:9011/rustfs/console/ (Console)"
+    if docker ps --filter "name=nebulafx-dev" --format "{{.Names}}" | grep -q nebulafx-dev; then
+        echo "  Dev:     http://localhost:9010 (API) | http://localhost:9011/nebulafx/console/ (Console)"
     fi
     
-    if docker ps --filter "name=rustfs-prod" --format "{{.Names}}" | grep -q rustfs-prod; then
-        echo "  Prod:    http://localhost:9020 (API) | http://127.0.0.1:9021/rustfs/console/ (Console)"
+    if docker ps --filter "name=nebulafx-prod" --format "{{.Names}}" | grep -q nebulafx-prod; then
+        echo "  Prod:    http://localhost:9020 (API) | http://127.0.0.1:9021/nebulafx/console/ (Console)"
     fi
 }
 
 # Test deployments
 test_deployments() {
-    log "Testing RustFS deployments..."
+    log "Testing NebulaFX deployments..."
     echo
     
     # Test basic deployment
-    if docker ps --filter "name=rustfs-quick" --format "{{.Names}}" | grep -q rustfs-quick; then
+    if docker ps --filter "name=nebulafx-quick" --format "{{.Names}}" | grep -q nebulafx-quick; then
         info "Testing basic deployment..."
         if curl -s -f http://localhost:9000/health | grep -q "ok"; then
             echo "  ✅ API health check: PASS"
@@ -198,7 +198,7 @@ test_deployments() {
     fi
     
     # Test dev deployment
-    if docker ps --filter "name=rustfs-dev" --format "{{.Names}}" | grep -q rustfs-dev; then
+    if docker ps --filter "name=nebulafx-dev" --format "{{.Names}}" | grep -q nebulafx-dev; then
         info "Testing development deployment..."
         if curl -s -f http://localhost:9010/health | grep -q "ok"; then
             echo "  ✅ Dev API health check: PASS"
@@ -214,7 +214,7 @@ test_deployments() {
     fi
     
     # Test prod deployment  
-    if docker ps --filter "name=rustfs-prod" --format "{{.Names}}" | grep -q rustfs-prod; then
+    if docker ps --filter "name=nebulafx-prod" --format "{{.Names}}" | grep -q nebulafx-prod; then
         info "Testing production deployment..."
         if curl -s -f http://localhost:9020/health | grep -q "ok"; then
             echo "  ✅ Prod API health check: PASS"
@@ -236,12 +236,12 @@ show_help() {
     echo "Usage: $0 [command]"
     echo
     echo "Commands:"
-    echo "  basic     Start basic RustFS deployment (ports 9000-9001)"
+    echo "  basic     Start basic NebulaFX deployment (ports 9000-9001)"
     echo "  dev       Start development deployment with debug logging (ports 9010-9011)"
     echo "  prod      Start production-like deployment with security (ports 9020-9021)"
     echo "  status    Show status of running deployments"
     echo "  test      Test health of all running deployments"
-    echo "  cleanup   Stop and remove all RustFS containers"
+    echo "  cleanup   Stop and remove all NebulaFX containers"
     echo "  help      Show this help message"
     echo
     echo "Examples:"

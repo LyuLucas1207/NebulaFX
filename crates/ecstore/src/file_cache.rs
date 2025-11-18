@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 //! High-performance file content and metadata caching using moka
 //!
@@ -20,7 +8,7 @@
 use super::disk::error::{Error, Result};
 use bytes::Bytes;
 use moka::future::Cache;
-use rustfs_filemeta::FileMeta;
+use nebulafx_filemeta::FileMeta;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
@@ -121,7 +109,7 @@ impl OptimizedFileCache {
     pub async fn get_metadata_batch(
         &self,
         paths: Vec<PathBuf>,
-    ) -> Vec<std::result::Result<Arc<FileMeta>, rustfs_filemeta::Error>> {
+    ) -> Vec<std::result::Result<Arc<FileMeta>, nebulafx_filemeta::Error>> {
         let mut results = Vec::with_capacity(paths.len());
         let mut cache_futures = Vec::new();
 
@@ -157,7 +145,7 @@ impl OptimizedFileCache {
                         }
                     }
                     Err(_e) => {
-                        fs_results.push((i, Err(rustfs_filemeta::Error::Unexpected)));
+                        fs_results.push((i, Err(nebulafx_filemeta::Error::Unexpected)));
                     }
                 }
             }

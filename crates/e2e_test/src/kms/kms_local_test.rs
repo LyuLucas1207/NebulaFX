@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 //! End-to-end tests for Local KMS backend
 //!
@@ -35,16 +23,16 @@ async fn test_local_kms_end_to_end() -> Result<(), Box<dyn std::error::Error + S
         .await
         .expect("Failed to create LocalKMS test environment");
 
-    // Start RustFS with Local KMS backend (KMS should be auto-started with --kms-backend local)
+    // Start NebulaFX with Local KMS backend (KMS should be auto-started with --kms-backend local)
     let default_key_id = kms_env
-        .start_rustfs_for_local_kms()
+        .start_nebulafx_for_local_kms()
         .await
-        .expect("Failed to start RustFS with Local KMS");
+        .expect("Failed to start NebulaFX with Local KMS");
 
-    // Wait a moment for RustFS to fully start up and initialize KMS
+    // Wait a moment for NebulaFX to fully start up and initialize KMS
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
-    info!("RustFS started with KMS auto-configuration, default_key_id: {}", default_key_id);
+    info!("NebulaFX started with KMS auto-configuration, default_key_id: {}", default_key_id);
 
     // Verify KMS status
     match get_kms_status(&kms_env.base_env.url, &kms_env.base_env.access_key, &kms_env.base_env.secret_key).await {
@@ -117,16 +105,16 @@ async fn test_local_kms_key_isolation() {
         .await
         .expect("Failed to create LocalKMS test environment");
 
-    // Start RustFS with Local KMS backend (KMS should be auto-started with --kms-backend local)
+    // Start NebulaFX with Local KMS backend (KMS should be auto-started with --kms-backend local)
     let default_key_id = kms_env
-        .start_rustfs_for_local_kms()
+        .start_nebulafx_for_local_kms()
         .await
-        .expect("Failed to start RustFS with Local KMS");
+        .expect("Failed to start NebulaFX with Local KMS");
 
-    // Wait a moment for RustFS to fully start up and initialize KMS
+    // Wait a moment for NebulaFX to fully start up and initialize KMS
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
-    info!("RustFS started with KMS auto-configuration, default_key_id: {}", default_key_id);
+    info!("NebulaFX started with KMS auto-configuration, default_key_id: {}", default_key_id);
 
     let s3_client = kms_env.base_env.create_s3_client();
     kms_env
@@ -218,16 +206,16 @@ async fn test_local_kms_large_file() {
         .await
         .expect("Failed to create LocalKMS test environment");
 
-    // Start RustFS with Local KMS backend (KMS should be auto-started with --kms-backend local)
+    // Start NebulaFX with Local KMS backend (KMS should be auto-started with --kms-backend local)
     let default_key_id = kms_env
-        .start_rustfs_for_local_kms()
+        .start_nebulafx_for_local_kms()
         .await
-        .expect("Failed to start RustFS with Local KMS");
+        .expect("Failed to start NebulaFX with Local KMS");
 
-    // Wait a moment for RustFS to fully start up and initialize KMS
+    // Wait a moment for NebulaFX to fully start up and initialize KMS
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
-    info!("RustFS started with KMS auto-configuration, default_key_id: {}", default_key_id);
+    info!("NebulaFX started with KMS auto-configuration, default_key_id: {}", default_key_id);
 
     let s3_client = kms_env.base_env.create_s3_client();
     kms_env
@@ -301,16 +289,16 @@ async fn test_local_kms_multipart_upload() {
         .await
         .expect("Failed to create LocalKMS test environment");
 
-    // Start RustFS with Local KMS backend
+    // Start NebulaFX with Local KMS backend
     let default_key_id = kms_env
-        .start_rustfs_for_local_kms()
+        .start_nebulafx_for_local_kms()
         .await
-        .expect("Failed to start RustFS with Local KMS");
+        .expect("Failed to start NebulaFX with Local KMS");
 
     // Wait for KMS initialization
     tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
-    info!("RustFS started with KMS auto-configuration, default_key_id: {}", default_key_id);
+    info!("NebulaFX started with KMS auto-configuration, default_key_id: {}", default_key_id);
 
     let s3_client = kms_env.base_env.create_s3_client();
     kms_env

@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 #![allow(clippy::map_entry)]
 
@@ -40,7 +28,7 @@ use crate::store_api::{
 use crate::store_init::{check_disk_fatal_errs, ec_drives_no_config};
 use crate::{
     bucket::{lifecycle::bucket_lifecycle_ops::TransitionState, metadata::BucketMetadata},
-    disk::{BUCKET_META_PREFIX, DiskOption, DiskStore, RUSTFS_META_BUCKET, new_disk},
+    disk::{BUCKET_META_PREFIX, DiskOption, DiskStore, NEUBULAFX_META_BUCKET, new_disk},
     endpoints::EndpointServerPools,
     rpc::S3PeerSys,
     sets::Sets,
@@ -55,11 +43,11 @@ use futures::future::join_all;
 use http::HeaderMap;
 use lazy_static::lazy_static;
 use rand::Rng as _;
-use rustfs_common::globals::{GLOBAL_Local_Node_Name, GLOBAL_Rustfs_Host, GLOBAL_Rustfs_Port};
-use rustfs_common::heal_channel::{HealItemType, HealOpts};
-use rustfs_filemeta::FileInfo;
-use rustfs_madmin::heal_commands::HealResultItem;
-use rustfs_utils::path::{SLASH_SEPARATOR, decode_dir_object, encode_dir_object, path_join_buf};
+use nebulafx_common::globals::{GLOBAL_Local_Node_Name, GLOBAL_NEUBULAFX_Host, GLOBAL_NEUBULAFX_Port};
+use nebulafx_common::heal_channel::{HealItemType, HealOpts};
+use nebulafx_filemeta::FileInfo;
+use nebulafx_madmin::heal_commands::HealResultItem;
+use nebulafx_utils::path::{SLASH_SEPARATOR, decode_dir_object, encode_dir_object, path_join_buf};
 use s3s::dto::{BucketVersioningStatus, ObjectLockConfiguration, ObjectLockEnabled, VersioningConfiguration};
 use std::cmp::Ordering;
 use std::net::SocketAddr;
@@ -127,11 +115,11 @@ impl ECStore {
         info!("ECStore new address: {}", address.to_string());
         let mut host = address.ip().to_string();
         if host.is_empty() {
-            host = GLOBAL_Rustfs_Host.read().await.to_string()
+            host = GLOBAL_NEUBULAFX_Host.read().await.to_string()
         }
         let mut port = address.port().to_string();
         if port.is_empty() {
-            port = GLOBAL_Rustfs_Port.read().await.to_string()
+            port = GLOBAL_NEUBULAFX_Port.read().await.to_string()
         }
         info!("ECStore new host: {}, port: {}", host, port);
         init_local_peer(&endpoint_pools, &host, &port).await;
@@ -1146,7 +1134,7 @@ lazy_static! {
 #[async_trait::async_trait]
 impl StorageAPI for ECStore {
     #[instrument(skip(self))]
-    async fn backend_info(&self) -> rustfs_madmin::BackendInfo {
+    async fn backend_info(&self) -> nebulafx_madmin::BackendInfo {
         let (standard_sc_parity, rr_sc_parity) = {
             if let Some(sc) = GLOBAL_STORAGE_CLASS.get() {
                 let sc_parity = sc
@@ -1177,10 +1165,10 @@ impl StorageAPI for ECStore {
             drives_per_set.push(*set_count);
         }
 
-        rustfs_madmin::BackendInfo {
-            backend_type: rustfs_madmin::BackendByte::Erasure,
-            online_disks: rustfs_madmin::BackendDisks::new(),
-            offline_disks: rustfs_madmin::BackendDisks::new(),
+        nebulafx_madmin::BackendInfo {
+            backend_type: nebulafx_madmin::BackendByte::Erasure,
+            online_disks: nebulafx_madmin::BackendDisks::new(),
+            offline_disks: nebulafx_madmin::BackendDisks::new(),
             standard_sc_data,
             standard_sc_parity,
             rr_sc_data,
@@ -1191,15 +1179,15 @@ impl StorageAPI for ECStore {
         }
     }
     #[instrument(skip(self))]
-    async fn storage_info(&self) -> rustfs_madmin::StorageInfo {
+    async fn storage_info(&self) -> nebulafx_madmin::StorageInfo {
         let Some(notification_sy) = get_global_notification_sys() else {
-            return rustfs_madmin::StorageInfo::default();
+            return nebulafx_madmin::StorageInfo::default();
         };
 
         notification_sy.storage_info(self).await
     }
     #[instrument(skip(self))]
-    async fn local_storage_info(&self) -> rustfs_madmin::StorageInfo {
+    async fn local_storage_info(&self) -> nebulafx_madmin::StorageInfo {
         let mut futures = Vec::with_capacity(self.pools.len());
 
         for pool in self.pools.iter() {
@@ -1215,7 +1203,7 @@ impl StorageAPI for ECStore {
         }
 
         let backend = self.backend_info().await;
-        rustfs_madmin::StorageInfo { backend, disks }
+        nebulafx_madmin::StorageInfo { backend, disks }
     }
 
     #[instrument(skip(self))]
@@ -1319,7 +1307,7 @@ impl StorageAPI for ECStore {
         // TODO: replication opts.srdelete_op
 
         // Delete the metadata
-        self.delete_all(RUSTFS_META_BUCKET, format!("{BUCKET_META_PREFIX}/{bucket}").as_str())
+        self.delete_all(NEUBULAFX_META_BUCKET, format!("{BUCKET_META_PREFIX}/{bucket}").as_str())
             .await?;
         Ok(())
     }
@@ -2113,7 +2101,7 @@ impl StorageAPI for ECStore {
     async fn delete_object_version(&self, bucket: &str, object: &str, fi: &FileInfo, force_del_marker: bool) -> Result<()> {
         check_del_obj_args(bucket, object)?;
 
-        let object = rustfs_utils::path::encode_dir_object(object);
+        let object = nebulafx_utils::path::encode_dir_object(object);
 
         if self.single_pool() {
             return self.pools[0]

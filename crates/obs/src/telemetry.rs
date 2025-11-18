@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::config::OtelConfig;
 use crate::global::OBSERVABILITY_METRIC_ENABLED;
@@ -31,7 +19,7 @@ use opentelemetry_semantic_conventions::{
     SCHEMA_URL,
     attribute::{DEPLOYMENT_ENVIRONMENT_NAME, NETWORK_LOCAL_ADDRESS, SERVICE_VERSION as OTEL_SERVICE_VERSION},
 };
-use rustfs_config::{
+use nebulafx_config::{
     APP_NAME, DEFAULT_LOG_KEEP_FILES, DEFAULT_LOG_LEVEL, DEFAULT_OBS_LOG_STDOUT_ENABLED, ENVIRONMENT, METER_INTERVAL,
     SAMPLE_RATIO, SERVICE_VERSION,
     observability::{
@@ -39,7 +27,7 @@ use rustfs_config::{
         ENV_OBS_LOG_DIRECTORY, ENV_OBS_LOG_FLUSH_MS, ENV_OBS_LOG_MESSAGE_CAPA, ENV_OBS_LOG_POOL_CAPA,
     },
 };
-use rustfs_utils::{get_env_u64, get_env_usize, get_local_ip_with_default};
+use nebulafx_utils::{get_env_u64, get_env_usize, get_local_ip_with_default};
 use smallvec::SmallVec;
 use std::{borrow::Cow, env, fs, io::IsTerminal, time::Duration};
 use tracing::info;
@@ -219,7 +207,7 @@ fn init_stdout_logging(_config: &OtelConfig, logger_level: &str, is_production: 
     let enable_color = std::io::stdout().is_terminal();
     
     // 检查是否使用 JSON 格式（通过环境变量控制）
-    let use_json = env::var("RUSTFS_LOG_JSON")
+    let use_json = env::var("NEUBULAFX_LOG_JSON")
         .map(|v| v == "true" || v == "1")
         .unwrap_or(false);
     
@@ -270,7 +258,7 @@ fn init_stdout_logging(_config: &OtelConfig, logger_level: &str, is_production: 
     }
 
     OBSERVABILITY_METRIC_ENABLED.set(false).ok();
-    counter!("rustfs.start.total").increment(1);
+    counter!("nebulafx.start.total").increment(1);
     info!("Init stdout logging (level: {}, format: {})", logger_level, if use_json { "json" } else { "text" });
     OtelGuard {
         tracer_provider: None,
@@ -286,7 +274,7 @@ fn init_file_logging(config: &OtelConfig, logger_level: &str, is_production: boo
     use flexi_logger::{Age, Cleanup, Criterion, FileSpec, LogSpecification, Naming};
 
     let service_name = config.service_name.as_deref().unwrap_or(APP_NAME);
-    let default_log_directory = rustfs_utils::dirs::get_log_directory_to_string(ENV_OBS_LOG_DIRECTORY);
+    let default_log_directory = nebulafx_utils::dirs::get_log_directory_to_string(ENV_OBS_LOG_DIRECTORY);
     let log_directory = config.log_directory.as_deref().unwrap_or(default_log_directory.as_str());
     let log_filename = config.log_filename.as_deref().unwrap_or(service_name);
     let keep_files = config.log_keep_files.unwrap_or(DEFAULT_LOG_KEEP_FILES);
@@ -398,7 +386,7 @@ fn init_file_logging(config: &OtelConfig, logger_level: &str, is_production: boo
     };
 
     OBSERVABILITY_METRIC_ENABLED.set(false).ok();
-    counter!("rustfs.start.total").increment(1);
+    counter!("nebulafx.start.total").increment(1);
     info!(
         "Init file logging at '{}', roll size {:?}MB, keep {}",
         log_directory, config.log_rotation_size_mb, keep_files
@@ -512,7 +500,7 @@ fn init_observability_http(config: &OtelConfig, logger_level: &str, is_productio
     if config.log_stdout_enabled.unwrap_or(DEFAULT_OBS_LOG_STDOUT_ENABLED) {
         let enable_color = std::io::stdout().is_terminal();
         // 检查是否使用 JSON 格式
-        let use_json = env::var("RUSTFS_LOG_JSON")
+        let use_json = env::var("NEUBULAFX_LOG_JSON")
             .map(|v| v == "true" || v == "1")
             .unwrap_or(false);
         
@@ -582,7 +570,7 @@ fn init_observability_http(config: &OtelConfig, logger_level: &str, is_productio
     }
 
     OBSERVABILITY_METRIC_ENABLED.set(true).ok();
-    counter!("rustfs.start.total").increment(1);
+    counter!("nebulafx.start.total").increment(1);
     info!(
         "Init observability (HTTP): trace='{}', metric='{}', log='{}'",
         trace_ep, metric_ep, log_ep
@@ -626,7 +614,7 @@ pub(crate) fn init_telemetry(config: &OtelConfig) -> Result<OtelGuard, Telemetry
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rustfs_config::USE_STDOUT;
+    use nebulafx_config::USE_STDOUT;
 
     #[test]
     fn test_production_environment_detection() {

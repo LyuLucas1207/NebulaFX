@@ -1,22 +1,10 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::error::{Error, Result};
 use regex::Regex;
 
 const ARN_PREFIX_ARN: &str = "arn";
-const ARN_PARTITION_RUSTFS: &str = "rustfs";
+const ARN_PARTITION_NEUBULAFX: &str = "nebulafx";
 const ARN_SERVICE_IAM: &str = "iam";
 const ARN_RESOURCE_TYPE_ROLE: &str = "role";
 
@@ -36,7 +24,7 @@ impl ARN {
             return Err(Error::other("ARN resource ID invalid"));
         }
         Ok(ARN {
-            partition: ARN_PARTITION_RUSTFS.to_string(),
+            partition: ARN_PARTITION_NEUBULAFX.to_string(),
             service: ARN_SERVICE_IAM.to_string(),
             region: server_region.to_string(),
             resource_type: ARN_RESOURCE_TYPE_ROLE.to_string(),
@@ -50,7 +38,7 @@ impl ARN {
             return Err(Error::other("ARN format invalid"));
         }
 
-        if ps[1] != ARN_PARTITION_RUSTFS {
+        if ps[1] != ARN_PARTITION_NEUBULAFX {
             return Err(Error::other("ARN partition invalid"));
         }
 
@@ -77,7 +65,7 @@ impl ARN {
         }
 
         Ok(ARN {
-            partition: ARN_PARTITION_RUSTFS.to_string(),
+            partition: ARN_PARTITION_NEUBULAFX.to_string(),
             service: ARN_SERVICE_IAM.to_string(),
             region: ps[3].to_string(),
             resource_type: ARN_RESOURCE_TYPE_ROLE.to_string(),

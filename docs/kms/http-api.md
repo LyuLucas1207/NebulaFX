@@ -1,8 +1,8 @@
 # KMS Admin HTTP API Reference
 
-The RustFS KMS admin API is exposed under the admin prefix (`/rustfs/admin/v3`). Requests must be signed with SigV4 credentials that have the `ServerInfoAdminAction` permission. All request and response bodies use JSON, and all endpoints return standard HTTP status codes.
+The NebulaFX KMS admin API is exposed under the admin prefix (`/nebulafx/admin/v3`). Requests must be signed with SigV4 credentials that have the `ServerInfoAdminAction` permission. All request and response bodies use JSON, and all endpoints return standard HTTP status codes.
 
-- Base URL examples: `http://localhost:9000/rustfs/admin/v3`, `https://rustfs.example.com/rustfs/admin/v3`.
+- Base URL examples: `http://localhost:9000/nebulafx/admin/v3`, `https://nebulafx.example.com/nebulafx/admin/v3`.
 - Headers: set `Content-Type: application/json` for requests with bodies.
 - Authentication: sign with SigV4 (`awscurl`, `aws-signature-v4`, or the official SDKs).
 
@@ -29,8 +29,8 @@ The RustFS KMS admin API is exposed under the admin prefix (`/rustfs/admin/v3`).
   "auth_method": { "token": "s.XYZ" },
   "mount_path": "transit",
   "kv_mount": "secret",
-  "key_path_prefix": "rustfs/kms/keys",
-  "default_key_id": "rustfs-master",
+  "key_path_prefix": "nebulafx/kms/keys",
+  "default_key_id": "nebulafx-master",
   "enable_cache": true,
   "cache_ttl_seconds": 600,
   "timeout_seconds": 30,
@@ -79,7 +79,7 @@ The RustFS KMS admin API is exposed under the admin prefix (`/rustfs/admin/v3`).
   "healthy": true,
   "config_summary": {
     "backend_type": "vault",
-    "default_key_id": "rustfs-master",
+    "default_key_id": "nebulafx-master",
     "timeout_seconds": 30,
     "retry_attempts": 3,
     "enable_cache": true,
@@ -95,7 +95,7 @@ The RustFS KMS admin API is exposed under the admin prefix (`/rustfs/admin/v3`).
       "namespace": null,
       "mount_path": "transit",
       "kv_mount": "secret",
-      "key_path_prefix": "rustfs/kms/keys"
+      "key_path_prefix": "nebulafx/kms/keys"
     }
   }
 }
@@ -108,7 +108,7 @@ The RustFS KMS admin API is exposed under the admin prefix (`/rustfs/admin/v3`).
   "cache_enabled": true,
   "cache_max_keys": 1024,
   "cache_ttl_seconds": 600,
-  "default_key_id": "rustfs-master"
+  "default_key_id": "nebulafx-master"
 }
 ```
 

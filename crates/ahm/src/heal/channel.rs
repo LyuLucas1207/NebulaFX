@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::heal::{
     manager::HealManager,
@@ -18,7 +6,7 @@ use crate::heal::{
     utils,
 };
 use crate::{Error, Result};
-use rustfs_common::heal_channel::{
+use nebulafx_common::heal_channel::{
     HealChannelCommand, HealChannelPriority, HealChannelReceiver, HealChannelRequest, HealChannelResponse, HealScanMode,
     publish_heal_response,
 };
@@ -243,7 +231,7 @@ impl HealChannelProcessor {
 mod tests {
     use super::*;
     use crate::heal::storage::HealStorageAPI;
-    use rustfs_common::heal_channel::{HealChannelPriority, HealChannelRequest, HealScanMode};
+    use nebulafx_common::heal_channel::{HealChannelPriority, HealChannelRequest, HealScanMode};
     use std::sync::Arc;
 
     // Mock storage for testing
@@ -254,7 +242,7 @@ mod tests {
             &self,
             _bucket: &str,
             _object: &str,
-        ) -> crate::Result<Option<rustfs_ecstore::store_api::ObjectInfo>> {
+        ) -> crate::Result<Option<nebulafx_ecstore::store_api::ObjectInfo>> {
             Ok(None)
         }
         async fn get_object_data(&self, _bucket: &str, _object: &str) -> crate::Result<Option<Vec<u8>>> {
@@ -274,20 +262,20 @@ mod tests {
         }
         async fn get_disk_status(
             &self,
-            _endpoint: &rustfs_ecstore::disk::endpoint::Endpoint,
+            _endpoint: &nebulafx_ecstore::disk::endpoint::Endpoint,
         ) -> crate::Result<crate::heal::storage::DiskStatus> {
             Ok(crate::heal::storage::DiskStatus::Ok)
         }
-        async fn format_disk(&self, _endpoint: &rustfs_ecstore::disk::endpoint::Endpoint) -> crate::Result<()> {
+        async fn format_disk(&self, _endpoint: &nebulafx_ecstore::disk::endpoint::Endpoint) -> crate::Result<()> {
             Ok(())
         }
-        async fn get_bucket_info(&self, _bucket: &str) -> crate::Result<Option<rustfs_ecstore::store_api::BucketInfo>> {
+        async fn get_bucket_info(&self, _bucket: &str) -> crate::Result<Option<nebulafx_ecstore::store_api::BucketInfo>> {
             Ok(None)
         }
         async fn heal_bucket_metadata(&self, _bucket: &str) -> crate::Result<()> {
             Ok(())
         }
-        async fn list_buckets(&self) -> crate::Result<Vec<rustfs_ecstore::store_api::BucketInfo>> {
+        async fn list_buckets(&self) -> crate::Result<Vec<nebulafx_ecstore::store_api::BucketInfo>> {
             Ok(vec![])
         }
         async fn object_exists(&self, _bucket: &str, _object: &str) -> crate::Result<bool> {
@@ -304,27 +292,27 @@ mod tests {
             _bucket: &str,
             _object: &str,
             _version_id: Option<&str>,
-            _opts: &rustfs_common::heal_channel::HealOpts,
-        ) -> crate::Result<(rustfs_madmin::heal_commands::HealResultItem, Option<crate::Error>)> {
-            Ok((rustfs_madmin::heal_commands::HealResultItem::default(), None))
+            _opts: &nebulafx_common::heal_channel::HealOpts,
+        ) -> crate::Result<(nebulafx_madmin::heal_commands::HealResultItem, Option<crate::Error>)> {
+            Ok((nebulafx_madmin::heal_commands::HealResultItem::default(), None))
         }
         async fn heal_bucket(
             &self,
             _bucket: &str,
-            _opts: &rustfs_common::heal_channel::HealOpts,
-        ) -> crate::Result<rustfs_madmin::heal_commands::HealResultItem> {
-            Ok(rustfs_madmin::heal_commands::HealResultItem::default())
+            _opts: &nebulafx_common::heal_channel::HealOpts,
+        ) -> crate::Result<nebulafx_madmin::heal_commands::HealResultItem> {
+            Ok(nebulafx_madmin::heal_commands::HealResultItem::default())
         }
         async fn heal_format(
             &self,
             _dry_run: bool,
-        ) -> crate::Result<(rustfs_madmin::heal_commands::HealResultItem, Option<crate::Error>)> {
-            Ok((rustfs_madmin::heal_commands::HealResultItem::default(), None))
+        ) -> crate::Result<(nebulafx_madmin::heal_commands::HealResultItem, Option<crate::Error>)> {
+            Ok((nebulafx_madmin::heal_commands::HealResultItem::default(), None))
         }
         async fn list_objects_for_heal(&self, _bucket: &str, _prefix: &str) -> crate::Result<Vec<String>> {
             Ok(vec![])
         }
-        async fn get_disk_for_resume(&self, _set_disk_id: &str) -> crate::Result<rustfs_ecstore::disk::DiskStore> {
+        async fn get_disk_for_resume(&self, _set_disk_id: &str) -> crate::Result<nebulafx_ecstore::disk::DiskStore> {
             Err(crate::Error::other("Not implemented in mock"))
         }
     }

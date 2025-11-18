@@ -1,22 +1,10 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::{Error, ReplicationState, ReplicationStatusType, Result, TRANSITION_COMPLETE, VersionPurgeStatusType};
 use bytes::Bytes;
 use rmp_serde::Serializer;
-use rustfs_utils::HashAlgorithm;
-use rustfs_utils::http::headers::{RESERVED_METADATA_PREFIX_LOWER, RUSTFS_HEALING};
+use nebulafx_utils::HashAlgorithm;
+use nebulafx_utils::http::headers::{RESERVED_METADATA_PREFIX_LOWER, NEUBULAFX_HEALING};
 use s3s::dto::{RestoreStatus, Timestamp};
 use s3s::header::X_AMZ_RESTORE;
 use serde::{Deserialize, Serialize};
@@ -29,7 +17,7 @@ pub const BLOCK_SIZE_V2: usize = 1024 * 1024; // 1M
 
 // Additional constants from Go version
 pub const NULL_VERSION_ID: &str = "null";
-// pub const RUSTFS_ERASURE_UPGRADED: &str = "x-rustfs-internal-erasure-upgraded";
+// pub const NEUBULAFX_ERASURE_UPGRADED: &str = "x-nebulafx-internal-erasure-upgraded";
 
 pub const TIER_FV_ID: &str = "tier-free-versionID";
 pub const TIER_FV_MARKER: &str = "tier-free-marker";
@@ -340,7 +328,7 @@ impl FileInfo {
     }
 
     pub fn set_healing(&mut self) {
-        self.metadata.insert(RUSTFS_HEALING.to_string(), "true".to_string());
+        self.metadata.insert(NEUBULAFX_HEALING.to_string(), "true".to_string());
     }
 
     pub fn set_tier_free_version_id(&mut self, version_id: &str) {

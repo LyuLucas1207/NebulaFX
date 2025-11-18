@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use std::collections::HashMap;
 
@@ -452,15 +440,15 @@ mod tests {
             is_background: true,
             cpu_percent: 15.5,
             children_pids: vec![1235, 1236],
-            cmd_line: "rustfs --config /etc/rustfs.conf".to_string(),
+            cmd_line: "nebulafx --config /etc/nebulafx.conf".to_string(),
             num_connections: 10,
             create_time: 1640995200,
-            cwd: "/opt/rustfs".to_string(),
-            exec_path: "/usr/bin/rustfs".to_string(),
+            cwd: "/opt/nebulafx".to_string(),
+            exec_path: "/usr/bin/nebulafx".to_string(),
             gids: vec![1000, 1001],
             is_running: true,
             mem_percent: 8.2,
-            name: "rustfs".to_string(),
+            name: "nebulafx".to_string(),
             nice: 0,
             num_fds: 25,
             num_threads: 4,
@@ -468,14 +456,14 @@ mod tests {
             status: "running".to_string(),
             tgid: 1234,
             uids: vec![1000],
-            username: "rustfs".to_string(),
+            username: "nebulafx".to_string(),
         };
 
         assert_eq!(proc_info.pid, 1234);
         assert!(proc_info.is_background);
         assert_eq!(proc_info.cpu_percent, 15.5);
         assert_eq!(proc_info.children_pids.len(), 2);
-        assert_eq!(proc_info.name, "rustfs");
+        assert_eq!(proc_info.name, "nebulafx");
         assert!(proc_info.is_running);
     }
 
@@ -496,11 +484,11 @@ mod tests {
     #[test]
     fn test_sys_service_with_values() {
         let service = SysService {
-            name: "rustfs".to_string(),
+            name: "nebulafx".to_string(),
             status: "active".to_string(),
         };
 
-        assert_eq!(service.name, "rustfs");
+        assert_eq!(service.name, "nebulafx");
         assert_eq!(service.status, "active");
     }
 
@@ -513,7 +501,7 @@ mod tests {
             },
             services: vec![
                 SysService {
-                    name: "rustfs".to_string(),
+                    name: "nebulafx".to_string(),
                     status: "active".to_string(),
                 },
                 SysService {
@@ -524,7 +512,7 @@ mod tests {
         };
 
         assert_eq!(services.services.len(), 2);
-        assert_eq!(services.services[0].name, "rustfs");
+        assert_eq!(services.services[0].name, "nebulafx");
         assert_eq!(services.services[1].status, "inactive");
     }
 

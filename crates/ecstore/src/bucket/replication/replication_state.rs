@@ -1,5 +1,5 @@
 use crate::error::Error;
-use rustfs_filemeta::{ReplicatedTargetInfo, ReplicationStatusType, ReplicationType};
+use nebulafx_filemeta::{ReplicatedTargetInfo, ReplicationStatusType, ReplicationType};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;

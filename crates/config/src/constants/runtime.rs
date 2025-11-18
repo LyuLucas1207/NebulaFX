@@ -1,4 +1,4 @@
-//  Copyright 2024 RustFS Team
+//  Copyright 2024 NebulaFX Team
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -15,17 +15,17 @@
 use crate::MI_B;
 
 // Tokio runtime ENV keys
-pub const ENV_WORKER_THREADS: &str = "RUSTFS_RUNTIME_WORKER_THREADS";
-pub const ENV_MAX_BLOCKING_THREADS: &str = "RUSTFS_RUNTIME_MAX_BLOCKING_THREADS";
-pub const ENV_THREAD_PRINT_ENABLED: &str = "RUSTFS_RUNTIME_THREAD_PRINT_ENABLED";
-pub const ENV_THREAD_STACK_SIZE: &str = "RUSTFS_RUNTIME_THREAD_STACK_SIZE";
-pub const ENV_THREAD_KEEP_ALIVE: &str = "RUSTFS_RUNTIME_THREAD_KEEP_ALIVE";
-pub const ENV_GLOBAL_QUEUE_INTERVAL: &str = "RUSTFS_RUNTIME_GLOBAL_QUEUE_INTERVAL";
-pub const ENV_THREAD_NAME: &str = "RUSTFS_RUNTIME_THREAD_NAME";
-pub const ENV_MAX_IO_EVENTS_PER_TICK: &str = "RUSTFS_RUNTIME_MAX_IO_EVENTS_PER_TICK";
-pub const ENV_RNG_SEED: &str = "RUSTFS_RUNTIME_RNG_SEED";
+pub const ENV_WORKER_THREADS: &str = "NEUBULAFX_RUNTIME_WORKER_THREADS";
+pub const ENV_MAX_BLOCKING_THREADS: &str = "NEUBULAFX_RUNTIME_MAX_BLOCKING_THREADS";
+pub const ENV_THREAD_PRINT_ENABLED: &str = "NEUBULAFX_RUNTIME_THREAD_PRINT_ENABLED";
+pub const ENV_THREAD_STACK_SIZE: &str = "NEUBULAFX_RUNTIME_THREAD_STACK_SIZE";
+pub const ENV_THREAD_KEEP_ALIVE: &str = "NEUBULAFX_RUNTIME_THREAD_KEEP_ALIVE";
+pub const ENV_GLOBAL_QUEUE_INTERVAL: &str = "NEUBULAFX_RUNTIME_GLOBAL_QUEUE_INTERVAL";
+pub const ENV_THREAD_NAME: &str = "NEUBULAFX_RUNTIME_THREAD_NAME";
+pub const ENV_MAX_IO_EVENTS_PER_TICK: &str = "NEUBULAFX_RUNTIME_MAX_IO_EVENTS_PER_TICK";
+pub const ENV_RNG_SEED: &str = "NEUBULAFX_RUNTIME_RNG_SEED";
 /// Event polling interval
-pub const ENV_EVENT_INTERVAL: &str = "RUSTFS_RUNTIME_EVENT_INTERVAL";
+pub const ENV_EVENT_INTERVAL: &str = "NEUBULAFX_RUNTIME_EVENT_INTERVAL";
 
 // Default values for Tokio runtime
 pub const DEFAULT_WORKER_THREADS: usize = 16;
@@ -34,7 +34,7 @@ pub const DEFAULT_THREAD_PRINT_ENABLED: bool = false;
 pub const DEFAULT_THREAD_STACK_SIZE: usize = MI_B; // 1 MiB
 pub const DEFAULT_THREAD_KEEP_ALIVE: u64 = 60; // seconds
 pub const DEFAULT_GLOBAL_QUEUE_INTERVAL: u32 = 31;
-pub const DEFAULT_THREAD_NAME: &str = "rustfs-worker";
+pub const DEFAULT_THREAD_NAME: &str = "nebulafx-worker";
 pub const DEFAULT_MAX_IO_EVENTS_PER_TICK: usize = 1024;
 /// Event polling default (Tokio default 61)
 pub const DEFAULT_EVENT_INTERVAL: u32 = 61;

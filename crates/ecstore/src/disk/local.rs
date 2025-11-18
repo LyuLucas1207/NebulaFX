@@ -1,22 +1,10 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use super::error::{Error, Result};
 use super::os::{is_root_disk, rename_all};
 use super::{
     BUCKET_META_PREFIX, CheckPartsResp, DeleteOptions, DiskAPI, DiskInfo, DiskInfoOptions, DiskLocation, DiskMetrics,
-    FileInfoVersions, RUSTFS_META_BUCKET, ReadMultipleReq, ReadMultipleResp, ReadOptions, RenameDataResp,
+    FileInfoVersions, NEUBULAFX_META_BUCKET, ReadMultipleReq, ReadMultipleResp, ReadOptions, RenameDataResp,
     STORAGE_FORMAT_FILE_BACKUP, UpdateMetadataOpts, VolumeInfo, WalkDirOptions, os,
 };
 use super::{endpoint::Endpoint, error::DiskError, format::FormatV3};
@@ -30,11 +18,11 @@ use crate::disk::fs::{
 use crate::disk::os::{check_path_length, is_empty_dir};
 use crate::disk::{
     CHECK_PART_FILE_CORRUPT, CHECK_PART_FILE_NOT_FOUND, CHECK_PART_SUCCESS, CHECK_PART_UNKNOWN, CHECK_PART_VOLUME_NOT_FOUND,
-    FileReader, RUSTFS_META_TMP_DELETED_BUCKET, conv_part_err_to_int,
+    FileReader, NEUBULAFX_META_TMP_DELETED_BUCKET, conv_part_err_to_int,
 };
 use crate::disk::{FileWriter, STORAGE_FORMAT_FILE};
 use crate::global::{GLOBAL_IsErasureSD, GLOBAL_RootDiskThreshold};
-use rustfs_utils::path::{
+use nebulafx_utils::path::{
     GLOBAL_DIR_SUFFIX, GLOBAL_DIR_SUFFIX_WITH_SLASH, SLASH_SEPARATOR, clean, decode_dir_object, encode_dir_object, has_suffix,
     path_join, path_join_buf,
 };
@@ -45,12 +33,12 @@ use bytes::Bytes;
 // use path_absolutize::Absolutize;  // Replaced with direct path operations for better performance
 use crate::file_cache::{get_global_file_cache, prefetch_metadata_patterns, read_metadata_cached};
 use parking_lot::RwLock as ParkingLotRwLock;
-use rustfs_filemeta::{
+use nebulafx_filemeta::{
     Cache, FileInfo, FileInfoOpts, FileMeta, MetaCacheEntry, MetacacheWriter, ObjectPartInfo, Opts, RawFileInfo, UpdateFn,
     get_file_info, read_xl_meta_no_data,
 };
-use rustfs_utils::HashAlgorithm;
-use rustfs_utils::os::get_info;
+use nebulafx_utils::HashAlgorithm;
+use nebulafx_utils::os::get_info;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt::Debug;
@@ -155,7 +143,7 @@ impl LocalDisk {
         }
 
         // Use optimized path resolution instead of absolutize_virtually
-        let format_path = root.join(RUSTFS_META_BUCKET).join(super::FORMAT_CONFIG_FILE);
+        let format_path = root.join(NEUBULAFX_META_BUCKET).join(super::FORMAT_CONFIG_FILE);
         debug!("format_path: {:?}", format_path);
         let (format_data, format_meta) = read_file_exists(&format_path).await?;
 
@@ -285,7 +273,7 @@ impl LocalDisk {
     }
 
     async fn cleanup_deleted_objects(root: PathBuf) -> Result<()> {
-        let trash = path_join(&[root, RUSTFS_META_TMP_DELETED_BUCKET.into()]);
+        let trash = path_join(&[root, NEUBULAFX_META_TMP_DELETED_BUCKET.into()]);
         let mut entries = fs::read_dir(&trash).await?;
         while let Some(entry) = entries.next_entry().await? {
             let name = entry.file_name().to_string_lossy().to_string();
@@ -345,17 +333,17 @@ impl LocalDisk {
         Ok(md)
     }
     async fn make_meta_volumes(&self) -> Result<()> {
-        let buckets = format!("{RUSTFS_META_BUCKET}/{BUCKET_META_PREFIX}");
-        let multipart = format!("{}/{}", RUSTFS_META_BUCKET, "multipart");
-        let config = format!("{}/{}", RUSTFS_META_BUCKET, "config");
-        let tmp = format!("{}/{}", RUSTFS_META_BUCKET, "tmp");
+        let buckets = format!("{NEUBULAFX_META_BUCKET}/{BUCKET_META_PREFIX}");
+        let multipart = format!("{}/{}", NEUBULAFX_META_BUCKET, "multipart");
+        let config = format!("{}/{}", NEUBULAFX_META_BUCKET, "config");
+        let tmp = format!("{}/{}", NEUBULAFX_META_BUCKET, "tmp");
 
         let defaults = vec![
             buckets.as_str(),
             multipart.as_str(),
             config.as_str(),
             tmp.as_str(),
-            RUSTFS_META_TMP_DELETED_BUCKET,
+            NEUBULAFX_META_TMP_DELETED_BUCKET,
         ];
 
         self.make_volumes(defaults).await
@@ -538,7 +526,7 @@ impl LocalDisk {
     // /// Write to the filesystem atomically.
     // /// This is done by first writing to a temporary location and then moving the file.
     // pub(crate) async fn prepare_file_write<'a>(&self, path: &'a PathBuf) -> Result<FileWriter<'a>> {
-    //     let tmp_path = self.get_object_path(RUSTFS_META_TMP_BUCKET, Uuid::new_v4().to_string().as_str())?;
+    //     let tmp_path = self.get_object_path(NEUBULAFX_META_TMP_BUCKET, Uuid::new_v4().to_string().as_str())?;
 
     //     debug!("prepare_file_write tmp_path:{:?}, path:{:?}", &tmp_path, &path);
 
@@ -565,7 +553,7 @@ impl LocalDisk {
 
         // TODO: async notifications for disk space checks and trash cleanup
 
-        let trash_path = self.get_object_path(super::RUSTFS_META_TMP_DELETED_BUCKET, Uuid::new_v4().to_string().as_str())?;
+        let trash_path = self.get_object_path(super::NEUBULAFX_META_TMP_DELETED_BUCKET, Uuid::new_v4().to_string().as_str())?;
         // if let Some(parent) = trash_path.parent() {
         //     if !parent.exists() {
         //         fs::create_dir_all(parent).await?;
@@ -573,7 +561,7 @@ impl LocalDisk {
         // }
 
         let err = if recursive {
-            rename_all(delete_path, trash_path, self.get_bucket_path(super::RUSTFS_META_TMP_DELETED_BUCKET)?)
+            rename_all(delete_path, trash_path, self.get_bucket_path(super::NEUBULAFX_META_TMP_DELETED_BUCKET)?)
                 .await
                 .err()
         } else {
@@ -584,11 +572,11 @@ impl LocalDisk {
         };
 
         if immediate_purge || delete_path.to_string_lossy().ends_with(SLASH_SEPARATOR) {
-            let trash_path2 = self.get_object_path(super::RUSTFS_META_TMP_DELETED_BUCKET, Uuid::new_v4().to_string().as_str())?;
+            let trash_path2 = self.get_object_path(super::NEUBULAFX_META_TMP_DELETED_BUCKET, Uuid::new_v4().to_string().as_str())?;
             let _ = rename_all(
                 encode_dir_object(delete_path.to_string_lossy().as_ref()),
                 trash_path2,
-                self.get_bucket_path(super::RUSTFS_META_TMP_DELETED_BUCKET)?,
+                self.get_bucket_path(super::NEUBULAFX_META_TMP_DELETED_BUCKET)?,
             )
             .await;
         }
@@ -868,7 +856,7 @@ impl LocalDisk {
         let file_path = volume_dir.join(Path::new(&path));
         check_path_length(file_path.to_string_lossy().as_ref())?;
 
-        let tmp_volume_dir = self.get_bucket_path(super::RUSTFS_META_TMP_BUCKET)?;
+        let tmp_volume_dir = self.get_bucket_path(super::NEUBULAFX_META_TMP_BUCKET)?;
         let tmp_file_path = tmp_volume_dir.join(Path::new(Uuid::new_v4().to_string().as_str()));
 
         self.write_all_internal(&tmp_file_path, InternalBuf::Ref(buf), sync, &tmp_volume_dir)
@@ -879,7 +867,7 @@ impl LocalDisk {
 
     // write_all_public for trail
     async fn write_all_public(&self, volume: &str, path: &str, data: Bytes) -> Result<()> {
-        if volume == RUSTFS_META_BUCKET && path == super::FORMAT_CONFIG_FILE {
+        if volume == NEUBULAFX_META_BUCKET && path == super::FORMAT_CONFIG_FILE {
             let mut format_info = self.format_info.write().await;
             format_info.data.clone_from(&data);
         }
@@ -1266,10 +1254,10 @@ pub async fn read_file_metadata(p: impl AsRef<Path>) -> Result<Metadata> {
 
 fn skip_access_checks(p: impl AsRef<str>) -> bool {
     let vols = [
-        super::RUSTFS_META_TMP_DELETED_BUCKET,
-        super::RUSTFS_META_TMP_BUCKET,
-        super::RUSTFS_META_MULTIPART_BUCKET,
-        RUSTFS_META_BUCKET,
+        super::NEUBULAFX_META_TMP_DELETED_BUCKET,
+        super::NEUBULAFX_META_TMP_BUCKET,
+        super::NEUBULAFX_META_MULTIPART_BUCKET,
+        NEUBULAFX_META_BUCKET,
     ];
 
     for v in vols.iter() {
@@ -1396,7 +1384,7 @@ impl DiskAPI for LocalDisk {
 
     #[tracing::instrument(skip(self))]
     async fn read_all(&self, volume: &str, path: &str) -> Result<Bytes> {
-        if volume == RUSTFS_META_BUCKET && path == super::FORMAT_CONFIG_FILE {
+        if volume == NEUBULAFX_META_BUCKET && path == super::FORMAT_CONFIG_FILE {
             let format_info = self.format_info.read().await;
             if !format_info.data.is_empty() {
                 return Ok(format_info.data.clone());
@@ -1927,7 +1915,7 @@ impl DiskAPI for LocalDisk {
             let has_data_dir = {
                 if !fi.is_remote() {
                     fi.data_dir
-                        .map(|dir| rustfs_utils::path::retain_slash(dir.to_string().as_str()))
+                        .map(|dir| nebulafx_utils::path::retain_slash(dir.to_string().as_str()))
                 } else {
                     None
                 }
@@ -1935,10 +1923,10 @@ impl DiskAPI for LocalDisk {
 
             if let Some(data_dir) = has_data_dir {
                 let src_data_path = src_volume_dir.join(Path::new(
-                    rustfs_utils::path::retain_slash(format!("{}/{}", &src_path, data_dir).as_str()).as_str(),
+                    nebulafx_utils::path::retain_slash(format!("{}/{}", &src_path, data_dir).as_str()).as_str(),
                 ));
                 let dst_data_path = dst_volume_dir.join(Path::new(
-                    rustfs_utils::path::retain_slash(format!("{}/{}", &dst_path, data_dir).as_str()).as_str(),
+                    nebulafx_utils::path::retain_slash(format!("{}/{}", &dst_path, data_dir).as_str()).as_str(),
                 ));
 
                 Some((src_data_path, dst_data_path))
@@ -2070,7 +2058,7 @@ impl DiskAPI for LocalDisk {
         }
 
         if let Some(src_file_path_parent) = src_file_path.parent() {
-            if src_volume != super::RUSTFS_META_MULTIPART_BUCKET {
+            if src_volume != super::NEUBULAFX_META_MULTIPART_BUCKET {
                 let _ = remove_std(src_file_path_parent);
             } else {
                 let _ = self
@@ -2461,7 +2449,7 @@ impl DiskAPI for LocalDisk {
     }
 }
 
-async fn get_disk_info(drive_path: PathBuf) -> Result<(rustfs_utils::os::DiskInfo, bool)> {
+async fn get_disk_info(drive_path: PathBuf) -> Result<(nebulafx_utils::os::DiskInfo, bool)> {
     let drive_path = drive_path.to_string_lossy().to_string();
     check_path_length(&drive_path)?;
 
@@ -2489,10 +2477,10 @@ mod test {
         // let arr = Vec::new();
 
         let vols = [
-            super::super::RUSTFS_META_TMP_DELETED_BUCKET,
-            super::super::RUSTFS_META_TMP_BUCKET,
-            super::super::RUSTFS_META_MULTIPART_BUCKET,
-            RUSTFS_META_BUCKET,
+            super::super::NEUBULAFX_META_TMP_DELETED_BUCKET,
+            super::super::NEUBULAFX_META_TMP_BUCKET,
+            super::super::NEUBULAFX_META_MULTIPART_BUCKET,
+            NEUBULAFX_META_BUCKET,
         ];
 
         let paths: Vec<_> = vols.iter().map(|v| Path::new(v).join("test")).collect();
@@ -2518,7 +2506,7 @@ mod test {
         let disk = LocalDisk::new(&ep, false).await.unwrap();
 
         let tmpp = disk
-            .resolve_abs_path(Path::new(super::super::RUSTFS_META_TMP_DELETED_BUCKET))
+            .resolve_abs_path(Path::new(super::super::NEUBULAFX_META_TMP_DELETED_BUCKET))
             .unwrap();
 
         println!("ppp :{:?}", &tmpp);
@@ -2548,7 +2536,7 @@ mod test {
         let disk = LocalDisk::new(&ep, false).await.unwrap();
 
         let tmpp = disk
-            .resolve_abs_path(Path::new(super::super::RUSTFS_META_TMP_DELETED_BUCKET))
+            .resolve_abs_path(Path::new(super::super::NEUBULAFX_META_TMP_DELETED_BUCKET))
             .unwrap();
 
         println!("ppp :{:?}", &tmpp);
@@ -2698,8 +2686,8 @@ mod test {
         // Note: The current implementation doesn't check for system volume names
         // It only checks length and platform-specific special characters
         // System volume names are valid according to the current implementation
-        assert!(LocalDisk::is_valid_volname(RUSTFS_META_BUCKET));
-        assert!(LocalDisk::is_valid_volname(super::super::RUSTFS_META_TMP_BUCKET));
+        assert!(LocalDisk::is_valid_volname(NEUBULAFX_META_BUCKET));
+        assert!(LocalDisk::is_valid_volname(super::super::NEUBULAFX_META_TMP_BUCKET));
 
         // Testing platform-specific behavior for special characters
         #[cfg(windows)]

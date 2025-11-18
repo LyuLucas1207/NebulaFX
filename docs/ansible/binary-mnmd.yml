@@ -1,6 +1,6 @@
 ---
-- name: Prepare for RustFS installation
-  hosts: rustfs
+- name: Prepare for NebulaFX installation
+  hosts: nebulafx
   become: yes
   vars:
     ansible_python_interpreter: /usr/bin/python3
@@ -9,14 +9,14 @@
   tasks:
     - name: Create Workspace
       file:
-        path: /opt/rustfs
+        path: /opt/nebulafx
         state: directory
         mode: '0755'
       register: create_dir_result
 
     - name: Dir Creation Result Check
       debug:
-        msg: "RustFS dir created successfully"
+        msg: "NebulaFX dir created successfully"
       when: create_dir_result.changed
 
     - name: Modify Target Server's hosts file
@@ -24,72 +24,72 @@
         path: /etc/hosts
         block: |
           127.0.0.1     localhost
-          172.20.92.199  rustfs-node1
-          172.20.92.200  rustfs-node2
-          172.20.92.201  rustfs-node3
-          172.20.92.202  rustfs-node4
+          172.20.92.199  nebulafx-node1
+          172.20.92.200  nebulafx-node2
+          172.20.92.201  nebulafx-node3
+          172.20.92.202  nebulafx-node4
 
-    - name: Create rustfs group
+    - name: Create nebulafx group
       group:
-        name: rustfs
+        name: nebulafx
         system: yes
         state: present    
 
-    - name: Create rustfs user
+    - name: Create nebulafx user
       user:
-        name: rustfs
+        name: nebulafx
         shell: /bin/bash
         system: yes
         create_home: no
-        group: rustfs
+        group: nebulafx
         state: present
 
-    - name: Get rustfs user id
-      command: id -u rustfs
-      register: rustfs_uid
+    - name: Get nebulafx user id
+      command: id -u nebulafx
+      register: nebulafx_uid
       changed_when: false
       ignore_errors: yes
 
-    - name: Check rustfs user id
+    - name: Check nebulafx user id
       debug:
-        msg: "rustfs uid is {{ rustfs_uid.stdout }}"
+        msg: "nebulafx uid is {{ nebulafx_uid.stdout }}"
 
     - name: Create volume dir
       file:
         path: "{{ item }}"
         state: directory
-        owner: rustfs
-        group: rustfs
+        owner: nebulafx
+        group: nebulafx
         mode: '0755'
       loop:
-        - /data/rustfs0
-        - /data/rustfs1
-        - /data/rustfs2
-        - /data/rustfs3
-        - /var/logs/rustfs
+        - /data/nebulafx0
+        - /data/nebulafx1
+        - /data/nebulafx2
+        - /data/nebulafx3
+        - /var/logs/nebulafx
 
-- name: Install RustFS
-  hosts: rustfs
+- name: Install NebulaFX
+  hosts: nebulafx
   become: yes
   vars:
     ansible_python_interpreter: /usr/bin/python3
-    install_script_url: "https://rustfs.com/install_rustfs.sh"
-    install_script_tmp: "/opt/rustfs/install_rustfs.sh"
-  tags: rustfs_install
+    install_script_url: "https://nebulafx.com/install_nebulafx.sh"
+    install_script_tmp: "/opt/nebulafx/install_nebulafx.sh"
+  tags: nebulafx_install
 
   tasks:
     - name: Prepare configuration file
       copy:
-        dest: /etc/default/rustfs
+        dest: /etc/default/nebulafx
         content: |
-          RUSTFS_ACCESS_KEY=rustfsadmin
-          RUSTFS_SECRET_KEY=rustfsadmin
-          RUSTFS_VOLUMES="http://rustfs-node{1...4}:9000/data/rustfs{0...3}"
-          RUSTFS_ADDRESS=":9000"
-          RUSTFS_CONSOLE_ENABLE=true
+          NEUBULAFX_ACCESS_KEY=nebulafxadmin
+          NEUBULAFX_SECRET_KEY=nebulafxadmin
+          NEUBULAFX_VOLUMES="http://nebulafx-node{1...4}:9000/data/nebulafx{0...3}"
+          NEUBULAFX_ADDRESS=":9000"
+          NEUBULAFX_CONSOLE_ENABLE=true
           RUST_LOG=error
-          RUSTFS_OBS_LOG_DIRECTORY="/var/logs/rustfs/"
-          RUSTFS_EXTERNAL_ADDRESS=0.0.0.0:9000
+          NEUBULAFX_OBS_LOG_DIRECTORY="/var/logs/nebulafx/"
+          NEUBULAFX_EXTERNAL_ADDRESS=0.0.0.0:9000
         owner: root
         group: root
         mode: '0644'
@@ -100,69 +100,69 @@
         state: present
         update_cache: yes
 
-    - name: Download the rustfs install script
+    - name: Download the nebulafx install script
       get_url:
         url: "{{ install_script_url }}"
         dest: "{{ install_script_tmp }}"
         mode: '0755'
     
-    - name: Run rustfs installation script
+    - name: Run nebulafx installation script
       expect:
         command: bash "{{install_script_tmp}}"
         responses:
           '.*Enter your choice.*': "1\n"
-          '.*Please enter RustFS service port.*': "9000\n"
-          '.*Please enter RustFS console port.*': "9001\n"
-          '.*Please enter data storage directory.*': "http://rustfs-node{1...4}:9000/data/rustfs{0...3}\n"
+          '.*Please enter NebulaFX service port.*': "9000\n"
+          '.*Please enter NebulaFX console port.*': "9001\n"
+          '.*Please enter data storage directory.*': "http://nebulafx-node{1...4}:9000/data/nebulafx{0...3}\n"
         timeout: 300
-      register: rustfs_install_result
+      register: nebulafx_install_result
       tags:
-        - rustfs_install
+        - nebulafx_install
 
     - name: Debug installation output
       debug:
-        var: rustfs_install_result.stdout_lines
+        var: nebulafx_install_result.stdout_lines
 
     - name: Installation confirmation
-      command: rustfs --version
-      register: rustfs_version
+      command: nebulafx --version
+      register: nebulafx_version
       changed_when: false
-      failed_when: rustfs_version.rc != 0
+      failed_when: nebulafx_version.rc != 0
 
-    - name: Show rustfs version
+    - name: Show nebulafx version
       debug:
-        msg: "RustFS version is {{ rustfs_version.stdout }}"
+        msg: "NebulaFX version is {{ nebulafx_version.stdout }}"
 
-- name: Uninstall RustFS
-  hosts: rustfs
+- name: Uninstall NebulaFX
+  hosts: nebulafx
   become: yes
   vars:
-    install_script_tmp: /opt/rustfs/install_rustfs.sh
+    install_script_tmp: /opt/nebulafx/install_nebulafx.sh
     ansible_python_interpreter: /usr/bin/python3
-  tags: rustfs_uninstall
+  tags: nebulafx_uninstall
 
   tasks:
-    - name: Run rustfs uninstall script
+    - name: Run nebulafx uninstall script
       expect:
         command: bash "{{ install_script_tmp }}"
         responses:
           'Enter your choice.*': "2\n"
-          'Are you sure you want to uninstall RustFS.*': "y\n"
+          'Are you sure you want to uninstall NebulaFX.*': "y\n"
       timeout: 300
-      register: rustfs_uninstall_result
-      tags: rustfs_uninstall
+      register: nebulafx_uninstall_result
+      tags: nebulafx_uninstall
 
     - name: Debug uninstall output
       debug:
-        var: rustfs_uninstall_result.stdout_lines
+        var: nebulafx_uninstall_result.stdout_lines
 
     - name: Delete data dir
       file:
         path: "{{ item }}"
         state: absent
       loop:
-        - /data/rustfs0
-        - /data/rustfs1
-        - /data/rustfs2
-        - /data/rustfs3
-        - /var/logs/rustfs
+        - /data/nebulafx0
+        - /data/nebulafx1
+        - /data/nebulafx2
+        - /data/nebulafx3
+        - /var/logs/nebulafx

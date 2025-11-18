@@ -1,19 +1,7 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::TargetError;
-use rustfs_config::notify::{ARN_PREFIX, DEFAULT_ARN_PARTITION, DEFAULT_ARN_SERVICE};
+use nebulafx_config::notify::{ARN_PREFIX, DEFAULT_ARN_PARTITION, DEFAULT_ARN_SERVICE};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
 use std::str::FromStr;
@@ -109,7 +97,7 @@ pub struct ARN {
     pub region: String,
     // Service types, such as "sqs", "sns", "lambda", etc. This defaults to "sqs" to match the Go example.
     pub service: String,
-    // Partitions such as "aws", "aws-cn", or customizations such as "rustfs", etc.
+    // Partitions such as "aws", "aws-cn", or customizations such as "nebulafx", etc.
     pub partition: String,
 }
 
@@ -119,7 +107,7 @@ impl ARN {
             target_id,
             region,
             service: DEFAULT_ARN_SERVICE.to_string(),     // Default is sqs
-            partition: DEFAULT_ARN_PARTITION.to_string(), // Default is rustfs partition
+            partition: DEFAULT_ARN_PARTITION.to_string(), // Default is nebulafx partition
         }
     }
 

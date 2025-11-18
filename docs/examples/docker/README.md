@@ -1,13 +1,13 @@
-# RustFS Docker Deployment Examples
+# NebulaFX Docker Deployment Examples
 
-This directory contains various deployment scripts and configuration files for RustFS with console and endpoint service
+This directory contains various deployment scripts and configuration files for NebulaFX with console and endpoint service
 separation.
 
 ## Quick Start Scripts
 
 ### `docker-quickstart.sh`
 
-The fastest way to get RustFS running with different configurations.
+The fastest way to get NebulaFX running with different configurations.
 
 ```bash
 # Basic deployment (ports 9000-9001)
@@ -47,7 +47,7 @@ Comprehensive deployment script with multiple scenarios and detailed logging.
 ./enhanced-docker-deployment.sh test
 
 # View logs for specific container
-./enhanced-docker-deployment.sh logs rustfs-dev
+./enhanced-docker-deployment.sh logs nebulafx-dev
 
 # Complete cleanup
 ./enhanced-docker-deployment.sh cleanup
@@ -114,7 +114,7 @@ docker-compose -f docker-comprehensive.yml --profile dev up -d
 **Access Points:**
 
 - API: http://localhost:9010 (or 9030 for enhanced)
-- Console: http://localhost:9011/rustfs/console/ (or 9031 for enhanced)
+- Console: http://localhost:9011/nebulafx/console/ (or 9031 for enhanced)
 - Credentials: dev-admin / dev-secret
 
 ### Production Deployment
@@ -153,7 +153,7 @@ All deployment scripts support customization via environment variables:
 
 ```bash
 # Custom image and ports
-export RUSTFS_IMAGE="rustfs/rustfs:custom-tag"
+export NEUBULAFX_IMAGE="nebulafx/nebulafx:custom-tag"
 export CONSOLE_PORT="8001"
 export API_PORT="8000"
 
@@ -169,17 +169,17 @@ export CERTS_DIR="/custom/certs/path"
 
 ```bash
 # Development - permissive CORS
-RUSTFS_CORS_ALLOWED_ORIGINS="*"
-RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS="*"
+NEUBULAFX_CORS_ALLOWED_ORIGINS="*"
+NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS="*"
 
 # Production - restrictive CORS  
-RUSTFS_CORS_ALLOWED_ORIGINS="https://myapp.com,https://api.myapp.com"
-RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS="https://admin.myapp.com"
+NEUBULAFX_CORS_ALLOWED_ORIGINS="https://myapp.com,https://api.myapp.com"
+NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS="https://admin.myapp.com"
 
 # Security hardening
-RUSTFS_CONSOLE_RATE_LIMIT_ENABLE="true"
-RUSTFS_CONSOLE_RATE_LIMIT_RPM="60"
-RUSTFS_CONSOLE_AUTH_TIMEOUT="1800"
+NEUBULAFX_CONSOLE_RATE_LIMIT_ENABLE="true"
+NEUBULAFX_CONSOLE_RATE_LIMIT_RPM="60"
+NEUBULAFX_CONSOLE_AUTH_TIMEOUT="1800"
 ```
 
 ## Monitoring and Health Checks
@@ -256,17 +256,17 @@ Production deployments use network isolation:
 
 ```bash
 # Check container logs
-docker logs rustfs-container
+docker logs nebulafx-container
 
 # Check container environment
-docker exec rustfs-container env | grep RUSTFS
+docker exec nebulafx-container env | grep NEUBULAFX
 
 # Test connectivity
-docker exec rustfs-container curl http://localhost:9000/health
-docker exec rustfs-container curl http://localhost:9001/health
+docker exec nebulafx-container curl http://localhost:9000/health
+docker exec nebulafx-container curl http://localhost:9001/health
 
 # Check listening ports
-docker exec rustfs-container netstat -tulpn | grep -E ':(9000|9001)'
+docker exec nebulafx-container netstat -tulpn | grep -E ':(9000|9001)'
 ```
 
 ## Migration from Previous Versions

@@ -1,25 +1,13 @@
 #![cfg(test)]
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::common::workspace_root;
 use futures::future::join_all;
 use rmp_serde::{Deserializer, Serializer};
-use rustfs_ecstore::disk::{VolumeInfo, WalkDirOptions};
-use rustfs_filemeta::{MetaCacheEntry, MetacacheReader, MetacacheWriter};
-use rustfs_protos::proto_gen::node_service::WalkDirRequest;
-use rustfs_protos::{
+use nebulafx_ecstore::disk::{VolumeInfo, WalkDirOptions};
+use nebulafx_filemeta::{MetaCacheEntry, MetacacheReader, MetacacheWriter};
+use nebulafx_protos::proto_gen::node_service::WalkDirRequest;
+use nebulafx_protos::{
     models::{PingBody, PingBodyBuilder},
     node_service_time_out_client,
     proto_gen::node_service::{
@@ -37,7 +25,7 @@ use tonic::codegen::tokio_stream::StreamExt;
 const CLUSTER_ADDR: &str = "http://localhost:9000";
 
 #[tokio::test]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn ping() -> Result<(), Box<dyn Error>> {
     let mut fbb = flatbuffers::FlatBufferBuilder::new();
     let payload = fbb.create_vector(b"hello world");
@@ -76,7 +64,7 @@ async fn ping() -> Result<(), Box<dyn Error>> {
 }
 
 #[tokio::test]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn make_volume() -> Result<(), Box<dyn Error>> {
     let mut client = node_service_time_out_client(&CLUSTER_ADDR.to_string()).await?;
     let request = Request::new(MakeVolumeRequest {
@@ -94,7 +82,7 @@ async fn make_volume() -> Result<(), Box<dyn Error>> {
 }
 
 #[tokio::test]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn list_volumes() -> Result<(), Box<dyn Error>> {
     let mut client = node_service_time_out_client(&CLUSTER_ADDR.to_string()).await?;
     let request = Request::new(ListVolumesRequest {
@@ -113,7 +101,7 @@ async fn list_volumes() -> Result<(), Box<dyn Error>> {
 }
 
 #[tokio::test]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn walk_dir() -> Result<(), Box<dyn Error>> {
     println!("walk_dir");
     // TODO: use writer
@@ -127,7 +115,7 @@ async fn walk_dir() -> Result<(), Box<dyn Error>> {
     let mut buf = Vec::new();
     opts.serialize(&mut Serializer::new(&mut buf))?;
     let mut client = node_service_time_out_client(&CLUSTER_ADDR.to_string()).await?;
-    let disk_path = std::env::var_os("RUSTFS_DISK_PATH").map(PathBuf::from).unwrap_or_else(|| {
+    let disk_path = std::env::var_os("NEUBULAFX_DISK_PATH").map(PathBuf::from).unwrap_or_else(|| {
         let mut path = workspace_root();
         path.push("target");
         path.push(if cfg!(debug_assertions) { "debug" } else { "release" });
@@ -177,7 +165,7 @@ async fn walk_dir() -> Result<(), Box<dyn Error>> {
 }
 
 #[tokio::test]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn read_all() -> Result<(), Box<dyn Error>> {
     let mut client = node_service_time_out_client(&CLUSTER_ADDR.to_string()).await?;
     let request = Request::new(ReadAllRequest {
@@ -195,7 +183,7 @@ async fn read_all() -> Result<(), Box<dyn Error>> {
 }
 
 #[tokio::test]
-#[ignore = "requires running RustFS server at localhost:9000"]
+#[ignore = "requires running NebulaFX server at localhost:9000"]
 async fn storage_info() -> Result<(), Box<dyn Error>> {
     let mut client = node_service_time_out_client(&CLUSTER_ADDR.to_string()).await?;
     let request = Request::new(LocalStorageInfoRequest { metrics: true });
@@ -208,7 +196,7 @@ async fn storage_info() -> Result<(), Box<dyn Error>> {
     let info = response.storage_info;
 
     let mut buf = Deserializer::new(Cursor::new(info));
-    let storage_info: rustfs_madmin::StorageInfo = Deserialize::deserialize(&mut buf).unwrap();
+    let storage_info: nebulafx_madmin::StorageInfo = Deserialize::deserialize(&mut buf).unwrap();
     println!("{storage_info:?}");
     Ok(())
 }

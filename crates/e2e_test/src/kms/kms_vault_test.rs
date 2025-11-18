@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 //! End-to-end tests for Vault KMS backend
 //!
@@ -29,7 +17,7 @@ use super::common::{
     test_kms_key_management, test_sse_c_encryption, test_sse_kms_encryption, test_sse_s3_encryption,
 };
 
-/// Helper that brings up Vault, configures RustFS, and starts the KMS service.
+/// Helper that brings up Vault, configures NebulaFX, and starts the KMS service.
 struct VaultKmsTestContext {
     env: VaultTestEnvironment,
 }
@@ -41,7 +29,7 @@ impl VaultKmsTestContext {
         env.start_vault().await?;
         env.setup_vault_transit().await?;
 
-        env.start_rustfs_for_vault().await?;
+        env.start_nebulafx_for_vault().await?;
         env.configure_vault_kms().await?;
 
         start_kms(&env.base_env.url, &env.base_env.access_key, &env.base_env.secret_key).await?;
@@ -52,7 +40,7 @@ impl VaultKmsTestContext {
         Ok(Self { env })
     }
 
-    fn base_env(&self) -> &crate::common::RustFSTestEnvironment {
+    fn base_env(&self) -> &crate::common::NebulaFXTestEnvironment {
         &self.env.base_env
     }
 
@@ -323,7 +311,7 @@ async fn test_vault_kms_key_crud(
     .to_string();
 
     let create_response =
-        crate::common::awscurl_post(&format!("{base_url}/rustfs/admin/v3/kms/keys"), &create_key_body, access_key, secret_key)
+        crate::common::awscurl_post(&format!("{base_url}/nebulafx/admin/v3/kms/keys"), &create_key_body, access_key, secret_key)
             .await?;
 
     let create_result: serde_json::Value = serde_json::from_str(&create_response)?;
@@ -334,7 +322,7 @@ async fn test_vault_kms_key_crud(
 
     // Read
     let describe_response =
-        crate::common::awscurl_get(&format!("{base_url}/rustfs/admin/v3/kms/keys/{key_id}"), access_key, secret_key).await?;
+        crate::common::awscurl_get(&format!("{base_url}/nebulafx/admin/v3/kms/keys/{key_id}"), access_key, secret_key).await?;
 
     let describe_result: serde_json::Value = serde_json::from_str(&describe_response)?;
     assert_eq!(describe_result["key_metadata"]["key_id"], key_id);
@@ -377,7 +365,7 @@ async fn test_vault_kms_key_crud(
 
     // Read
     let list_response =
-        crate::common::awscurl_get(&format!("{base_url}/rustfs/admin/v3/kms/keys"), access_key, secret_key).await?;
+        crate::common::awscurl_get(&format!("{base_url}/nebulafx/admin/v3/kms/keys"), access_key, secret_key).await?;
 
     let list_result: serde_json::Value = serde_json::from_str(&list_response)?;
     let keys = list_result["keys"]
@@ -404,7 +392,7 @@ async fn test_vault_kms_key_crud(
 
     // Delete
     let delete_response = crate::common::execute_awscurl(
-        &format!("{base_url}/rustfs/admin/v3/kms/keys/delete?keyId={key_id}"),
+        &format!("{base_url}/nebulafx/admin/v3/kms/keys/delete?keyId={key_id}"),
         "DELETE",
         None,
         access_key,
@@ -419,7 +407,7 @@ async fn test_vault_kms_key_crud(
 
     // Verify key state after deletion
     let describe_deleted_response =
-        crate::common::awscurl_get(&format!("{base_url}/rustfs/admin/v3/kms/keys/{key_id}"), access_key, secret_key).await?;
+        crate::common::awscurl_get(&format!("{base_url}/nebulafx/admin/v3/kms/keys/{key_id}"), access_key, secret_key).await?;
 
     let describe_result: serde_json::Value = serde_json::from_str(&describe_deleted_response)?;
     let key_state = describe_result["key_metadata"]["key_state"]
@@ -436,7 +424,7 @@ async fn test_vault_kms_key_crud(
 
     // Force Delete - Force immediate deletion for PendingDeletion key
     let force_delete_response = crate::common::execute_awscurl(
-        &format!("{base_url}/rustfs/admin/v3/kms/keys/delete?keyId={key_id}&force_immediate=true"),
+        &format!("{base_url}/nebulafx/admin/v3/kms/keys/delete?keyId={key_id}&force_immediate=true"),
         "DELETE",
         None,
         access_key,
@@ -451,7 +439,7 @@ async fn test_vault_kms_key_crud(
 
     // Verify key no longer exists after force deletion (should return error)
     let describe_force_deleted_result =
-        crate::common::awscurl_get(&format!("{base_url}/rustfs/admin/v3/kms/keys/{key_id}"), access_key, secret_key).await;
+        crate::common::awscurl_get(&format!("{base_url}/nebulafx/admin/v3/kms/keys/{key_id}"), access_key, secret_key).await;
 
     // After force deletion, key should not be found (GET should fail)
     assert!(describe_force_deleted_result.is_err(), "Force deleted key should not be found");

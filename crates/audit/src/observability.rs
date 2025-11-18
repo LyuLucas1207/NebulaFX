@@ -1,4 +1,4 @@
-//  Copyright 2024 RustFS Team
+//  Copyright 2024 NebulaFX Team
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -28,15 +28,15 @@ use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
 use tracing::info;
 
-const RUSTFS_AUDIT_METRICS_NAMESPACE: &str = "rustfs.audit.";
+const NEUBULAFX_AUDIT_METRICS_NAMESPACE: &str = "nebulafx.audit.";
 
-const M_AUDIT_EVENTS_TOTAL: &str = const_str::concat!(RUSTFS_AUDIT_METRICS_NAMESPACE, "events.total");
-const M_AUDIT_EVENTS_FAILED: &str = const_str::concat!(RUSTFS_AUDIT_METRICS_NAMESPACE, "events.failed");
-const M_AUDIT_DISPATCH_NS: &str = const_str::concat!(RUSTFS_AUDIT_METRICS_NAMESPACE, "dispatch.ns");
-const M_AUDIT_EPS: &str = const_str::concat!(RUSTFS_AUDIT_METRICS_NAMESPACE, "eps");
-const M_AUDIT_TARGET_OPS: &str = const_str::concat!(RUSTFS_AUDIT_METRICS_NAMESPACE, "target.ops");
-const M_AUDIT_CONFIG_RELOADS: &str = const_str::concat!(RUSTFS_AUDIT_METRICS_NAMESPACE, "config.reloads");
-const M_AUDIT_SYSTEM_STARTS: &str = const_str::concat!(RUSTFS_AUDIT_METRICS_NAMESPACE, "system.starts");
+const M_AUDIT_EVENTS_TOTAL: &str = const_str::concat!(NEUBULAFX_AUDIT_METRICS_NAMESPACE, "events.total");
+const M_AUDIT_EVENTS_FAILED: &str = const_str::concat!(NEUBULAFX_AUDIT_METRICS_NAMESPACE, "events.failed");
+const M_AUDIT_DISPATCH_NS: &str = const_str::concat!(NEUBULAFX_AUDIT_METRICS_NAMESPACE, "dispatch.ns");
+const M_AUDIT_EPS: &str = const_str::concat!(NEUBULAFX_AUDIT_METRICS_NAMESPACE, "eps");
+const M_AUDIT_TARGET_OPS: &str = const_str::concat!(NEUBULAFX_AUDIT_METRICS_NAMESPACE, "target.ops");
+const M_AUDIT_CONFIG_RELOADS: &str = const_str::concat!(NEUBULAFX_AUDIT_METRICS_NAMESPACE, "config.reloads");
+const M_AUDIT_SYSTEM_STARTS: &str = const_str::concat!(NEUBULAFX_AUDIT_METRICS_NAMESPACE, "system.starts");
 
 const L_RESULT: &str = "result";
 const L_STATUS: &str = "status";

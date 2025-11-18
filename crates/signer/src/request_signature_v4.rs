@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use bytes::BytesMut;
 use http::HeaderMap;
@@ -25,7 +13,7 @@ use tracing::debug;
 use super::constants::UNSIGNED_PAYLOAD;
 use super::request_signature_streaming_unsigned_trailer::streaming_unsigned_v4;
 use super::utils::{get_host_addr, sign_v4_trim_all};
-use rustfs_utils::crypto::{hex, hex_sha256, hmac_sha256};
+use nebulafx_utils::crypto::{hex, hex_sha256, hmac_sha256};
 use s3s::Body;
 
 pub const SIGN_V4_ALGORITHM: &str = "AWS4-HMAC-SHA256";
@@ -506,8 +494,8 @@ mod tests {
 
     #[test]
     fn example_signature() {
-        // let access_key_id = "rustfsadmin";
-        let secret_access_key = "rustfsadmin";
+        // let access_key_id = "nebulafxadmin";
+        let secret_access_key = "nebulafxadmin";
         let timestamp = "20250505T011054Z";
         let t = datetime!(2025-05-05 01:10:54 UTC);
         // let bucket = "mblock2";
@@ -582,8 +570,8 @@ mod tests {
 
     #[test]
     fn example_signature2() {
-        // let access_key_id = "rustfsadmin";
-        let secret_access_key = "rustfsadmin";
+        // let access_key_id = "nebulafxadmin";
+        let secret_access_key = "nebulafxadmin";
         let timestamp = "20250507T051030Z";
         let t = datetime!(2025-05-07 05:10:30 UTC);
         // let bucket = "mblock2";
@@ -647,8 +635,8 @@ mod tests {
 
     #[test]
     fn example_signature3() {
-        // let access_key_id = "rustfsadmin";
-        let secret_access_key = "rustfsadmin";
+        // let access_key_id = "nebulafxadmin";
+        let secret_access_key = "nebulafxadmin";
         let timestamp = "20250628T061107Z";
         let t = datetime!(2025-06-28 06:11:07 UTC);
         // let bucket = "mbver";
@@ -761,8 +749,8 @@ mod tests {
 
     #[test]
     fn example_presigned_url2() {
-        let access_key_id = "rustfsadmin";
-        let secret_access_key = "rustfsadmin";
+        let access_key_id = "nebulafxadmin";
+        let secret_access_key = "nebulafxadmin";
         let timestamp = "20130524T000000Z";
         let t = datetime!(2013-05-24 0:00 UTC);
         // let bucket = "mblock2";
@@ -798,7 +786,7 @@ mod tests {
             concat!(
                 "GET\n",
                 "/mblock2/test.txt\n",
-                "delimiter=%2F&fetch-owner=true&prefix=mypre&encoding-type=url&max-keys=1&list-type=2&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20130524T000000Z&X-Amz-Expires=0000086400&X-Amz-SignedHeaders=host&X-Amz-Credential=rustfsadmin%2F20130524%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=fe7f63f41e4ca18be9e70f560bbe9c079cf06ab97630934e04f7524751ff302d\n",
+                "delimiter=%2F&fetch-owner=true&prefix=mypre&encoding-type=url&max-keys=1&list-type=2&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20130524T000000Z&X-Amz-Expires=0000086400&X-Amz-SignedHeaders=host&X-Amz-Credential=nebulafxadmin%2F20130524%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=fe7f63f41e4ca18be9e70f560bbe9c079cf06ab97630934e04f7524751ff302d\n",
                 "host:192.168.1.11:9020\n",
                 "\n",
                 "host\n",

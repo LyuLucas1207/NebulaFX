@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::store::Key;
 use crate::target::{ChannelTargetType, EntityTarget, TargetType};
@@ -124,13 +112,13 @@ where
         let target_id = TargetID::new(id.clone(), ChannelTargetType::Mqtt.as_str().to_string());
         let queue_store = if !args.queue_dir.is_empty() {
             let base_path = PathBuf::from(&args.queue_dir);
-            let unique_dir_name = format!("rustfs-{}-{}", ChannelTargetType::Mqtt.as_str(), target_id.id).replace(":", "_");
+            let unique_dir_name = format!("nebulafx-{}-{}", ChannelTargetType::Mqtt.as_str(), target_id.id).replace(":", "_");
             // Ensure the directory name is valid for filesystem
             let specific_queue_path = base_path.join(unique_dir_name);
             debug!(target_id = %target_id, path = %specific_queue_path.display(), "Initializing queue store for MQTT target");
             let extension = match args.target_type {
-                TargetType::AuditLog => rustfs_config::audit::AUDIT_STORE_EXTENSION,
-                TargetType::NotifyEvent => rustfs_config::notify::STORE_EXTENSION,
+                TargetType::AuditLog => nebulafx_config::audit::AUDIT_STORE_EXTENSION,
+                TargetType::NotifyEvent => nebulafx_config::notify::STORE_EXTENSION,
             };
 
             let store = crate::store::QueueStore::<EntityTarget<E>>::new(specific_queue_path, args.queue_limit, extension);
@@ -184,7 +172,7 @@ where
                 debug!(target_id = %target_id_clone, "Initializing MQTT background task.");
                 let host = args_clone.broker.host_str().unwrap_or("localhost");
                 let port = args_clone.broker.port().unwrap_or(1883);
-                let mut mqtt_options = MqttOptions::new(format!("rustfs_notify_{}", uuid::Uuid::new_v4()), host, port);
+                let mut mqtt_options = MqttOptions::new(format!("nebulafx_notify_{}", uuid::Uuid::new_v4()), host, port);
                 mqtt_options
                     .set_keep_alive(args_clone.keep_alive)
                     .set_max_packet_size(100 * 1024 * 1024, 100 * 1024 * 1024); // 100MB

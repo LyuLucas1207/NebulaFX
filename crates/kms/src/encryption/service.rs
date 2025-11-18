@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 //! Object encryption service for S3-compatible encryption
 
@@ -517,24 +505,24 @@ impl ObjectEncryptionService {
 
         // Internal headers for decryption
         headers.insert(
-            "x-rustfs-encryption-iv".to_string(),
+            "x-nebulafx-encryption-iv".to_string(),
             base64::engine::general_purpose::STANDARD.encode(&metadata.iv),
         );
 
         if let Some(ref tag) = metadata.tag {
             headers.insert(
-                "x-rustfs-encryption-tag".to_string(),
+                "x-nebulafx-encryption-tag".to_string(),
                 base64::engine::general_purpose::STANDARD.encode(tag),
             );
         }
 
         headers.insert(
-            "x-rustfs-encryption-key".to_string(),
+            "x-nebulafx-encryption-key".to_string(),
             base64::engine::general_purpose::STANDARD.encode(&metadata.encrypted_data_key),
         );
 
         headers.insert(
-            "x-rustfs-encryption-context".to_string(),
+            "x-nebulafx-encryption-context".to_string(),
             serde_json::to_string(&metadata.encryption_context).unwrap_or_default(),
         );
 
@@ -557,13 +545,13 @@ impl ObjectEncryptionService {
         };
 
         let iv = headers
-            .get("x-rustfs-encryption-iv")
+            .get("x-nebulafx-encryption-iv")
             .ok_or_else(|| KmsError::validation_error("Missing IV header"))?;
         let iv = base64::engine::general_purpose::STANDARD
             .decode(iv)
             .map_err(|e| KmsError::validation_error(format!("Invalid IV: {e}")))?;
 
-        let tag = if let Some(tag_str) = headers.get("x-rustfs-encryption-tag") {
+        let tag = if let Some(tag_str) = headers.get("x-nebulafx-encryption-tag") {
             Some(
                 base64::engine::general_purpose::STANDARD
                     .decode(tag_str)
@@ -573,7 +561,7 @@ impl ObjectEncryptionService {
             None
         };
 
-        let encrypted_data_key = if let Some(key_str) = headers.get("x-rustfs-encryption-key") {
+        let encrypted_data_key = if let Some(key_str) = headers.get("x-nebulafx-encryption-key") {
             base64::engine::general_purpose::STANDARD
                 .decode(key_str)
                 .map_err(|e| KmsError::validation_error(format!("Invalid encrypted key: {e}")))?
@@ -581,7 +569,7 @@ impl ObjectEncryptionService {
             Vec::new() // Empty for SSE-C
         };
 
-        let encryption_context = if let Some(context_str) = headers.get("x-rustfs-encryption-context") {
+        let encryption_context = if let Some(context_str) = headers.get("x-nebulafx-encryption-context") {
             serde_json::from_str(context_str)
                 .map_err(|e| KmsError::validation_error(format!("Invalid encryption context: {e}")))?
         } else {
@@ -717,7 +705,7 @@ mod tests {
         // Convert to headers
         let headers = service.metadata_to_headers(&metadata);
         assert!(headers.contains_key("x-amz-server-side-encryption"));
-        assert!(headers.contains_key("x-rustfs-encryption-iv"));
+        assert!(headers.contains_key("x-nebulafx-encryption-iv"));
 
         // Convert back to metadata
         let parsed_metadata = service.headers_to_metadata(&headers).expect("Failed to parse headers");

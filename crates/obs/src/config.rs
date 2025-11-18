@@ -1,30 +1,18 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 
-use rustfs_config::observability::{
+
+use nebulafx_config::observability::{
     DEFAULT_OBS_ENVIRONMENT_PRODUCTION, ENV_OBS_ENDPOINT, ENV_OBS_ENVIRONMENT, ENV_OBS_LOG_DIRECTORY, ENV_OBS_LOG_ENDPOINT,
     ENV_OBS_LOG_FILENAME, ENV_OBS_LOG_KEEP_FILES, ENV_OBS_LOG_ROTATION_SIZE_MB, ENV_OBS_LOG_ROTATION_TIME,
     ENV_OBS_LOG_STDOUT_ENABLED, ENV_OBS_LOGGER_LEVEL, ENV_OBS_METER_INTERVAL, ENV_OBS_METRIC_ENDPOINT, ENV_OBS_SAMPLE_RATIO,
     ENV_OBS_SERVICE_NAME, ENV_OBS_SERVICE_VERSION, ENV_OBS_TRACE_ENDPOINT, ENV_OBS_USE_STDOUT,
 };
-use rustfs_config::{
+use nebulafx_config::{
     APP_NAME, DEFAULT_LOG_KEEP_FILES, DEFAULT_LOG_LEVEL, DEFAULT_LOG_ROTATION_SIZE_MB, DEFAULT_LOG_ROTATION_TIME,
     DEFAULT_OBS_LOG_FILENAME, DEFAULT_OBS_LOG_STDOUT_ENABLED, ENVIRONMENT, METER_INTERVAL, SAMPLE_RATIO, SERVICE_VERSION,
     USE_STDOUT,
 };
-use rustfs_utils::dirs::get_log_directory_to_string;
-use rustfs_utils::{get_env_bool, get_env_f64, get_env_opt_str, get_env_str, get_env_u64, get_env_usize};
+use nebulafx_utils::dirs::get_log_directory_to_string;
+use nebulafx_utils::{get_env_bool, get_env_f64, get_env_opt_str, get_env_str, get_env_u64, get_env_usize};
 use serde::{Deserialize, Serialize};
 use std::env;
 
@@ -50,7 +38,7 @@ use std::env;
 ///
 /// # Example
 /// ```no_run
-/// use rustfs_obs::OtelConfig;
+/// use nebulafx_obs::OtelConfig;
 ///
 /// let config = OtelConfig::new();
 /// ```
@@ -121,7 +109,7 @@ impl OtelConfig {
     ///
     /// # Example
     /// ```no_run
-    /// use rustfs_obs::OtelConfig;
+    /// use nebulafx_obs::OtelConfig;
     ///
     /// let config = OtelConfig::new();
     /// ```
@@ -136,7 +124,7 @@ impl OtelConfig {
 ///
 /// # Example
 /// ```no_run
-/// use rustfs_obs::OtelConfig;
+/// use nebulafx_obs::OtelConfig;
 ///
 /// let config = OtelConfig::default();
 /// ```
@@ -153,7 +141,7 @@ impl Default for OtelConfig {
 ///
 /// # Example
 /// ```
-/// use rustfs_obs::AppConfig;
+/// use nebulafx_obs::AppConfig;
 ///
 /// let config = AppConfig::new_with_endpoint(None);
 /// ```
@@ -183,7 +171,7 @@ impl AppConfig {
     ///
     /// # Example
     /// ```no_run
-    /// use rustfs_obs::AppConfig;
+    /// use nebulafx_obs::AppConfig;
     ///
     /// let config = AppConfig::new_with_endpoint(Some("http://localhost:4317".to_string()));
     /// ```
@@ -200,7 +188,7 @@ impl AppConfig {
 ///
 /// # Example
 /// ```no_run
-/// use rustfs_obs::AppConfig;
+/// use nebulafx_obs::AppConfig;
 ///
 /// let config = AppConfig::default();
 /// ```

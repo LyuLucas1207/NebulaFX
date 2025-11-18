@@ -1,24 +1,12 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 
-use rustfs_ahm::heal::{
+
+use nebulafx_ahm::heal::{
     manager::{HealConfig, HealManager},
     storage::{ECStoreHealStorage, HealStorageAPI},
     task::{HealOptions, HealPriority, HealRequest, HealTaskStatus, HealType},
 };
-use rustfs_common::heal_channel::{HealOpts, HealScanMode};
-use rustfs_ecstore::{
+use nebulafx_common::heal_channel::{HealOpts, HealScanMode};
+use nebulafx_ecstore::{
     disk::endpoint::Endpoint,
     endpoints::{EndpointServerPools, Endpoints, PoolEndpoints},
     store::ECStore,
@@ -54,7 +42,7 @@ async fn setup_test_env() -> (Vec<PathBuf>, Arc<ECStore>, Arc<ECStoreHealStorage
     }
 
     // create temp dir as 4 disks with unique base dir
-    let test_base_dir = format!("/tmp/rustfs_ahm_heal_test_{}", uuid::Uuid::new_v4());
+    let test_base_dir = format!("/tmp/nebulafx_ahm_heal_test_{}", uuid::Uuid::new_v4());
     let temp_dir = std::path::PathBuf::from(&test_base_dir);
     if temp_dir.exists() {
         fs::remove_dir_all(&temp_dir).await.ok();
@@ -96,7 +84,7 @@ async fn setup_test_env() -> (Vec<PathBuf>, Arc<ECStore>, Arc<ECStoreHealStorage
     let endpoint_pools = EndpointServerPools(vec![pool_endpoints]);
 
     // format disks (only first time)
-    rustfs_ecstore::store::init_local_disks(endpoint_pools.clone()).await.unwrap();
+    nebulafx_ecstore::store::init_local_disks(endpoint_pools.clone()).await.unwrap();
 
     // create ECStore with dynamic port 0 (let OS assign) or fixed 9001 if free
     let port = 9001; // for simplicity
@@ -107,14 +95,14 @@ async fn setup_test_env() -> (Vec<PathBuf>, Arc<ECStore>, Arc<ECStoreHealStorage
 
     // init bucket metadata system
     let buckets_list = ecstore
-        .list_bucket(&rustfs_ecstore::store_api::BucketOptions {
+        .list_bucket(&nebulafx_ecstore::store_api::BucketOptions {
             no_metadata: true,
             ..Default::default()
         })
         .await
         .unwrap();
     let buckets = buckets_list.into_iter().map(|v| v.name).collect();
-    rustfs_ecstore::bucket::metadata_sys::init_bucket_metadata_sys(ecstore.clone(), buckets).await;
+    nebulafx_ecstore::bucket::metadata_sys::init_bucket_metadata_sys(ecstore.clone(), buckets).await;
 
     // Create heal storage layer
     let heal_storage = Arc::new(ECStoreHealStorage::new(ecstore.clone()));
@@ -302,7 +290,7 @@ mod serial_tests {
         let (disk_paths, _ecstore, heal_storage) = setup_test_env().await;
 
         // ─── 1️⃣ delete format.json on one disk ──────────────
-        let format_path = disk_paths[0].join(".rustfs.sys").join("format.json");
+        let format_path = disk_paths[0].join(".nebulafx.sys").join("format.json");
         assert!(format_path.exists(), "format.json does not exist on disk");
         std::fs::remove_file(&format_path).expect("failed to delete format.json on disk");
         assert!(!format_path.exists(), "format.json still exists after deletion");
@@ -349,7 +337,7 @@ mod serial_tests {
             .expect("Failed to locate part file to delete");
 
         // ─── 1️⃣ delete format.json on one disk ──────────────
-        let format_path = disk_paths[0].join(".rustfs.sys").join("format.json");
+        let format_path = disk_paths[0].join(".nebulafx.sys").join("format.json");
         std::fs::remove_dir_all(&disk_paths[0]).expect("failed to delete all contents under disk_paths[0]");
         std::fs::create_dir_all(&disk_paths[0]).expect("failed to recreate disk_paths[0] directory");
         println!("✅ Deleted format.json on disk: {:?}", disk_paths[0]);

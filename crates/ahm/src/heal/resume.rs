@@ -1,19 +1,7 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::{Error, Result};
-use rustfs_ecstore::disk::{BUCKET_META_PREFIX, DiskAPI, DiskStore, RUSTFS_META_BUCKET};
+use nebulafx_ecstore::disk::{BUCKET_META_PREFIX, DiskAPI, DiskStore, NEUBULAFX_META_BUCKET};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::sync::Arc;
@@ -201,7 +189,7 @@ impl ResumeManager {
     pub async fn has_resume_state(disk: &DiskStore, task_id: &str) -> bool {
         let file_path = Path::new(BUCKET_META_PREFIX).join(format!("{task_id}_{RESUME_STATE_FILE}"));
         match path_to_str(&file_path) {
-            Ok(path_str) => match disk.read_all(RUSTFS_META_BUCKET, path_str).await {
+            Ok(path_str) => match disk.read_all(NEUBULAFX_META_BUCKET, path_str).await {
                 Ok(data) => !data.is_empty(),
                 Err(_) => false,
             },
@@ -274,13 +262,13 @@ impl ResumeManager {
 
         // ignore delete errors, files may not exist
         if let Ok(path_str) = path_to_str(&state_file) {
-            let _ = self.disk.delete(RUSTFS_META_BUCKET, path_str, Default::default()).await;
+            let _ = self.disk.delete(NEUBULAFX_META_BUCKET, path_str, Default::default()).await;
         }
         if let Ok(path_str) = path_to_str(&progress_file) {
-            let _ = self.disk.delete(RUSTFS_META_BUCKET, path_str, Default::default()).await;
+            let _ = self.disk.delete(NEUBULAFX_META_BUCKET, path_str, Default::default()).await;
         }
         if let Ok(path_str) = path_to_str(&checkpoint_file) {
-            let _ = self.disk.delete(RUSTFS_META_BUCKET, path_str, Default::default()).await;
+            let _ = self.disk.delete(NEUBULAFX_META_BUCKET, path_str, Default::default()).await;
         }
 
         info!("Cleaned up resume state for task: {}", task_id);
@@ -298,7 +286,7 @@ impl ResumeManager {
 
         let path_str = path_to_str(&file_path)?;
         self.disk
-            .write_all(RUSTFS_META_BUCKET, path_str, state_data.into())
+            .write_all(NEUBULAFX_META_BUCKET, path_str, state_data.into())
             .await
             .map_err(|e| Error::TaskExecutionFailed {
                 message: format!("Failed to save resume state: {e}"),
@@ -313,7 +301,7 @@ impl ResumeManager {
         let file_path = Path::new(BUCKET_META_PREFIX).join(format!("{task_id}_{RESUME_STATE_FILE}"));
 
         let path_str = path_to_str(&file_path)?;
-        disk.read_all(RUSTFS_META_BUCKET, path_str)
+        disk.read_all(NEUBULAFX_META_BUCKET, path_str)
             .await
             .map(|bytes| bytes.to_vec())
             .map_err(|e| Error::TaskExecutionFailed {
@@ -416,7 +404,7 @@ impl CheckpointManager {
     pub async fn has_checkpoint(disk: &DiskStore, task_id: &str) -> bool {
         let file_path = Path::new(BUCKET_META_PREFIX).join(format!("{task_id}_{RESUME_CHECKPOINT_FILE}"));
         match path_to_str(&file_path) {
-            Ok(path_str) => match disk.read_all(RUSTFS_META_BUCKET, path_str).await {
+            Ok(path_str) => match disk.read_all(NEUBULAFX_META_BUCKET, path_str).await {
                 Ok(data) => !data.is_empty(),
                 Err(_) => false,
             },
@@ -468,7 +456,7 @@ impl CheckpointManager {
 
         let checkpoint_file = Path::new(BUCKET_META_PREFIX).join(format!("{task_id}_{RESUME_CHECKPOINT_FILE}"));
         if let Ok(path_str) = path_to_str(&checkpoint_file) {
-            let _ = self.disk.delete(RUSTFS_META_BUCKET, path_str, Default::default()).await;
+            let _ = self.disk.delete(NEUBULAFX_META_BUCKET, path_str, Default::default()).await;
         }
 
         info!("Cleaned up checkpoint for task: {}", task_id);
@@ -486,7 +474,7 @@ impl CheckpointManager {
 
         let path_str = path_to_str(&file_path)?;
         self.disk
-            .write_all(RUSTFS_META_BUCKET, path_str, checkpoint_data.into())
+            .write_all(NEUBULAFX_META_BUCKET, path_str, checkpoint_data.into())
             .await
             .map_err(|e| Error::TaskExecutionFailed {
                 message: format!("Failed to save checkpoint: {e}"),
@@ -501,7 +489,7 @@ impl CheckpointManager {
         let file_path = Path::new(BUCKET_META_PREFIX).join(format!("{task_id}_{RESUME_CHECKPOINT_FILE}"));
 
         let path_str = path_to_str(&file_path)?;
-        disk.read_all(RUSTFS_META_BUCKET, path_str)
+        disk.read_all(NEUBULAFX_META_BUCKET, path_str)
             .await
             .map(|bytes| bytes.to_vec())
             .map_err(|e| Error::TaskExecutionFailed {
@@ -527,7 +515,7 @@ impl ResumeUtils {
     /// get all resumable task ids
     pub async fn get_resumable_tasks(disk: &DiskStore) -> Result<Vec<String>> {
         // List all files in the buckets metadata directory
-        let entries = match disk.list_dir("", RUSTFS_META_BUCKET, BUCKET_META_PREFIX, -1).await {
+        let entries = match disk.list_dir("", NEUBULAFX_META_BUCKET, BUCKET_META_PREFIX, -1).await {
             Ok(entries) => entries,
             Err(e) => {
                 debug!("Failed to list resume state files: {}", e);
@@ -640,7 +628,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_resumable_tasks_integration() {
-        use rustfs_ecstore::disk::{DiskOption, endpoint::Endpoint, new_disk};
+        use nebulafx_ecstore::disk::{DiskOption, endpoint::Endpoint, new_disk};
         use tempfile::TempDir;
 
         // Create a temporary directory for testing
@@ -657,8 +645,8 @@ mod tests {
         let disk = new_disk(&endpoint, &disk_option).await.unwrap();
 
         // Create necessary directories first (ignore if already exist)
-        let _ = disk.make_volume(RUSTFS_META_BUCKET).await;
-        let _ = disk.make_volume(&format!("{RUSTFS_META_BUCKET}/{BUCKET_META_PREFIX}")).await;
+        let _ = disk.make_volume(NEUBULAFX_META_BUCKET).await;
+        let _ = disk.make_volume(&format!("{NEUBULAFX_META_BUCKET}/{BUCKET_META_PREFIX}")).await;
 
         // Create some test resume state files
         let task_ids = vec![
@@ -679,7 +667,7 @@ mod tests {
             let state_data = serde_json::to_vec(&state).unwrap();
             let file_path = format!("{BUCKET_META_PREFIX}/{task_id}_{RESUME_STATE_FILE}");
 
-            disk.write_all(RUSTFS_META_BUCKET, &file_path, state_data.into())
+            disk.write_all(NEUBULAFX_META_BUCKET, &file_path, state_data.into())
                 .await
                 .unwrap();
         }
@@ -694,7 +682,7 @@ mod tests {
 
         for file_name in non_resume_files {
             let file_path = format!("{BUCKET_META_PREFIX}/{file_name}");
-            disk.write_all(RUSTFS_META_BUCKET, &file_path, b"test data".to_vec().into())
+            disk.write_all(NEUBULAFX_META_BUCKET, &file_path, b"test data".to_vec().into())
                 .await
                 .unwrap();
         }

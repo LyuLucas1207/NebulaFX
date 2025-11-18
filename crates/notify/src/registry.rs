@@ -1,24 +1,12 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use crate::Event;
 use crate::factory::{MQTTTargetFactory, TargetFactory, WebhookTargetFactory};
 use futures::stream::{FuturesUnordered, StreamExt};
 use hashbrown::{HashMap, HashSet};
-use rustfs_config::{DEFAULT_DELIMITER, ENABLE_KEY, ENV_PREFIX, notify::NOTIFY_ROUTE_PREFIX};
-use rustfs_ecstore::config::{Config, KVS};
-use rustfs_targets::{Target, TargetError, target::ChannelTargetType};
+use nebulafx_config::{DEFAULT_DELIMITER, ENABLE_KEY, ENV_PREFIX, notify::NOTIFY_ROUTE_PREFIX};
+use nebulafx_ecstore::config::{Config, KVS};
+use nebulafx_targets::{Target, TargetError, target::ChannelTargetType};
 use tracing::{debug, error, info, warn};
 
 /// Registry for managing target factories
@@ -117,10 +105,10 @@ impl TargetRegistry {
                 format!("{ENV_PREFIX}{NOTIFY_ROUTE_PREFIX}{target_type}{DEFAULT_DELIMITER}{ENABLE_KEY}{DEFAULT_DELIMITER}")
                     .to_uppercase();
             for (key, value) in &all_env {
-                if value.eq_ignore_ascii_case(rustfs_config::EnableState::One.as_str())
-                    || value.eq_ignore_ascii_case(rustfs_config::EnableState::On.as_str())
-                    || value.eq_ignore_ascii_case(rustfs_config::EnableState::True.as_str())
-                    || value.eq_ignore_ascii_case(rustfs_config::EnableState::Yes.as_str())
+                if value.eq_ignore_ascii_case(nebulafx_config::EnableState::One.as_str())
+                    || value.eq_ignore_ascii_case(nebulafx_config::EnableState::On.as_str())
+                    || value.eq_ignore_ascii_case(nebulafx_config::EnableState::True.as_str())
+                    || value.eq_ignore_ascii_case(nebulafx_config::EnableState::Yes.as_str())
                 {
                     if let Some(id) = key.strip_prefix(&enable_prefix) {
                         if !id.is_empty() {
@@ -131,7 +119,7 @@ impl TargetRegistry {
             }
 
             // 3.2. Parse all relevant environment variable configurations
-            // 3.2.1. Build environment variable prefixes such as 'RUSTFS_NOTIFY_WEBHOOK_'
+            // 3.2.1. Build environment variable prefixes such as 'NEUBULAFX_NOTIFY_WEBHOOK_'
             let env_prefix = format!("{ENV_PREFIX}{NOTIFY_ROUTE_PREFIX}{target_type}{DEFAULT_DELIMITER}").to_uppercase();
             // 3.2.2. 'env_overrides' is used to store configurations parsed from environment variables in the format: {instance id -> {field -> value}}
             let mut env_overrides: HashMap<String, HashMap<String, String>> = HashMap::new();
@@ -208,10 +196,10 @@ impl TargetRegistry {
                 let enabled = merged_config
                     .lookup(ENABLE_KEY)
                     .map(|v| {
-                        v.eq_ignore_ascii_case(rustfs_config::EnableState::One.as_str())
-                            || v.eq_ignore_ascii_case(rustfs_config::EnableState::On.as_str())
-                            || v.eq_ignore_ascii_case(rustfs_config::EnableState::True.as_str())
-                            || v.eq_ignore_ascii_case(rustfs_config::EnableState::Yes.as_str())
+                        v.eq_ignore_ascii_case(nebulafx_config::EnableState::One.as_str())
+                            || v.eq_ignore_ascii_case(nebulafx_config::EnableState::On.as_str())
+                            || v.eq_ignore_ascii_case(nebulafx_config::EnableState::True.as_str())
+                            || v.eq_ignore_ascii_case(nebulafx_config::EnableState::Yes.as_str())
                     })
                     .unwrap_or(false);
 
@@ -296,13 +284,13 @@ impl TargetRegistry {
                 }
             }
 
-            let Some(store) = rustfs_ecstore::global::new_object_layer_fn() else {
+            let Some(store) = nebulafx_ecstore::global::new_object_layer_fn() else {
                 return Err(TargetError::ServerNotInitialized(
                     "Failed to save target configuration: server storage not initialized".to_string(),
                 ));
             };
 
-            match rustfs_ecstore::config::com::save_server_config(store, &new_config).await {
+            match nebulafx_ecstore::config::com::save_server_config(store, &new_config).await {
                 Ok(_) => {
                     info!("The new configuration was saved to the system successfully.")
                 }

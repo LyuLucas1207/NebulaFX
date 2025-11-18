@@ -1,19 +1,7 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use super::{metadata_sys::get_bucket_metadata_sys, versioning::VersioningApi};
-use crate::disk::RUSTFS_META_BUCKET;
+use crate::disk::NEUBULAFX_META_BUCKET;
 use crate::error::Result;
 use s3s::dto::VersioningConfiguration;
 use tracing::warn;
@@ -71,7 +59,7 @@ impl BucketVersioningSys {
     }
 
     pub async fn get(bucket: &str) -> Result<VersioningConfiguration> {
-        if bucket == RUSTFS_META_BUCKET || bucket.starts_with(RUSTFS_META_BUCKET) {
+        if bucket == NEUBULAFX_META_BUCKET || bucket.starts_with(NEUBULAFX_META_BUCKET) {
             return Ok(VersioningConfiguration::default());
         }
 

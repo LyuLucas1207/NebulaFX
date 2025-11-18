@@ -1,23 +1,11 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 
-use crate::disk::RUSTFS_META_BUCKET;
+
+use crate::disk::NEUBULAFX_META_BUCKET;
 use crate::error::{Error, Result};
 use s3s::xml;
 
 pub fn is_meta_bucketname(name: &str) -> bool {
-    name.starts_with(RUSTFS_META_BUCKET)
+    name.starts_with(NEUBULAFX_META_BUCKET)
 }
 
 use regex::Regex;
@@ -41,8 +29,8 @@ pub fn check_bucket_name_common(bucket_name: &str, strict: bool) -> Result<()> {
         return Err(Error::other("Bucket name cannot be longer than 63 characters"));
     }
 
-    if bucket_name_trimmed == "rustfs" {
-        return Err(Error::other("Bucket name cannot be rustfs"));
+    if bucket_name_trimmed == "nebulafx" {
+        return Err(Error::other("Bucket name cannot be nebulafx"));
     }
 
     if IP_ADDRESS.is_match(bucket_name_trimmed) {

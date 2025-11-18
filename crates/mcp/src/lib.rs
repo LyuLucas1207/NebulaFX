@@ -1,16 +1,4 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 pub mod config;
 pub mod s3_client;
@@ -18,7 +6,7 @@ pub mod server;
 
 pub use config::Config;
 pub use s3_client::{BucketInfo, S3Client};
-pub use server::RustfsMcpServer;
+pub use server::NEUBULAFXMcpServer;
 
 use anyhow::{Context, Result};
 use rmcp::ServiceExt;
@@ -27,11 +15,11 @@ use tracing::info;
 
 /// Run the MCP server with the provided configuration
 pub async fn run_server_with_config(config: Config) -> Result<()> {
-    info!("Starting RustFS MCP Server with provided configuration");
+    info!("Starting NebulaFX MCP Server with provided configuration");
 
     config.validate().context("Configuration validation failed")?;
 
-    let server = RustfsMcpServer::new(config).await?;
+    let server = NEUBULAFXMcpServer::new(config).await?;
 
     info!("Running MCP server with stdio transport");
 
@@ -49,7 +37,7 @@ pub async fn run_server_with_config(config: Config) -> Result<()> {
 
 /// Run the MCP server with default configuration (from environment variables)
 pub async fn run_server() -> Result<()> {
-    info!("Starting RustFS MCP Server with default configuration");
+    info!("Starting NebulaFX MCP Server with default configuration");
 
     let config = Config::default();
     run_server_with_config(config).await

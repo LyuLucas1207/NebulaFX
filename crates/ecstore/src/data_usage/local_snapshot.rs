@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use tokio::fs;
 
 use crate::data_usage::BucketUsageInfo;
-use crate::disk::RUSTFS_META_BUCKET;
+use crate::disk::NEUBULAFX_META_BUCKET;
 use crate::error::{Error, Result};
 
 /// Directory used to store per-disk usage snapshots under the metadata bucket.
@@ -91,19 +91,19 @@ pub fn snapshot_file_name(disk_id: &str) -> String {
     format!("{disk_id}.json")
 }
 
-/// Build the object path relative to `RUSTFS_META_BUCKET`, e.g. `datausage/<disk-id>.json`.
+/// Build the object path relative to `NEUBULAFX_META_BUCKET`, e.g. `datausage/<disk-id>.json`.
 pub fn snapshot_object_path(disk_id: &str) -> String {
     format!("{}/{}", DATA_USAGE_DIR, snapshot_file_name(disk_id))
 }
 
-/// Return the absolute path to `.rustfs.sys/datausage` on the given disk root.
+/// Return the absolute path to `.nebulafx.sys/datausage` on the given disk root.
 pub fn data_usage_dir(root: &Path) -> PathBuf {
-    root.join(RUSTFS_META_BUCKET).join(DATA_USAGE_DIR)
+    root.join(NEUBULAFX_META_BUCKET).join(DATA_USAGE_DIR)
 }
 
-/// Return the absolute path to `.rustfs.sys/datausage/state` on the given disk root.
+/// Return the absolute path to `.nebulafx.sys/datausage/state` on the given disk root.
 pub fn data_usage_state_dir(root: &Path) -> PathBuf {
-    root.join(RUSTFS_META_BUCKET).join(DATA_USAGE_STATE_DIR)
+    root.join(NEUBULAFX_META_BUCKET).join(DATA_USAGE_STATE_DIR)
 }
 
 /// Build the absolute path to the snapshot file for the provided disk ID.

@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# RustFS Enhanced Security Deployment Script
+# NebulaFX Enhanced Security Deployment Script
 # This script demonstrates production-ready deployment with enhanced security features
 
 set -e
 
 # Configuration
-RUSTFS_IMAGE="${RUSTFS_IMAGE:-rustfs/rustfs:latest}"
-CONTAINER_NAME="${CONTAINER_NAME:-rustfs-secure}"
+NEUBULAFX_IMAGE="${NEUBULAFX_IMAGE:-nebulafx/nebulafx:latest}"
+CONTAINER_NAME="${CONTAINER_NAME:-nebulafx-secure}"
 DATA_DIR="${DATA_DIR:-./data}"
 CERTS_DIR="${CERTS_DIR:-./certs}"
 CONSOLE_PORT="${CONSOLE_PORT:-9443}"
@@ -58,7 +58,7 @@ generate_certs() {
             -keyout "$CERTS_DIR/console.key" \
             -out "$CERTS_DIR/console.crt" \
             -days 365 -nodes \
-            -subj "/C=US/ST=CA/L=SF/O=RustFS/CN=localhost"
+            -subj "/C=US/ST=CA/L=SF/O=NebulaFX/CN=localhost"
         
         chmod 600 "$CERTS_DIR/console.key"
         chmod 644 "$CERTS_DIR/console.crt"
@@ -78,20 +78,20 @@ create_data_dir() {
 
 # Generate secure credentials
 generate_credentials() {
-    if [[ -z "$RUSTFS_ACCESS_KEY" ]]; then
-        export RUSTFS_ACCESS_KEY="admin-$(openssl rand -hex 8)"
-        log "Generated access key: $RUSTFS_ACCESS_KEY"
+    if [[ -z "$NEUBULAFX_ACCESS_KEY" ]]; then
+        export NEUBULAFX_ACCESS_KEY="admin-$(openssl rand -hex 8)"
+        log "Generated access key: $NEUBULAFX_ACCESS_KEY"
     fi
 
-    if [[ -z "$RUSTFS_SECRET_KEY" ]]; then
-        export RUSTFS_SECRET_KEY="$(openssl rand -hex 32)"
+    if [[ -z "$NEUBULAFX_SECRET_KEY" ]]; then
+        export NEUBULAFX_SECRET_KEY="$(openssl rand -hex 32)"
         log "Generated secret key: [HIDDEN]"
     fi
 
     # Save credentials to .env file
     cat > .env << EOF
-RUSTFS_ACCESS_KEY=$RUSTFS_ACCESS_KEY
-RUSTFS_SECRET_KEY=$RUSTFS_SECRET_KEY
+NEUBULAFX_ACCESS_KEY=$NEUBULAFX_ACCESS_KEY
+NEUBULAFX_SECRET_KEY=$NEUBULAFX_SECRET_KEY
 EOF
     chmod 600 .env
     success "Credentials saved to .env file"
@@ -106,9 +106,9 @@ stop_existing() {
     fi
 }
 
-# Deploy RustFS with enhanced security
-deploy_rustfs() {
-    log "Deploying RustFS with enhanced security..."
+# Deploy NebulaFX with enhanced security
+deploy_nebulafx() {
+    log "Deploying NebulaFX with enhanced security..."
     
     docker run -d \
         --name "$CONTAINER_NAME" \
@@ -117,26 +117,26 @@ deploy_rustfs() {
         -p "$API_PORT:9000" \
         -v "$(pwd)/$DATA_DIR:/data" \
         -v "$(pwd)/$CERTS_DIR:/certs:ro" \
-        -e RUSTFS_CONSOLE_TLS_ENABLE=true \
-        -e RUSTFS_CONSOLE_TLS_CERT=/certs/console.crt \
-        -e RUSTFS_CONSOLE_TLS_KEY=/certs/console.key \
-        -e RUSTFS_CONSOLE_RATE_LIMIT_ENABLE=true \
-        -e RUSTFS_CONSOLE_RATE_LIMIT_RPM=60 \
-        -e RUSTFS_CONSOLE_AUTH_TIMEOUT=1800 \
-        -e RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS="https://localhost:$CONSOLE_PORT" \
-        -e RUSTFS_CORS_ALLOWED_ORIGINS="http://localhost:$API_PORT" \
-        -e RUSTFS_ACCESS_KEY="$RUSTFS_ACCESS_KEY" \
-        -e RUSTFS_SECRET_KEY="$RUSTFS_SECRET_KEY" \
-        -e RUSTFS_EXTERNAL_ADDRESS=":$API_PORT" \
-        "$RUSTFS_IMAGE" /data
+        -e NEUBULAFX_CONSOLE_TLS_ENABLE=true \
+        -e NEUBULAFX_CONSOLE_TLS_CERT=/certs/console.crt \
+        -e NEUBULAFX_CONSOLE_TLS_KEY=/certs/console.key \
+        -e NEUBULAFX_CONSOLE_RATE_LIMIT_ENABLE=true \
+        -e NEUBULAFX_CONSOLE_RATE_LIMIT_RPM=60 \
+        -e NEUBULAFX_CONSOLE_AUTH_TIMEOUT=1800 \
+        -e NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS="https://localhost:$CONSOLE_PORT" \
+        -e NEUBULAFX_CORS_ALLOWED_ORIGINS="http://localhost:$API_PORT" \
+        -e NEUBULAFX_ACCESS_KEY="$NEUBULAFX_ACCESS_KEY" \
+        -e NEUBULAFX_SECRET_KEY="$NEUBULAFX_SECRET_KEY" \
+        -e NEUBULAFX_EXTERNAL_ADDRESS=":$API_PORT" \
+        "$NEUBULAFX_IMAGE" /data
 
     # Wait for container to start
     sleep 5
 
     if docker ps --format "table {{.Names}}" | grep -q "^$CONTAINER_NAME\$"; then
-        success "RustFS deployed successfully"
+        success "NebulaFX deployed successfully"
     else
-        error "Failed to deploy RustFS"
+        error "Failed to deploy NebulaFX"
     fi
 }
 
@@ -163,16 +163,16 @@ check_health() {
 show_access_info() {
     echo
     echo "=========================================="
-    echo "           RustFS Access Information"
+    echo "           NebulaFX Access Information"
     echo "=========================================="
     echo
-    echo "🌐 Console (HTTPS): https://localhost:$CONSOLE_PORT/rustfs/console/"
+    echo "🌐 Console (HTTPS): https://localhost:$CONSOLE_PORT/nebulafx/console/"
     echo "🔧 API Endpoint:    http://localhost:$API_PORT"
     echo "🏥 Console Health:  https://localhost:$CONSOLE_PORT/health"
     echo "🏥 API Health:      http://localhost:$API_PORT/health"
     echo
     echo "🔐 Credentials:"
-    echo "   Access Key: $RUSTFS_ACCESS_KEY"
+    echo "   Access Key: $NEUBULAFX_ACCESS_KEY"
     echo "   Secret Key: [Check .env file]"
     echo
     echo "📝 Logs: docker logs $CONTAINER_NAME"
@@ -185,14 +185,14 @@ show_access_info() {
 
 # Main deployment flow
 main() {
-    log "Starting RustFS Enhanced Security Deployment"
+    log "Starting NebulaFX Enhanced Security Deployment"
     
     check_docker
     create_data_dir
     generate_certs
     generate_credentials
     stop_existing
-    deploy_rustfs
+    deploy_nebulafx
     
     # Wait a bit for services to start
     sleep 10

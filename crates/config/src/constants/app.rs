@@ -1,31 +1,19 @@
-// Copyright 2024 RustFS Team
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+
 
 use const_str::concat;
 
 /// Application name
-/// Default value: RustFS
-/// Environment variable: RUSTFS_APP_NAME
-pub const APP_NAME: &str = "RustFS";
+/// Default value: NebulaFX
+/// Environment variable: NEUBULAFX_APP_NAME
+pub const APP_NAME: &str = "NebulaFX";
 /// Application version
 /// Default value: 1.0.0
-/// Environment variable: RUSTFS_VERSION
+/// Environment variable: NEUBULAFX_VERSION
 pub const VERSION: &str = "1.0.0";
 
 /// Default configuration logger level
 /// Default value: error
-/// Environment variable: RUSTFS_LOG_LEVEL
+/// Environment variable: NEUBULAFX_LOG_LEVEL
 pub const DEFAULT_LOG_LEVEL: &str = "error";
 
 /// Default configuration use stdout
@@ -41,7 +29,7 @@ pub const METER_INTERVAL: u64 = 30;
 
 /// Default configuration service version
 /// Default value: 1.0.0
-/// Environment variable: RUSTFS_OBS_SERVICE_VERSION
+/// Environment variable: NEUBULAFX_OBS_SERVICE_VERSION
 /// Uses the same value as VERSION constant
 pub const SERVICE_VERSION: &str = "1.0.0";
 
@@ -50,27 +38,27 @@ pub const SERVICE_VERSION: &str = "1.0.0";
 pub const ENVIRONMENT: &str = "production";
 
 /// Default Access Key
-/// Default value: rustfsadmin
-/// Environment variable: RUSTFS_ACCESS_KEY
+/// Default value: nebulafxadmin
+/// Environment variable: NEUBULAFX_ACCESS_KEY
 /// Command line argument: --access-key
-/// Example: RUSTFS_ACCESS_KEY=rustfsadmin
-/// Example: --access-key rustfsadmin
-pub const DEFAULT_ACCESS_KEY: &str = "rustfsadmin";
+/// Example: NEUBULAFX_ACCESS_KEY=nebulafxadmin
+/// Example: --access-key nebulafxadmin
+pub const DEFAULT_ACCESS_KEY: &str = "nebulafxadmin";
 /// Default Secret Key
-/// Default value: rustfsadmin
-/// Environment variable: RUSTFS_SECRET_KEY
+/// Default value: nebulafxadmin
+/// Environment variable: NEUBULAFX_SECRET_KEY
 /// Command line argument: --secret-key
-/// Example: RUSTFS_SECRET_KEY=rustfsadmin
-/// Example: --secret-key rustfsadmin
-pub const DEFAULT_SECRET_KEY: &str = "rustfsadmin";
+/// Example: NEUBULAFX_SECRET_KEY=nebulafxadmin
+/// Example: --secret-key nebulafxadmin
+pub const DEFAULT_SECRET_KEY: &str = "nebulafxadmin";
 
 /// Default console enable
 /// This is the default value for the console server.
 /// It is used to enable or disable the console server.
 /// Default value: true
-/// Environment variable: RUSTFS_CONSOLE_ENABLE
+/// Environment variable: NEUBULAFX_CONSOLE_ENABLE
 /// Command line argument: --console-enable
-/// Example: RUSTFS_CONSOLE_ENABLE=true
+/// Example: NEUBULAFX_CONSOLE_ENABLE=true
 /// Example: --console-enable true
 pub const DEFAULT_CONSOLE_ENABLE: bool = true;
 
@@ -81,77 +69,77 @@ pub const DEFAULT_CONSOLE_ENABLE: bool = true;
 /// Example: --obs-endpoint http://localost:4317
 pub const DEFAULT_OBS_ENDPOINT: &str = "";
 
-/// Default TLS key for rustfs
+/// Default TLS key for nebulafx
 /// This is the default key for TLS.
-pub const RUSTFS_TLS_KEY: &str = "rustfs_key.pem";
+pub const NEUBULAFX_TLS_KEY: &str = "nebulafx_key.pem";
 
-/// Default TLS cert for rustfs
+/// Default TLS cert for nebulafx
 /// This is the default cert for TLS.
-pub const RUSTFS_TLS_CERT: &str = "rustfs_cert.pem";
+pub const NEUBULAFX_TLS_CERT: &str = "nebulafx_cert.pem";
 
-/// Default port for rustfs
-/// This is the default port for rustfs.
+/// Default port for nebulafx
+/// This is the default port for nebulafx.
 /// This is used to bind the server to a specific port.
 pub const DEFAULT_PORT: u16 = 9000;
 
-/// Default address for rustfs
-/// This is the default address for rustfs.
+/// Default address for nebulafx
+/// This is the default address for nebulafx.
 pub const DEFAULT_ADDRESS: &str = concat!(":", DEFAULT_PORT);
 
-/// Default port for rustfs console
-/// This is the default port for rustfs console.
+/// Default port for nebulafx console
+/// This is the default port for nebulafx console.
 pub const DEFAULT_CONSOLE_PORT: u16 = 9001;
 
-/// Default address for rustfs console
-/// This is the default address for rustfs console.
+/// Default address for nebulafx console
+/// This is the default address for nebulafx console.
 pub const DEFAULT_CONSOLE_ADDRESS: &str = concat!(":", DEFAULT_CONSOLE_PORT);
 
-/// Default log filename for rustfs
-/// This is the default log filename for rustfs.
+/// Default log filename for nebulafx
+/// This is the default log filename for nebulafx.
 /// It is used to store the logs of the application.
-/// Default value: rustfs.log
-/// Environment variable: RUSTFS_OBSERVABILITY_LOG_FILENAME
-pub const DEFAULT_LOG_FILENAME: &str = "rustfs";
+/// Default value: nebulafx.log
+/// Environment variable: NEUBULAFX_OBSERVABILITY_LOG_FILENAME
+pub const DEFAULT_LOG_FILENAME: &str = "nebulafx";
 
-/// Default OBS log filename for rustfs
+/// Default OBS log filename for nebulafx
 /// This is the default log filename for OBS.
 /// It is used to store the logs of the application.
-/// Default value: rustfs.log
+/// Default value: nebulafx.log
 pub const DEFAULT_OBS_LOG_FILENAME: &str = concat!(DEFAULT_LOG_FILENAME, "");
 
-/// Default log directory for rustfs
-/// This is the default log directory for rustfs.
+/// Default log directory for nebulafx
+/// This is the default log directory for nebulafx.
 /// It is used to store the logs of the application.
 /// Default value: logs
-/// Environment variable: RUSTFS_LOG_DIRECTORY
+/// Environment variable: NEUBULAFX_LOG_DIRECTORY
 pub const DEFAULT_LOG_DIR: &str = "logs";
 
-/// Default log rotation size mb for rustfs
-/// This is the default log rotation size for rustfs.
+/// Default log rotation size mb for nebulafx
+/// This is the default log rotation size for nebulafx.
 /// It is used to rotate the logs of the application.
 /// Default value: 100 MB
-/// Environment variable: RUSTFS_OBS_LOG_ROTATION_SIZE_MB
+/// Environment variable: NEUBULAFX_OBS_LOG_ROTATION_SIZE_MB
 pub const DEFAULT_LOG_ROTATION_SIZE_MB: u64 = 100;
 
-/// Default log rotation time for rustfs
-/// This is the default log rotation time for rustfs.
+/// Default log rotation time for nebulafx
+/// This is the default log rotation time for nebulafx.
 /// It is used to rotate the logs of the application.
 /// Default value: hour, eg: day,hour,minute,second
-/// Environment variable: RUSTFS_OBS_LOG_ROTATION_TIME
+/// Environment variable: NEUBULAFX_OBS_LOG_ROTATION_TIME
 pub const DEFAULT_LOG_ROTATION_TIME: &str = "hour";
 
-/// Default log keep files for rustfs
-/// This is the default log keep files for rustfs.
+/// Default log keep files for nebulafx
+/// This is the default log keep files for nebulafx.
 /// It is used to keep the logs of the application.
 /// Default value: 30
-/// Environment variable: RUSTFS_OBS_LOG_KEEP_FILES
+/// Environment variable: NEUBULAFX_OBS_LOG_KEEP_FILES
 pub const DEFAULT_LOG_KEEP_FILES: usize = 30;
 
-/// Default log local logging enabled for rustfs
-/// This is the default log local logging enabled for rustfs.
+/// Default log local logging enabled for nebulafx
+/// This is the default log local logging enabled for nebulafx.
 /// It is used to enable or disable local logging of the application.
 /// Default value: false
-/// Environment variable: RUSTFS_OBS_LOGL_STDOUT_ENABLED
+/// Environment variable: NEUBULAFX_OBS_LOGL_STDOUT_ENABLED
 pub const DEFAULT_OBS_LOG_STDOUT_ENABLED: bool = false;
 
 /// Constant representing 1 Kibibyte (1024 bytes)
@@ -168,7 +156,7 @@ mod tests {
     #[test]
     fn test_app_basic_constants() {
         // Test application basic constants
-        assert_eq!(APP_NAME, "RustFS");
+        assert_eq!(APP_NAME, "NebulaFX");
         assert!(!APP_NAME.contains(' '), "App name should not contain spaces");
 
         assert_eq!(VERSION, "1.0.0");
@@ -204,10 +192,10 @@ mod tests {
     #[test]
     fn test_security_constants() {
         // Test security related constants
-        assert_eq!(DEFAULT_ACCESS_KEY, "rustfsadmin");
+        assert_eq!(DEFAULT_ACCESS_KEY, "nebulafxadmin");
         assert!(DEFAULT_ACCESS_KEY.len() >= 8, "Access key should be at least 8 characters");
 
-        assert_eq!(DEFAULT_SECRET_KEY, "rustfsadmin");
+        assert_eq!(DEFAULT_SECRET_KEY, "nebulafxadmin");
         assert!(DEFAULT_SECRET_KEY.len() >= 8, "Secret key should be at least 8 characters");
 
         // In production environment, access key and secret key should be different
@@ -217,11 +205,11 @@ mod tests {
 
     #[test]
     fn test_file_path_constants() {
-        assert_eq!(RUSTFS_TLS_KEY, "rustfs_key.pem");
-        assert!(RUSTFS_TLS_KEY.ends_with(".pem"), "TLS key should be PEM format");
+        assert_eq!(NEUBULAFX_TLS_KEY, "nebulafx_key.pem");
+        assert!(NEUBULAFX_TLS_KEY.ends_with(".pem"), "TLS key should be PEM format");
 
-        assert_eq!(RUSTFS_TLS_CERT, "rustfs_cert.pem");
-        assert!(RUSTFS_TLS_CERT.ends_with(".pem"), "TLS cert should be PEM format");
+        assert_eq!(NEUBULAFX_TLS_CERT, "nebulafx_cert.pem");
+        assert!(NEUBULAFX_TLS_CERT.ends_with(".pem"), "TLS cert should be PEM format");
     }
 
     #[test]
@@ -278,8 +266,8 @@ mod tests {
             ENVIRONMENT,
             DEFAULT_ACCESS_KEY,
             DEFAULT_SECRET_KEY,
-            RUSTFS_TLS_KEY,
-            RUSTFS_TLS_CERT,
+            NEUBULAFX_TLS_KEY,
+            NEUBULAFX_TLS_CERT,
             DEFAULT_ADDRESS,
             DEFAULT_CONSOLE_ADDRESS,
         ];
