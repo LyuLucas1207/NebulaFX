@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use http::HeaderMap;
-use nebulafx_iam::store::object::ObjectStore;
 use nebulafx_iam::sys::IamSys;
 use nebulafx_policy::auth;
 use nebulafx_policy::policy::Args;
@@ -35,7 +34,7 @@ pub async fn validate_admin_request(
 }
 
 async fn check_admin_request_auth(
-    iam_store: Arc<IamSys<ObjectStore>>,
+    iam_store: Arc<IamSys>,
     headers: &HeaderMap,
     cred: &auth::Credentials,
     is_owner: bool,

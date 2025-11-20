@@ -1,5 +1,6 @@
 mod error;
 mod pool;
+mod migration;
 
 use serde::Deserialize;
 use sqlx::{PgPool, postgres::PgPoolOptions};
@@ -8,6 +9,7 @@ use tracing::{error, info};
 
 pub use error::{PostgreSQLError, Result};
 pub use pool::PostgreSQLPool;
+pub use migration::{execute_migration, execute_migrations};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct PostgreSQLConfig {
@@ -16,6 +18,7 @@ pub struct PostgreSQLConfig {
     pub user: Option<String>,
     pub password: Option<String>,
     pub database: Option<String>,
+    pub schema: Option<String>,
     pub charset: Option<String>,
     pub parse_time: Option<bool>,
     pub loc: Option<String>,

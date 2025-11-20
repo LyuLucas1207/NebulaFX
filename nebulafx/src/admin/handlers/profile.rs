@@ -25,8 +25,11 @@ impl Operation for TriggerProfileCPU {
 
         #[cfg(not(target_os = "windows"))]
         {
+            use nebulafx_profilingx::dump_cpu_pprof_for;
+            use crate::config::get_config;
             let dur = std::time::Duration::from_secs(60);
-            match crate::profiling::dump_cpu_pprof_for(dur).await {
+            let profiling_config = get_config().profiling.clone().unwrap_or_default();
+            match dump_cpu_pprof_for(&profiling_config, dur).await {
                 Ok(path) => {
                     let mut header = HeaderMap::new();
                     header.insert(CONTENT_TYPE, "text/html".parse().unwrap());
@@ -58,7 +61,10 @@ impl Operation for TriggerProfileMemory {
 
         #[cfg(not(target_os = "windows"))]
         {
-            match crate::profiling::dump_memory_pprof_now().await {
+            use nebulafx_profilingx::dump_memory_pprof_now;
+            use crate::config::get_config;
+            let profiling_config = get_config().profiling.clone().unwrap_or_default();
+            match dump_memory_pprof_now(&profiling_config).await {
                 Ok(path) => {
                     let mut header = HeaderMap::new();
                     header.insert(CONTENT_TYPE, "text/html".parse().unwrap());

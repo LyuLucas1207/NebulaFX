@@ -25,7 +25,6 @@ nebulafx-policy.workspace = true
 serde_json.workspace = true
 async-trait.workspace = true
 thiserror.workspace = true
-arc-swap = { workspace = true }
 nebulafx-crypto = { workspace = true }
 futures.workspace = true
 rand.workspace = true
@@ -35,5 +34,7 @@ tracing.workspace = true
 nebulafx-madmin.workspace = true
 nebulafx-utils = { workspace = true, features = ["path"] }
 tokio-util.workspace = true
+sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "postgres", "chrono", "uuid", "macros"] }
+chrono = { workspace = true }
 
 [dev-dependencies]

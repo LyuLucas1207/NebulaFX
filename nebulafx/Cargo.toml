@@ -40,6 +40,7 @@ nebulafx-madmin = { workspace = true }
 nebulafx-notify = { workspace = true }
 nebulafx-obs = { workspace = true }
 nebulafx-policy = { workspace = true }
+nebulafx-profilingx = { workspace = true }
 nebulafx-protos = { workspace = true }
 nebulafx-rio.workspace = true
 nebulafx-s3select-api = { workspace = true }
@@ -49,6 +50,7 @@ nebulafx-utils = { workspace = true, features = ["full"] }
 nebulafx-zip = { workspace = true }
 nebulafx-tomlx = { workspace = true }
 nebulafx-postgresqlx = { workspace = true }
+nebulafx-tokiox = { workspace = true }
 
 # Async Runtime and Networking
 async-trait = { workspace = true }

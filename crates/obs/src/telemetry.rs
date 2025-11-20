@@ -1,96 +1,51 @@
 
 
-use crate::config::OtelConfig;
-use crate::global::OBSERVABILITY_METRIC_ENABLED;
-use crate::{Recorder, TelemetryError};
+use crate::config::{
+    ObservabilityConfig,
+    DEFAULT_APP_NAME, DEFAULT_ENVIRONMENT, DEFAULT_ENVIRONMENT_PRODUCTION, DEFAULT_LOG_KEEP_FILES,
+    DEFAULT_LOG_LEVEL, DEFAULT_OBS_LOG_FLUSH_MS, DEFAULT_OBS_LOG_MESSAGE_CAPA, DEFAULT_OBS_LOG_POOL_CAPA,
+    DEFAULT_OBS_LOG_STDOUT_ENABLED,
+};
+use crate::TelemetryError;
 use flexi_logger::{DeferredNow, Record, WriteMode, WriteMode::AsyncWith, style};
 use metrics::counter;
 use nu_ansi_term::Color;
-use opentelemetry::{KeyValue, global, trace::TracerProvider};
-use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
-use opentelemetry_otlp::{Compression, Protocol, WithExportConfig, WithHttpConfig};
-use opentelemetry_sdk::{
-    Resource,
-    logs::SdkLoggerProvider,
-    metrics::{PeriodicReader, SdkMeterProvider},
-    trace::{RandomIdGenerator, Sampler, SdkTracerProvider},
-};
-use opentelemetry_semantic_conventions::{
-    SCHEMA_URL,
-    attribute::{DEPLOYMENT_ENVIRONMENT_NAME, NETWORK_LOCAL_ADDRESS, SERVICE_VERSION as OTEL_SERVICE_VERSION},
-};
-use nebulafx_config::{
-    APP_NAME, DEFAULT_LOG_KEEP_FILES, DEFAULT_LOG_LEVEL, DEFAULT_OBS_LOG_STDOUT_ENABLED, ENVIRONMENT, METER_INTERVAL,
-    SAMPLE_RATIO, SERVICE_VERSION,
-    observability::{
-        DEFAULT_OBS_ENVIRONMENT_PRODUCTION, DEFAULT_OBS_LOG_FLUSH_MS, DEFAULT_OBS_LOG_MESSAGE_CAPA, DEFAULT_OBS_LOG_POOL_CAPA,
-        ENV_OBS_LOG_DIRECTORY, ENV_OBS_LOG_FLUSH_MS, ENV_OBS_LOG_MESSAGE_CAPA, ENV_OBS_LOG_POOL_CAPA,
-    },
-};
-use nebulafx_utils::{get_env_u64, get_env_usize, get_local_ip_with_default};
 use smallvec::SmallVec;
-use std::{borrow::Cow, env, fs, io::IsTerminal, time::Duration};
+use std::{fs, io::IsTerminal, time::Duration};
 use tracing::info;
 use tracing_error::ErrorLayer;
-use tracing_opentelemetry::{MetricsLayer, OpenTelemetryLayer};
 use tracing_subscriber::{
-    EnvFilter, Layer,
+    EnvFilter,
     fmt::{format::FmtSpan, time::LocalTime},
     layer::SubscriberExt,
     util::SubscriberInitExt,
 };
 
-/// A guard object that manages the lifecycle of OpenTelemetry components.
+/// A guard object that manages the lifecycle of logging components.
 ///
-/// This struct holds references to the created OpenTelemetry providers and ensures
+/// This struct holds references to the created logging handlers and ensures
 /// they are properly shut down when the guard is dropped. It implements the RAII
-/// (Resource Acquisition Is Initialization) pattern for managing telemetry resources.
+/// (Resource Acquisition Is Initialization) pattern for managing logging resources.
 ///
 /// When this guard goes out of scope, it will automatically shut down:
-/// - The tracer provider (for distributed tracing)
-/// - The meter provider (for metrics collection)
-/// - The logger provider (for structured logging)
-///
-/// Implement Debug trait correctly, rather than using derive, as some fields may not have implemented Debug
-pub struct OtelGuard {
-    tracer_provider: Option<SdkTracerProvider>,
-    meter_provider: Option<SdkMeterProvider>,
-    logger_provider: Option<SdkLoggerProvider>,
+/// - The flexi_logger handles (for file logging)
+/// - The tracing guard (for stdout logging)
+pub struct LoggingGuard {
     flexi_logger_handles: Option<flexi_logger::LoggerHandle>,
     tracing_guard: Option<tracing_appender::non_blocking::WorkerGuard>,
 }
 
-impl std::fmt::Debug for OtelGuard {
+impl std::fmt::Debug for LoggingGuard {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("OtelGuard")
-            .field("tracer_provider", &self.tracer_provider.is_some())
-            .field("meter_provider", &self.meter_provider.is_some())
-            .field("logger_provider", &self.logger_provider.is_some())
+        f.debug_struct("LoggingGuard")
             .field("flexi_logger_handles", &self.flexi_logger_handles.is_some())
             .field("tracing_guard", &self.tracing_guard.is_some())
             .finish()
     }
 }
 
-impl Drop for OtelGuard {
+impl Drop for LoggingGuard {
     fn drop(&mut self) {
-        if let Some(provider) = self.tracer_provider.take() {
-            if let Err(err) = provider.shutdown() {
-                eprintln!("Tracer shutdown error: {err:?}");
-            }
-        }
-
-        if let Some(provider) = self.meter_provider.take() {
-            if let Err(err) = provider.shutdown() {
-                eprintln!("Meter shutdown error: {err:?}");
-            }
-        }
-        if let Some(provider) = self.logger_provider.take() {
-            if let Err(err) = provider.shutdown() {
-                eprintln!("Logger shutdown error: {err:?}");
-            }
-        }
-
         if let Some(handle) = self.flexi_logger_handles.take() {
             handle.shutdown();
             println!("flexi_logger shutdown completed");
@@ -103,39 +58,12 @@ impl Drop for OtelGuard {
     }
 }
 
-/// create OpenTelemetry Resource
-fn resource(config: &OtelConfig) -> Resource {
-    Resource::builder()
-        .with_service_name(Cow::Borrowed(config.service_name.as_deref().unwrap_or(APP_NAME)).to_string())
-        .with_schema_url(
-            [
-                KeyValue::new(
-                    OTEL_SERVICE_VERSION,
-                    Cow::Borrowed(config.service_version.as_deref().unwrap_or(SERVICE_VERSION)).to_string(),
-                ),
-                KeyValue::new(
-                    DEPLOYMENT_ENVIRONMENT_NAME,
-                    Cow::Borrowed(config.environment.as_deref().unwrap_or(ENVIRONMENT)).to_string(),
-                ),
-                KeyValue::new(NETWORK_LOCAL_ADDRESS, get_local_ip_with_default()),
-            ],
-            SCHEMA_URL,
-        )
-        .build()
-}
 
-/// Creates a periodic reader for stdout metrics
-fn create_periodic_reader(interval: u64) -> PeriodicReader<opentelemetry_stdout::MetricExporter> {
-    PeriodicReader::builder(opentelemetry_stdout::MetricExporter::default())
-        .with_interval(Duration::from_secs(interval))
-        .build()
-}
-
-// Read the AsyncWith parameter from the environment variable
-fn get_env_async_with() -> WriteMode {
-    let pool_capa = get_env_usize(ENV_OBS_LOG_POOL_CAPA, DEFAULT_OBS_LOG_POOL_CAPA);
-    let message_capa = get_env_usize(ENV_OBS_LOG_MESSAGE_CAPA, DEFAULT_OBS_LOG_MESSAGE_CAPA);
-    let flush_ms = get_env_u64(ENV_OBS_LOG_FLUSH_MS, DEFAULT_OBS_LOG_FLUSH_MS);
+// Create AsyncWith parameter from config
+fn get_async_with(config: &ObservabilityConfig) -> WriteMode {
+    let pool_capa = config.log_pool_capa.unwrap_or(DEFAULT_OBS_LOG_POOL_CAPA);
+    let message_capa = config.log_message_capa.unwrap_or(DEFAULT_OBS_LOG_MESSAGE_CAPA);
+    let flush_ms = config.log_flush_ms.unwrap_or(DEFAULT_OBS_LOG_FLUSH_MS);
 
     AsyncWith {
         pool_capa,
@@ -146,7 +74,8 @@ fn get_env_async_with() -> WriteMode {
 
 fn build_env_filter(logger_level: &str, default_level: Option<&str>) -> EnvFilter {
     let level = default_level.unwrap_or(logger_level);
-    let mut filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(level));
+    // Use the logger_level from config, not from environment variable
+    let mut filter = EnvFilter::new(level);
     if !matches!(logger_level, "trace" | "debug") {
         let directives: SmallVec<[&str; 5]> = smallvec::smallvec!["hyper", "tonic", "h2", "reqwest", "tower"];
         for directive in directives {
@@ -201,15 +130,13 @@ fn format_for_file(w: &mut dyn std::io::Write, now: &mut DeferredNow, record: &R
 }
 
 /// stdout + span information (fix: retain WorkerGuard to avoid releasing after initialization)
-fn init_stdout_logging(_config: &OtelConfig, logger_level: &str, is_production: bool) -> OtelGuard {
+fn init_stdout_logging(config: &ObservabilityConfig, logger_level: &str, is_production: bool) -> LoggingGuard {
     let env_filter = build_env_filter(logger_level, None);
     let (nb, guard) = tracing_appender::non_blocking(std::io::stdout());
     let enable_color = std::io::stdout().is_terminal();
     
-    // 检查是否使用 JSON 格式（通过环境变量控制）
-    let use_json = env::var("NEUBULAFX_LOG_JSON")
-        .map(|v| v == "true" || v == "1")
-        .unwrap_or(false);
+    // Check if JSON format is enabled from config
+    let use_json = config.log_json.unwrap_or(false);
     
     let span_event = if is_production { FmtSpan::CLOSE } else { FmtSpan::FULL };
     
@@ -257,27 +184,24 @@ fn init_stdout_logging(_config: &OtelConfig, logger_level: &str, is_production: 
             .init();
     }
 
-    OBSERVABILITY_METRIC_ENABLED.set(false).ok();
     counter!("nebulafx.start.total").increment(1);
     info!("Init stdout logging (level: {}, format: {})", logger_level, if use_json { "json" } else { "text" });
-    OtelGuard {
-        tracer_provider: None,
-        meter_provider: None,
-        logger_provider: None,
+    LoggingGuard {
         flexi_logger_handles: None,
         tracing_guard: Some(guard),
     }
 }
 
 /// File rolling log (size switching + number retained)
-fn init_file_logging(config: &OtelConfig, logger_level: &str, is_production: bool) -> Result<OtelGuard, TelemetryError> {
+fn init_file_logging(config: &ObservabilityConfig, logger_level: &str, is_production: bool) -> Result<LoggingGuard, TelemetryError> {
     use flexi_logger::{Age, Cleanup, Criterion, FileSpec, LogSpecification, Naming};
 
-    let service_name = config.service_name.as_deref().unwrap_or(APP_NAME);
-    let default_log_directory = nebulafx_utils::dirs::get_log_directory_to_string(ENV_OBS_LOG_DIRECTORY);
-    let log_directory = config.log_directory.as_deref().unwrap_or(default_log_directory.as_str());
+    let service_name = config.service_name.as_deref().unwrap_or(DEFAULT_APP_NAME);
+    let log_directory = config.log_directory.as_deref().ok_or_else(|| {
+        TelemetryError::Io("log_directory is required for file logging".to_string())
+    })?;
     let log_filename = config.log_filename.as_deref().unwrap_or(service_name);
-    let keep_files = config.log_keep_files.unwrap_or(DEFAULT_LOG_KEEP_FILES);
+    let keep_files: usize = config.log_keep_files.map(|v| v as usize).unwrap_or(DEFAULT_LOG_KEEP_FILES);
     if let Err(e) = fs::create_dir_all(log_directory) {
         return Err(TelemetryError::Io(e.to_string()));
     }
@@ -352,10 +276,9 @@ fn init_file_logging(config: &OtelConfig, logger_level: &str, is_production: boo
     };
 
     // write mode
-    let write_mode = get_env_async_with();
-    // Build
-    let mut builder = flexi_logger::Logger::try_with_env_or_str(logger_level)
-        .unwrap_or(flexi_logger::Logger::with(log_spec.clone()))
+    let write_mode = get_async_with(config);
+    // Build (use logger_level from config, not from environment)
+    let mut builder = flexi_logger::Logger::with(log_spec.clone())
         .format_for_stderr(format_with_color)
         .format_for_stdout(format_with_color)
         .format_for_files(format_for_file)
@@ -385,366 +308,35 @@ fn init_file_logging(config: &OtelConfig, logger_level: &str, is_production: boo
         }
     };
 
-    OBSERVABILITY_METRIC_ENABLED.set(false).ok();
     counter!("nebulafx.start.total").increment(1);
     info!(
         "Init file logging at '{}', roll size {:?}MB, keep {}",
         log_directory, config.log_rotation_size_mb, keep_files
     );
 
-    Ok(OtelGuard {
-        tracer_provider: None,
-        meter_provider: None,
-        logger_provider: None,
+    Ok(LoggingGuard {
         flexi_logger_handles: handle,
         tracing_guard: None,
     })
 }
 
-/// Observability (HTTP export, supports three sub-endpoints; if not, fallback to unified endpoint)
-fn init_observability_http(config: &OtelConfig, logger_level: &str, is_production: bool) -> Result<OtelGuard, TelemetryError> {
-    // Resources and sampling
-    let res = resource(config);
-    let service_name = config.service_name.as_deref().unwrap_or(APP_NAME).to_owned();
-    let use_stdout = config.use_stdout.unwrap_or(!is_production);
-    let sample_ratio = config.sample_ratio.unwrap_or(SAMPLE_RATIO);
-    let sampler = if (0.0..1.0).contains(&sample_ratio) {
-        Sampler::TraceIdRatioBased(sample_ratio)
-    } else {
-        Sampler::AlwaysOn
-    };
 
-    // Endpoint
-    let root_ep = config.endpoint.as_str();
-    let trace_ep = config.trace_endpoint.as_deref().filter(|s| !s.is_empty()).unwrap_or(root_ep);
-    let metric_ep = config.metric_endpoint.as_deref().filter(|s| !s.is_empty()).unwrap_or(root_ep);
-    let log_ep = config.log_endpoint.as_deref().filter(|s| !s.is_empty()).unwrap_or(root_ep);
-
-    // Tracer（HTTP）
-    let tracer_provider = {
-        let exporter = opentelemetry_otlp::SpanExporter::builder()
-            .with_http()
-            .with_endpoint(trace_ep)
-            .with_protocol(Protocol::HttpBinary)
-            .with_compression(Compression::Zstd)
-            .build()
-            .map_err(|e| TelemetryError::BuildSpanExporter(e.to_string()))?;
-
-        let mut builder = SdkTracerProvider::builder()
-            .with_sampler(sampler)
-            .with_id_generator(RandomIdGenerator::default())
-            .with_resource(res.clone())
-            .with_batch_exporter(exporter);
-
-        if use_stdout {
-            builder = builder.with_batch_exporter(opentelemetry_stdout::SpanExporter::default());
-        }
-
-        let provider = builder.build();
-        global::set_tracer_provider(provider.clone());
-        provider
-    };
-
-    // Meter（HTTP）
-    let meter_provider = {
-        let exporter = opentelemetry_otlp::MetricExporter::builder()
-            .with_http()
-            .with_endpoint(metric_ep)
-            .with_temporality(opentelemetry_sdk::metrics::Temporality::default())
-            .with_protocol(Protocol::HttpBinary)
-            .with_compression(Compression::Zstd)
-            .build()
-            .map_err(|e| TelemetryError::BuildMetricExporter(e.to_string()))?;
-        let meter_interval = config.meter_interval.unwrap_or(METER_INTERVAL);
-
-        let (provider, recorder) = Recorder::builder(service_name.clone())
-            .with_meter_provider(|b| {
-                let b = b.with_resource(res.clone()).with_reader(
-                    PeriodicReader::builder(exporter)
-                        .with_interval(Duration::from_secs(meter_interval))
-                        .build(),
-                );
-                if use_stdout {
-                    b.with_reader(create_periodic_reader(meter_interval))
-                } else {
-                    b
-                }
-            })
-            .build();
-        global::set_meter_provider(provider.clone());
-        metrics::set_global_recorder(recorder).map_err(|e| TelemetryError::InstallMetricsRecorder(e.to_string()))?;
-        provider
-    };
-
-    // Logger（HTTP）
-    let logger_provider = {
-        let exporter = opentelemetry_otlp::LogExporter::builder()
-            .with_http()
-            .with_endpoint(log_ep)
-            .with_protocol(Protocol::HttpBinary)
-            .with_compression(Compression::Zstd)
-            .build()
-            .map_err(|e| TelemetryError::BuildLogExporter(e.to_string()))?;
-
-        let mut builder = SdkLoggerProvider::builder().with_resource(res);
-        builder = builder.with_batch_exporter(exporter);
-        if use_stdout {
-            builder = builder.with_batch_exporter(opentelemetry_stdout::LogExporter::default());
-        }
-        builder.build()
-    };
-
-    let span_event = if is_production { FmtSpan::CLOSE } else { FmtSpan::FULL };
-
-    // 构建 subscriber，根据日志格式分别处理（因为类型不同，每个分支必须完全独立）
-    if config.log_stdout_enabled.unwrap_or(DEFAULT_OBS_LOG_STDOUT_ENABLED) {
-        let enable_color = std::io::stdout().is_terminal();
-        // 检查是否使用 JSON 格式
-        let use_json = env::var("NEUBULAFX_LOG_JSON")
-            .map(|v| v == "true" || v == "1")
-            .unwrap_or(false);
-        
-        if use_json {
-            // JSON 格式（用于生产环境）
-            let filter = build_env_filter(logger_level, None);
-            let tracer = tracer_provider.tracer(service_name.to_string());
-            let fmt_layer = tracing_subscriber::fmt::layer()
-                .with_timer(LocalTime::rfc_3339())
-                .with_target(true)
-                .with_ansi(enable_color)
-                .json()
-                .with_current_span(true)
-                .with_span_list(true)
-                .with_thread_names(true)
-                .with_thread_ids(true)
-                .with_file(true)
-                .with_line_number(true)
-                .with_span_events(span_event)
-                .with_filter(build_env_filter(logger_level, None));
-            
-            tracing_subscriber::registry()
-                .with(filter)
-                .with(ErrorLayer::default())
-                .with(fmt_layer)
-                .with(OpenTelemetryLayer::new(tracer))
-                .with(OpenTelemetryTracingBridge::new(&logger_provider).with_filter(build_env_filter(logger_level, None)))
-                .with(MetricsLayer::new(meter_provider.clone()))
-                .init();
-        } else {
-            // 友好的文本格式（用于开发环境）
-            let filter = build_env_filter(logger_level, None);
-            let tracer = tracer_provider.tracer(service_name.to_string());
-            let fmt_layer = tracing_subscriber::fmt::layer()
-                .with_timer(LocalTime::rfc_3339())
-                .with_target(true)
-                .with_ansi(enable_color)
-                .compact()
-                .with_thread_names(false)
-                .with_thread_ids(false)
-                .with_file(false)
-                .with_line_number(false)
-                .with_span_events(span_event)
-                .with_filter(build_env_filter(logger_level, None));
-            
-            tracing_subscriber::registry()
-                .with(filter)
-                .with(ErrorLayer::default())
-                .with(fmt_layer)
-                .with(OpenTelemetryLayer::new(tracer))
-                .with(OpenTelemetryTracingBridge::new(&logger_provider).with_filter(build_env_filter(logger_level, None)))
-                .with(MetricsLayer::new(meter_provider.clone()))
-                .init();
-        }
-    } else {
-        // 不使用 stdout 日志
-        let filter = build_env_filter(logger_level, None);
-        let tracer = tracer_provider.tracer(service_name.to_string());
-        
-        tracing_subscriber::registry()
-            .with(filter)
-            .with(ErrorLayer::default())
-            .with(OpenTelemetryLayer::new(tracer))
-            .with(OpenTelemetryTracingBridge::new(&logger_provider).with_filter(build_env_filter(logger_level, None)))
-            .with(MetricsLayer::new(meter_provider.clone()))
-            .init();
-    }
-
-    OBSERVABILITY_METRIC_ENABLED.set(true).ok();
-    counter!("nebulafx.start.total").increment(1);
-    info!(
-        "Init observability (HTTP): trace='{}', metric='{}', log='{}'",
-        trace_ep, metric_ep, log_ep
-    );
-
-    Ok(OtelGuard {
-        tracer_provider: Some(tracer_provider),
-        meter_provider: Some(meter_provider),
-        logger_provider: Some(logger_provider),
-        flexi_logger_handles: None,
-        tracing_guard: None,
-    })
-}
-
-/// Initialize Telemetry,Entrance: three rules
-pub(crate) fn init_telemetry(config: &OtelConfig) -> Result<OtelGuard, TelemetryError> {
-    let environment = config.environment.as_deref().unwrap_or(ENVIRONMENT);
-    let is_production = environment.eq_ignore_ascii_case(DEFAULT_OBS_ENVIRONMENT_PRODUCTION);
+/// Initialize Telemetry
+/// 
+/// Two rules:
+/// 1. If log directory is set in config, use file logging
+/// 2. Otherwise, use stdout logging
+pub(crate) fn init_telemetry(config: &ObservabilityConfig) -> Result<LoggingGuard, TelemetryError> {
+    let environment = config.environment.as_deref().unwrap_or(DEFAULT_ENVIRONMENT);
+    let is_production = environment.eq_ignore_ascii_case(DEFAULT_ENVIRONMENT_PRODUCTION);
     let logger_level = config.logger_level.as_deref().unwrap_or(DEFAULT_LOG_LEVEL);
 
-    // Rule 3: Observability (any endpoint is enabled if it is not empty)
-    let has_obs = !config.endpoint.is_empty()
-        || config.trace_endpoint.as_deref().map(|s| !s.is_empty()).unwrap_or(false)
-        || config.metric_endpoint.as_deref().map(|s| !s.is_empty()).unwrap_or(false)
-        || config.log_endpoint.as_deref().map(|s| !s.is_empty()).unwrap_or(false);
-
-    if has_obs {
-        return init_observability_http(config, logger_level, is_production);
-    }
-
-    // Rule 2: The user has explicitly customized the log directory (determined by whether ENV_OBS_LOG_DIRECTORY is set)
-    let user_set_log_dir = env::var(ENV_OBS_LOG_DIRECTORY).is_ok();
-    if user_set_log_dir {
+    // Rule 1: If log directory is set in config, use file logging
+    if config.log_directory.is_some() {
         return init_file_logging(config, logger_level, is_production);
     }
 
-    // Rule 1: Default stdout (error level)
+    // Rule 2: Default stdout (error level)
     Ok(init_stdout_logging(config, DEFAULT_LOG_LEVEL, is_production))
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use nebulafx_config::USE_STDOUT;
-
-    #[test]
-    fn test_production_environment_detection() {
-        // Test production environment logic
-        let production_envs = vec!["production", "PRODUCTION", "Production"];
-
-        for env_value in production_envs {
-            let is_production = env_value.to_lowercase() == "production";
-            assert!(is_production, "Should detect '{env_value}' as production environment");
-        }
-    }
-
-    #[test]
-    fn test_non_production_environment_detection() {
-        // Test non-production environment logic
-        let non_production_envs = vec!["development", "test", "staging", "dev", "local"];
-
-        for env_value in non_production_envs {
-            let is_production = env_value.to_lowercase() == "production";
-            assert!(!is_production, "Should not detect '{env_value}' as production environment");
-        }
-    }
-
-    #[test]
-    fn test_stdout_behavior_logic() {
-        // Test the stdout behavior logic without environment manipulation
-        struct TestCase {
-            is_production: bool,
-            config_use_stdout: Option<bool>,
-            expected_use_stdout: bool,
-            description: &'static str,
-        }
-
-        let test_cases = vec![
-            TestCase {
-                is_production: true,
-                config_use_stdout: None,
-                expected_use_stdout: false,
-                description: "Production with no config should disable stdout",
-            },
-            TestCase {
-                is_production: false,
-                config_use_stdout: None,
-                expected_use_stdout: USE_STDOUT,
-                description: "Non-production with no config should use default",
-            },
-            TestCase {
-                is_production: true,
-                config_use_stdout: Some(true),
-                expected_use_stdout: true,
-                description: "Production with explicit true should enable stdout",
-            },
-            TestCase {
-                is_production: true,
-                config_use_stdout: Some(false),
-                expected_use_stdout: false,
-                description: "Production with explicit false should disable stdout",
-            },
-            TestCase {
-                is_production: false,
-                config_use_stdout: Some(true),
-                expected_use_stdout: true,
-                description: "Non-production with explicit true should enable stdout",
-            },
-        ];
-
-        for case in test_cases {
-            let default_use_stdout = if case.is_production { false } else { USE_STDOUT };
-
-            let actual_use_stdout = case.config_use_stdout.unwrap_or(default_use_stdout);
-
-            assert_eq!(actual_use_stdout, case.expected_use_stdout, "Test case failed: {}", case.description);
-        }
-    }
-
-    #[test]
-    fn test_log_level_filter_mapping_logic() {
-        // Test the log level mapping logic used in the real implementation
-        let test_cases = vec![
-            ("trace", "Trace"),
-            ("debug", "Debug"),
-            ("info", "Info"),
-            ("warn", "Warn"),
-            ("warning", "Warn"),
-            ("error", "Error"),
-            ("off", "None"),
-            ("invalid_level", "Info"), // Should default to Info
-        ];
-
-        for (input_level, expected_variant) in test_cases {
-            let filter_variant = match input_level.to_lowercase().as_str() {
-                "trace" => "Trace",
-                "debug" => "Debug",
-                "info" => "Info",
-                "warn" | "warning" => "Warn",
-                "error" => "Error",
-                "off" => "None",
-                _ => "Info", // default case
-            };
-
-            assert_eq!(
-                filter_variant, expected_variant,
-                "Log level '{input_level}' should map to '{expected_variant}'"
-            );
-        }
-    }
-
-    #[test]
-    fn test_otel_config_environment_defaults() {
-        // Test that OtelConfig properly handles environment detection logic
-        let config = OtelConfig {
-            endpoint: "".to_string(),
-            use_stdout: None,
-            environment: Some("production".to_string()),
-            ..Default::default()
-        };
-
-        // Simulate the logic from init_telemetry
-        let environment = config.environment.as_deref().unwrap_or(ENVIRONMENT);
-        assert_eq!(environment, "production");
-
-        // Test with development environment
-        let dev_config = OtelConfig {
-            endpoint: "".to_string(),
-            use_stdout: None,
-            environment: Some("development".to_string()),
-            ..Default::default()
-        };
-
-        let dev_environment = dev_config.environment.as_deref().unwrap_or(ENVIRONMENT);
-        assert_eq!(dev_environment, "development");
-    }
-}

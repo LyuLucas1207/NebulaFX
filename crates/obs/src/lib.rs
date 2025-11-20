@@ -22,37 +22,25 @@
 /// ## Usage
 ///
 /// ```no_run
-/// use nebulafx_obs::init_obs;
+/// use nebulafx_obs::{init_obs, ObservabilityConfig};
 ///
-/// # #[tokio::main]
-/// # async fn main() {
-/// #   let _guard = match init_obs(None).await {
-/// #         Ok(g) => g,
+/// # fn main() {
+/// #   match init_obs(ObservabilityConfig::default()) {
+/// #         Ok(_) => {}
 /// #         Err(e) => {
 /// #             panic!("Failed to initialize observability: {:?}", e);
 /// #         }
 /// #     };
 /// #   // Application logic here
-/// #   {
-/// #       // Simulate some work
-/// #       tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-/// #       println!("Application is running...");
-/// #   }
-/// #   // Guard will be dropped here, flushing telemetry data
+/// #   // The guard is automatically stored globally and will be dropped when the program exits
 /// # }
 /// ```
 mod config;
 mod error;
 mod global;
-mod metrics;
-mod recorder;
-mod system;
 mod telemetry;
 
-pub use config::*;
+pub use config::{ObservabilityConfig, is_production_environment};
 pub use error::*;
 pub use global::*;
-pub use metrics::*;
-pub use recorder::*;
-pub use system::SystemObserver;
-pub use telemetry::OtelGuard;
+pub use telemetry::LoggingGuard;

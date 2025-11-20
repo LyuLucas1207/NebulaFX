@@ -1,5 +1,8 @@
 use serde::Deserialize;
-pub use nebulafx_postgresqlx::{PostgreSQLConfig};
+pub use nebulafx_postgresqlx::PostgreSQLConfig;
+pub use nebulafx_obs::ObservabilityConfig;
+pub use nebulafx_profilingx::ProfilingConfig;
+pub use nebulafx_tokiox::RuntimeConfig;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
@@ -8,6 +11,8 @@ pub struct Config {
     pub storage: Option<StorageConfig>,
     pub tls: Option<TlsConfig>,
     pub observability: Option<ObservabilityConfig>,
+    pub profiling: Option<ProfilingConfig>,
+    pub runtime: Option<RuntimeConfig>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -38,24 +43,4 @@ pub struct TlsConfig {
     pub cert_file: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct ObservabilityConfig {
-    pub endpoint: Option<String>,
-    pub trace_endpoint: Option<String>,
-    pub metric_endpoint: Option<String>,
-    pub log_endpoint: Option<String>,
-    pub use_stdout: Option<bool>,
-    pub sample_ratio: Option<f64>,
-    pub meter_interval: Option<u64>,
-    pub service_name: Option<String>,
-    pub service_version: Option<String>,
-    pub environment: Option<String>,
-    pub logger_level: Option<String>,
-    pub log_stdout_enabled: Option<bool>,
-    pub log_directory: Option<String>,
-    pub log_filename: Option<String>,
-    pub log_rotation_size_mb: Option<u64>,
-    pub log_rotation_time: Option<String>,
-    pub log_keep_files: Option<u32>,
-}
 

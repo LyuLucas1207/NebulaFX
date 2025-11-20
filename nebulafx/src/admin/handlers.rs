@@ -1261,22 +1261,27 @@ impl Operation for ProfileHandler {
             }
 
             match format.as_str() {
-                "protobuf" | "pb" => match crate::profiling::dump_cpu_pprof_for(std::time::Duration::from_secs(seconds)).await {
-                    Ok(path) => match tokio::fs::read(&path).await {
-                        Ok(bytes) => {
-                            let mut headers = HeaderMap::new();
-                            headers.insert(CONTENT_TYPE, "application/octet-stream".parse().unwrap());
-                            Ok(S3Response::with_headers((StatusCode::OK, Body::from(bytes)), headers))
-                        }
+                "protobuf" | "pb" => {
+                    use nebulafx_profilingx::dump_cpu_pprof_for;
+                    use crate::config::get_config;
+                    let profiling_config = get_config().profiling.clone().unwrap_or_default();
+                    match dump_cpu_pprof_for(&profiling_config, std::time::Duration::from_secs(seconds)).await {
+                        Ok(path) => match tokio::fs::read(&path).await {
+                            Ok(bytes) => {
+                                let mut headers = HeaderMap::new();
+                                headers.insert(CONTENT_TYPE, "application/octet-stream".parse().unwrap());
+                                Ok(S3Response::with_headers((StatusCode::OK, Body::from(bytes)), headers))
+                            }
+                            Err(e) => Ok(S3Response::new((
+                                StatusCode::INTERNAL_SERVER_ERROR,
+                                Body::from(format!("Failed to read profile file: {e}")),
+                            ))),
+                        },
                         Err(e) => Ok(S3Response::new((
                             StatusCode::INTERNAL_SERVER_ERROR,
-                            Body::from(format!("Failed to read profile file: {e}")),
+                            Body::from(format!("Failed to collect CPU profile: {e}")),
                         ))),
-                    },
-                    Err(e) => Ok(S3Response::new((
-                        StatusCode::INTERNAL_SERVER_ERROR,
-                        Body::from(format!("Failed to collect CPU profile: {e}")),
-                    ))),
+                    }
                 },
                 "flamegraph" | "svg" => {
                     let freq = get_env_usize(ENV_CPU_FREQ, DEFAULT_CPU_FREQ) as i32;

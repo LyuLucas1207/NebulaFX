@@ -4,11 +4,8 @@ mod config;
 mod error;
 // mod grpc;
 
-#[cfg(not(target_os = "windows"))]
-mod profiling;
 mod server;
 mod storage;
-mod version;
 
 use crate::server::{
     SHUTDOWN_TIMEOUT, ServiceState, ServiceStateManager, ShutdownSignal, init_event_notifier, shutdown_event_notifier,
@@ -27,6 +24,7 @@ use nebulafx_ecstore::bucket::metadata_sys::init_bucket_metadata_sys;
 use nebulafx_ecstore::bucket::replication::{GLOBAL_REPLICATION_POOL, init_background_replication};
 use nebulafx_ecstore::config as ecconfig;
 use nebulafx_ecstore::config::GLOBAL_CONFIG_SYS;
+use nebulafx_profilingx::init_profiling;
 use nebulafx_ecstore::store_api::BucketOptions;
 use nebulafx_ecstore::{
     StorageAPI,
@@ -40,7 +38,7 @@ use nebulafx_ecstore::{
 };
 use nebulafx_iam::init_iam_sys;
 use nebulafx_notify::notifier_global;
-use nebulafx_obs::{init_obs, set_global_guard};
+use nebulafx_obs::init_obs;
 use nebulafx_targets::arn::TargetID;
 use nebulafx_utils::net::parse_and_resolve_address;
 use s3s::s3_error;
@@ -51,8 +49,9 @@ use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info, instrument, warn};
 
-use config::init_config;
+use config::{get_config, init_config, Config, Success};
 use nebulafx_postgresqlx::PostgreSQLPool;
+use nebulafx_tokiox::get_tokio_runtime_builder;
 
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
 #[global_allocator]
@@ -64,85 +63,85 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
 const LOGO: &str = r#"
 
-░█▀▄░█░█░█▀▀░▀█▀░█▀▀░█▀▀
-░█▀▄░█░█░▀▀█░░█░░█▀▀░▀▀█
-░▀░▀░▀▀▀░▀▀▀░░▀░░▀░░░▀▀▀
+╔═══════════════════════════════════════════════════════════════════╗
+║███╗   ██╗███████╗██████╗ ██╗   ██╗██╗      █████╗ ███████╗██╗  ██╗║
+║████╗  ██║██╔════╝██╔══██╗██║   ██║██║     ██╔══██╗██╔════╝╚██╗██╔╝║
+║██╔██╗ ██║█████╗  ██████╔╝██║   ██║██║     ███████║█████╗   ╚███╔╝ ║
+║██║╚██╗██║██╔══╝  ██╔══██╗██║   ██║██║     ██╔══██║██╔══╝   ██╔██╗ ║
+║██║ ╚████║███████╗██████╔╝╚██████╔╝███████╗██║  ██║██║     ██╔╝ ██╗║
+║╚═╝  ╚═══╝╚══════╝╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝║
+╚═══════════════════════════════════════════════════════════════════╝
 
 "#;
 
-#[instrument]
-fn print_server_info() {
-    let current_year = chrono::Utc::now().year();
-    // Use custom macros to print server information
-    info!("NebulaFX Object Storage Server");
-    info!("Copyright: 2024-{} NebulaFX, Inc", current_year);
-    info!("License: Apache-2.0 https://www.apache.org/licenses/LICENSE-2.0");
-    info!("Version: {}", version::get_version());
-    info!("Docs: https://nebulafx.com/docs/");
-}
-
 fn main() -> Result<()> {
-    // Initialize configuration first (synchronous)
+    info!("{}", LOGO);
     match init_config() {
-        Ok(_) => (),
+        Ok(s) => info!("Config initialized successfully: {}", s),
         Err(e) => {
             error!("Failed to initialize config: {}", e);
             return Err(Error::other(format!("Failed to initialize config: {}", e)));
         }
     }
-    
-    let runtime = server::get_tokio_runtime_builder()
+    match init_obs(get_config().observability.as_ref()) {
+        Ok(s) => info!("Observability initialized successfully: {}", s),
+        Err(e) => {
+            error!("Failed to initialize observability: {}", e);
+            return Err(Error::other(e));
+        }
+    }
+    let runtime = get_tokio_runtime_builder(get_config().runtime.as_ref())
         .build()
         .expect("Failed to build Tokio runtime");
     runtime.block_on(async_main())
 }
 async fn async_main() -> Result<()> {
-    // Get configuration
-    let config = config::get_config();
-    
+    let config = get_config();
     // Initialize PostgreSQL connection pool if database config exists
-    if let Some(db_config) = &config.database {
-        match PostgreSQLPool::init(db_config).await {
-            Ok(_) => {
-                info!("PostgreSQL connection pool initialized successfully");
-            }
+    match PostgreSQLPool::init(config.database.as_ref()).await {
+        Ok(s) => info!("PostgreSQL connection pool initialized successfully: {}", s),
             Err(e) => {
                 error!("Failed to initialize PostgreSQL connection pool: {}", e);
                 return Err(Error::other(format!("Database connection failed: {}", e)));
             }
         }
-    }
-
-    // Initialize Observability using config
-    let obs_endpoint = config.observability.as_ref()
-        .and_then(|obs| obs.get_endpoint());
     
-    let guard = match init_obs(obs_endpoint).await {
-        Ok(g) => g,
-        Err(e) => {
-            error!("Failed to initialize observability: {}", e);
-            return Err(Error::other(e));
+    // Initialize database schema and root user if database is configured
+    if let Some(_) = config.database.as_ref() {
+        use nebulafx_iam::init::{init_database, init_root_user};
+        let pool = PostgreSQLPool::get()
+            .map_err(|e| Error::other(format!("Failed to get database pool: {}", e)))?;
+        
+        // Initialize database tables
+        if let Err(e) = init_database(pool.inner()).await {
+            error!("Failed to initialize database tables: {}", e);
+            return Err(Error::other(format!("Database initialization failed: {}", e)));
         }
-    };
-
-    // Store in global storage
-    match set_global_guard(guard).map_err(Error::other) {
-        Ok(_) => (),
-        Err(e) => {
-            error!("Failed to set global observability guard: {}", e);
-            return Err(e);
+        
+        // Initialize root user
+        let root_user = config.server.as_ref()
+            .and_then(|s| s.root_user.as_deref())
+            .unwrap_or("nebulafxadmin");
+        let root_password = config.server.as_ref()
+            .and_then(|s| s.root_password.as_deref())
+            .unwrap_or("nebulafxadmin");
+        
+        if let Err(e) = init_root_user(pool.inner(), root_user, root_password).await {
+            error!("Failed to initialize root user: {}", e);
+            return Err(Error::other(format!("Root user initialization failed: {}", e)));
         }
     }
-
-    // print startup logo
-    info!("{}", LOGO);
 
     // Initialize performance profiling if enabled
-    #[cfg(not(target_os = "windows"))]
-    profiling::init_from_env().await;
-
+    match init_profiling(config.profiling.as_ref()).await {
+        Ok(s) => info!("Profiling initialized successfully: {}", s),
+        Err(e) => {
+            error!("Failed to initialize profiling: {}", e);
+            return Err(Error::other(format!("Failed to initialize profiling: {}", e)));
+        }
+    }
     // Run with config
-    match run(config).await {
+    match run(config.as_ref()).await {
         Ok(_) => Ok(()),
         Err(e) => {
             error!("Server encountered an error and is shutting down: {}", e);
@@ -152,7 +151,7 @@ async fn async_main() -> Result<()> {
 }
 
 #[instrument(skip(config))]
-async fn run(config: &config::Config) -> Result<()> {
+async fn run(config: &Config) -> Result<()> {
     debug!("config: {:?}", config);
 
     // Get server config
@@ -169,16 +168,6 @@ async fn run(config: &config::Config) -> Result<()> {
     let server_addr = parse_and_resolve_address(address.as_str()).map_err(Error::other)?;
     let server_port = server_addr.port();
     let server_address = server_addr.to_string();
-
-    info!(
-        target: "nebulafx::main::run",
-        server_address = %server_address,
-        ip = %server_addr.ip(),
-        port = %server_port,
-        version = %version::get_version(),
-        "Starting NebulaFX server at {}",
-        &server_address
-    );
 
     // Set up AK and SK
     nebulafx_ecstore::global::init_global_action_credentials(
@@ -287,7 +276,14 @@ async fn run(config: &config::Config) -> Result<()> {
 
     init_bucket_metadata_sys(store.clone(), buckets.clone()).await;
 
-    init_iam_sys(store.clone()).await.map_err(Error::other)?;
+    // Initialize IAM system with database pool
+    if let Some(db_config) = config.database.as_ref() {
+        let pool = PostgreSQLPool::get()
+            .map_err(|e| Error::other(format!("Failed to get database pool: {}", e)))?;
+        init_iam_sys(pool.inner().clone()).await.map_err(Error::other)?;
+    } else {
+        warn!("Database not configured, IAM system will not be initialized");
+    }
 
     add_bucket_notification_configuration(buckets.clone()).await;
 
@@ -333,9 +329,6 @@ async fn run(config: &config::Config) -> Result<()> {
     } else {
         info!(target: "nebulafx::main::run","Both scanner and heal are disabled, skipping AHM service initialization");
     }
-
-    // print server info
-    print_server_info();
 
     // Perform hibernation for 1 second
     tokio::time::sleep(SHUTDOWN_TIMEOUT).await;

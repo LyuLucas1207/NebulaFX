@@ -22,18 +22,10 @@ gpu = ["dep:nvml-wrapper"]
 full = ["gpu"]
 
 [dependencies]
-nebulafx-config = { workspace = true, features = ["constants", "observability"] }
-nebulafx-utils = { workspace = true, features = ["ip", "path"] }
 flexi_logger = { workspace = true }
 metrics = { workspace = true }
 nu-ansi-term = { workspace = true }
 nvml-wrapper = { workspace = true, optional = true }
-opentelemetry = { workspace = true }
-opentelemetry-appender-tracing = { workspace = true, features = ["experimental_use_tracing_span_context", "experimental_metadata_attributes"] }
-opentelemetry_sdk = { workspace = true, features = ["rt-tokio"] }
-opentelemetry-stdout = { workspace = true }
-opentelemetry-otlp = { workspace = true }
-opentelemetry-semantic-conventions = { workspace = true, features = ["semconv_experimental"] }
 serde = { workspace = true }
 smallvec = { workspace = true, features = ["serde"] }
 tracing = { workspace = true, features = ["std", "attributes"] }

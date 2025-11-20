@@ -16,6 +16,7 @@ members = [
     "crates/madmin", # Management dashboard and admin API interface
     "crates/notify", # Notification system for events
     "crates/obs", # Observability utilities
+    "crates/profilingx", # Performance profiling utilities
     "crates/policy", # Policy management
     "crates/protos", # Protocol buffer definitions
     "crates/rio", # Rust I/O utilities and abstractions
@@ -32,6 +33,7 @@ members = [
     "crates/kms", # Key Management Service
     "crates/tomlx", # Generic TOML configuration loader
     "crates/postgresqlx", # PostgreSQL connection pool and configuration
+    "crates/tokiox", # Tokio runtime configuration and builder
 ]
 resolver = "2"
 
@@ -74,6 +76,8 @@ nebulafx-mcp = { path = "crates/mcp", version = "0.0.5" }
 nebulafx-notify = { path = "crates/notify", version = "0.0.5" }
 nebulafx-obs = { path = "crates/obs", version = "0.0.5" }
 nebulafx-policy = { path = "crates/policy", version = "0.0.5" }
+nebulafx-profilingx = { path = "crates/profilingx", version = "0.0.5" }
+nebulafx-tokiox = { path = "crates/tokiox", version = "0.0.5" }
 nebulafx-protos = { path = "crates/protos", version = "0.0.5" }
 nebulafx-rio = { path = "crates/rio", version = "0.0.5" }
 nebulafx-s3select-api = { path = "crates/s3select-api", version = "0.0.5" }

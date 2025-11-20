@@ -4,13 +4,9 @@ use crate::error::Error as IamError;
 use crate::error::is_err_no_such_account;
 use crate::error::is_err_no_such_temp_account;
 use crate::error::{Error, Result};
-use crate::manager::IamCache;
-use crate::manager::extract_jwt_claims;
-use crate::manager::get_default_policyes;
-use crate::store::GroupInfo;
-use crate::store::MappedPolicy;
-use crate::store::Store;
-use crate::store::UserType;
+use sqlx::PgPool;
+use crate::manager::utils::{extract_jwt_claims, get_default_policyes};
+use crate::types::{GroupInfo, MappedPolicy, UserType};
 use crate::utils::extract_claims;
 use nebulafx_ecstore::global::get_global_action_cred;
 use nebulafx_ecstore::notification_sys::get_global_notification_sys;
@@ -49,13 +45,13 @@ fn get_policy_plugin_client() -> Arc<RwLock<Option<nebulafx_policy::policy::opa:
     POLICY_PLUGIN_CLIENT.get_or_init(|| Arc::new(RwLock::new(None))).clone()
 }
 
-pub struct IamSys<T> {
-    store: Arc<IamCache<T>>,
+pub struct IamSys {
+    pub(crate) pool: PgPool,
     roles_map: HashMap<ARN, String>,
 }
 
-impl<T: Store> IamSys<T> {
-    pub fn new(store: Arc<IamCache<T>>) -> Self {
+impl IamSys {
+    pub fn new(pool: PgPool) -> Self {
         tokio::spawn(async move {
             match opa::lookup_config().await {
                 Ok(conf) => {
@@ -71,12 +67,13 @@ impl<T: Store> IamSys<T> {
         });
 
         Self {
-            store,
+            pool,
             roles_map: HashMap::new(),
         }
     }
     pub fn has_watcher(&self) -> bool {
-        self.store.api.has_watcher()
+        // Database-based storage doesn't have watchers
+        false
     }
 
     pub async fn set_policy_plugin_client(client: nebulafx_policy::policy::opa::AuthZPlugin) {
@@ -92,34 +89,40 @@ impl<T: Store> IamSys<T> {
     }
 
     pub async fn load_group(&self, name: &str) -> Result<()> {
-        self.store.group_notification_handler(name).await
+        use crate::manager::group::IamSysGroupExt;
+        IamSysGroupExt::group_notification_handler(self, name).await
     }
 
     pub async fn load_groups(&self, m: &mut HashMap<String, GroupInfo>) -> Result<()> {
-        self.store.api.load_groups(m).await
+        use crate::repository::GroupRepository;
+        GroupRepository::load_groups(&self.pool, m).await
+            .map_err(|e| Error::other(format!("Failed to load groups: {}", e)))
     }
 
     pub async fn load_policy(&self, name: &str) -> Result<()> {
-        self.store.policy_notification_handler(name).await
+        use crate::manager::policy::IamSysPolicyExt;
+        IamSysPolicyExt::policy_notification_handler(self, name).await
     }
 
     pub async fn load_policy_mapping(&self, name: &str, user_type: UserType, is_group: bool) -> Result<()> {
-        self.store
-            .policy_mapping_notification_handler(name, user_type, is_group)
-            .await
+        use crate::manager::mapped_policy::IamSysMappedPolicyExt;
+        IamSysMappedPolicyExt::policy_mapping_notification_handler(self, name, user_type, is_group).await
     }
 
     pub async fn load_user(&self, name: &str, user_type: UserType) -> Result<()> {
-        self.store.user_notification_handler(name, user_type).await
+        use crate::manager::user::IamSysUserExt;
+        IamSysUserExt::user_notification_handler(self, name, user_type).await
     }
 
     pub async fn load_users(&self, user_type: UserType, m: &mut HashMap<String, UserIdentity>) -> Result<()> {
-        self.store.api.load_users(user_type, m).await?;
-        Ok(())
+        use crate::repository::UserIdentityRepository;
+        UserIdentityRepository::load_users(&self.pool, user_type, m).await
+            .map_err(|e| Error::other(format!("Failed to load users: {}", e)))
     }
 
     pub async fn load_service_account(&self, name: &str) -> Result<()> {
-        self.store.user_notification_handler(name, UserType::Svc).await
+        use crate::manager::user::IamSysUserExt;
+        IamSysUserExt::user_notification_handler(self, name, UserType::Svc).await
     }
 
     pub async fn delete_policy(&self, name: &str, notify: bool) -> Result<()> {
@@ -129,7 +132,8 @@ impl<T: Store> IamSys<T> {
             }
         }
 
-        self.store.delete_policy(name, notify).await?;
+        use crate::manager::policy::IamSysPolicyExt;
+        IamSysPolicyExt::delete_policy(self, name, notify).await?;
 
         if !notify || self.has_watcher() {
             return Ok(());
@@ -148,7 +152,8 @@ impl<T: Store> IamSys<T> {
     }
 
     pub async fn info_policy(&self, name: &str) -> Result<nebulafx_madmin::PolicyInfo> {
-        let d = self.store.get_policy_doc(name).await?;
+        use crate::manager::policy::IamSysPolicyExt;
+        let d = IamSysPolicyExt::get_policy_doc(self, name).await?;
 
         let pdata = serde_json::to_string(&d.policy)?;
 
@@ -166,19 +171,24 @@ impl<T: Store> IamSys<T> {
         is_group: bool,
         m: &mut HashMap<String, MappedPolicy>,
     ) -> Result<()> {
-        self.store.api.load_mapped_policies(user_type, is_group, m).await
+        use crate::repository::MappedPolicyRepository;
+        MappedPolicyRepository::load_mapped_policies(&self.pool, user_type, is_group, m).await
+            .map_err(|e| Error::other(format!("Failed to load mapped policies: {}", e)))
     }
 
     pub async fn list_polices(&self, bucket_name: &str) -> Result<HashMap<String, Policy>> {
-        self.store.list_polices(bucket_name).await
+        use crate::manager::policy::IamSysPolicyExt;
+        IamSysPolicyExt::list_polices(self, bucket_name).await
     }
 
     pub async fn list_policy_docs(&self, bucket_name: &str) -> Result<HashMap<String, PolicyDoc>> {
-        self.store.list_policy_docs(bucket_name).await
+        use crate::manager::policy::IamSysPolicyExt;
+        IamSysPolicyExt::list_policy_docs(self, bucket_name).await
     }
 
     pub async fn set_policy(&self, name: &str, policy: Policy) -> Result<OffsetDateTime> {
-        let updated_at = self.store.set_policy(name, policy).await?;
+        use crate::manager::policy::IamSysPolicyExt;
+        let updated_at = IamSysPolicyExt::set_policy(self, name, policy).await?;
 
         if !self.has_watcher() {
             if let Some(notification_sys) = get_global_notification_sys() {
@@ -207,7 +217,8 @@ impl<T: Store> IamSys<T> {
     }
 
     pub async fn delete_user(&self, name: &str, notify: bool) -> Result<()> {
-        self.store.delete_user(name, UserType::Reg).await?;
+        use crate::manager::user::IamSysUserExt;
+        IamSysUserExt::delete_user(self, name, UserType::Reg).await?;
 
         if notify && !self.has_watcher() {
             if let Some(notification_sys) = get_global_notification_sys() {
@@ -254,19 +265,23 @@ impl<T: Store> IamSys<T> {
     }
 
     pub async fn current_policies(&self, name: &str) -> String {
-        self.store.merge_policies(name).await.0
+        use crate::manager::policy::IamSysPolicyExt;
+        IamSysPolicyExt::merge_policies(self, name).await.0
     }
 
     pub async fn list_bucket_users(&self, bucket_name: &str) -> Result<HashMap<String, nebulafx_madmin::UserInfo>> {
-        self.store.get_bucket_users(bucket_name).await
+        use crate::manager::policy::IamSysPolicyExt;
+        IamSysPolicyExt::get_bucket_users(self, bucket_name).await
     }
 
     pub async fn list_users(&self) -> Result<HashMap<String, nebulafx_madmin::UserInfo>> {
-        self.store.get_users().await
+        use crate::manager::user::IamSysUserExt;
+        IamSysUserExt::get_users(self).await
     }
 
     pub async fn set_temp_user(&self, name: &str, cred: &Credentials, policy_name: Option<&str>) -> Result<OffsetDateTime> {
-        let updated_at = self.store.set_temp_user(name, cred, policy_name).await?;
+        use crate::manager::user::IamSysUserExt;
+        let updated_at = IamSysUserExt::set_temp_user(self, name, cred, policy_name).await?;
 
         self.notify_for_user(&cred.access_key, true).await;
 
@@ -274,7 +289,8 @@ impl<T: Store> IamSys<T> {
     }
 
     pub async fn is_temp_user(&self, name: &str) -> Result<(bool, String)> {
-        let Some(u) = self.store.get_user(name).await else {
+        use crate::manager::user::IamSysUserExt;
+        let Some(u) = IamSysUserExt::get_user(self, name).await else {
             return Err(IamError::NoSuchUser(name.to_string()));
         };
         if u.credentials.is_temp() {
@@ -284,7 +300,8 @@ impl<T: Store> IamSys<T> {
         }
     }
     pub async fn is_service_account(&self, name: &str) -> Result<(bool, String)> {
-        let Some(u) = self.store.get_user(name).await else {
+        use crate::manager::user::IamSysUserExt;
+        let Some(u) = IamSysUserExt::get_user(self, name).await else {
             return Err(IamError::NoSuchUser(name.to_string()));
         };
 
@@ -296,11 +313,13 @@ impl<T: Store> IamSys<T> {
     }
 
     pub async fn get_user_info(&self, name: &str) -> Result<nebulafx_madmin::UserInfo> {
-        self.store.get_user_info(name).await
+        use crate::manager::user::IamSysUserExt;
+        IamSysUserExt::get_user_info(self, name).await
     }
 
     pub async fn set_user_status(&self, name: &str, status: nebulafx_madmin::AccountStatus) -> Result<OffsetDateTime> {
-        let updated_at = self.store.set_user_status(name, status).await?;
+        use crate::manager::user::IamSysUserExt;
+        let updated_at = IamSysUserExt::set_user_status(self, name, status).await?;
 
         self.notify_for_user(name, false).await;
 
@@ -390,7 +409,8 @@ impl<T: Store> IamSys<T> {
         cred.description = opts.description;
         cred.expiration = opts.expiration;
 
-        let create_at = self.store.add_service_account(cred.clone()).await?;
+        use crate::manager::user::IamSysUserExt;
+        let create_at = self.add_service_account(cred.clone()).await?;
 
         self.notify_for_service_account(&cred.access_key).await;
 
@@ -398,7 +418,8 @@ impl<T: Store> IamSys<T> {
     }
 
     pub async fn update_service_account(&self, name: &str, opts: UpdateServiceAccountOpts) -> Result<OffsetDateTime> {
-        let updated_at = self.store.update_service_account(name, opts).await?;
+        use crate::manager::user::IamSysUserExt;
+        let updated_at = IamSysUserExt::update_service_account(self, name, opts).await?;
 
         self.notify_for_service_account(name).await;
 
@@ -406,15 +427,18 @@ impl<T: Store> IamSys<T> {
     }
 
     pub async fn list_service_accounts(&self, access_key: &str) -> Result<Vec<Credentials>> {
-        self.store.list_service_accounts(access_key).await
+        use crate::manager::user::IamSysUserExt;
+        IamSysUserExt::list_service_accounts(self, access_key).await
     }
 
     pub async fn list_temp_accounts(&self, access_key: &str) -> Result<Vec<UserIdentity>> {
-        self.store.list_temp_accounts(access_key).await
+        use crate::manager::user::IamSysUserExt;
+        IamSysUserExt::list_temp_accounts(self, access_key).await
     }
 
     pub async fn list_sts_accounts(&self, access_key: &str) -> Result<Vec<Credentials>> {
-        self.store.list_sts_accounts(access_key).await
+        use crate::manager::user::IamSysUserExt;
+        IamSysUserExt::list_sts_accounts(self, access_key).await
     }
 
     pub async fn get_service_account(&self, access_key: &str) -> Result<(Credentials, Option<Policy>)> {
@@ -457,7 +481,7 @@ impl<T: Store> IamSys<T> {
     }
 
     async fn get_account_with_claims(&self, access_key: &str) -> Result<(UserIdentity, HashMap<String, Value>)> {
-        let Some(acc) = self.store.get_user(access_key).await else {
+        let Some(acc) = self.get_user(access_key).await else {
             return Err(IamError::NoSuchAccount(access_key.to_string()));
         };
 
@@ -518,7 +542,8 @@ impl<T: Store> IamSys<T> {
     }
 
     pub async fn get_claims_for_svc_acc(&self, access_key: &str) -> Result<HashMap<String, Value>> {
-        let Some(u) = self.store.get_user(access_key).await else {
+        use crate::manager::user::IamSysUserExt;
+        let Some(u) = IamSysUserExt::get_user(self, access_key).await else {
             return Err(IamError::NoSuchServiceAccount(access_key.to_string()));
         };
 
@@ -530,7 +555,8 @@ impl<T: Store> IamSys<T> {
     }
 
     pub async fn delete_service_account(&self, access_key: &str, notify: bool) -> Result<()> {
-        let Some(u) = self.store.get_user(access_key).await else {
+        use crate::manager::user::IamSysUserExt;
+        let Some(u) = IamSysUserExt::get_user(self, access_key).await else {
             return Ok(());
         };
 
@@ -538,7 +564,7 @@ impl<T: Store> IamSys<T> {
             return Ok(());
         }
 
-        self.store.delete_user(access_key, UserType::Svc).await?;
+        IamSysUserExt::delete_user(self, access_key, UserType::Svc).await?;
 
         if notify && !self.has_watcher() {
             if let Some(notification_sys) = get_global_notification_sys() {
@@ -582,7 +608,8 @@ impl<T: Store> IamSys<T> {
             return Err(IamError::InvalidSecretKeyLength);
         }
 
-        let updated_at = self.store.add_user(access_key, args).await?;
+        use crate::manager::user::IamSysUserExt;
+        let updated_at = IamSysUserExt::add_user(self, access_key, args).await?;
 
         self.notify_for_user(access_key, false).await;
 
@@ -598,7 +625,8 @@ impl<T: Store> IamSys<T> {
             return Err(IamError::InvalidSecretKeyLength);
         }
 
-        self.store.update_user_secret_key(access_key, secret_key).await
+        use crate::manager::user::IamSysUserExt;
+        IamSysUserExt::update_user_secret_key(self, access_key, secret_key).await
     }
 
     pub async fn check_key(&self, access_key: &str) -> Result<(Option<UserIdentity>, bool)> {
@@ -608,23 +636,13 @@ impl<T: Store> IamSys<T> {
             }
         }
 
-        match self.store.get_user(access_key).await {
+        use crate::manager::user::IamSysUserExt;
+        match IamSysUserExt::get_user(self, access_key).await {
             Some(res) => {
                 let ok = res.credentials.is_valid();
-
                 Ok((Some(res), ok))
             }
-            None => {
-                let _ = self.store.load_user(access_key).await;
-
-                if let Some(res) = self.store.get_user(access_key).await {
-                    let ok = res.credentials.is_valid();
-
-                    Ok((Some(res), ok))
-                } else {
-                    Ok((None, false))
-                }
-            }
+            None => Ok((None, false)),
         }
     }
 
@@ -639,7 +657,8 @@ impl<T: Store> IamSys<T> {
         if contains_reserved_chars(group) {
             return Err(IamError::GroupNameContainsReservedChars);
         }
-        let updated_at = self.store.add_users_to_group(group, users).await?;
+        use crate::manager::group::IamSysGroupExt;
+        let updated_at = IamSysGroupExt::add_users_to_group(self, group, users).await?;
 
         self.notify_for_group(group).await;
 
@@ -647,7 +666,8 @@ impl<T: Store> IamSys<T> {
     }
 
     pub async fn remove_users_from_group(&self, group: &str, users: Vec<String>) -> Result<OffsetDateTime> {
-        let updated_at = self.store.remove_users_from_group(group, users).await?;
+        use crate::manager::group::IamSysGroupExt;
+        let updated_at = IamSysGroupExt::remove_users_from_group(self, group, users).await?;
 
         self.notify_for_group(group).await;
 
@@ -655,26 +675,31 @@ impl<T: Store> IamSys<T> {
     }
 
     pub async fn set_group_status(&self, group: &str, enable: bool) -> Result<OffsetDateTime> {
-        let updated_at = self.store.set_group_status(group, enable).await?;
+        use crate::manager::group::IamSysGroupExt;
+        let updated_at = IamSysGroupExt::set_group_status(self, group, enable).await?;
 
         self.notify_for_group(group).await;
 
         Ok(updated_at)
     }
     pub async fn get_group_description(&self, group: &str) -> Result<GroupDesc> {
-        self.store.get_group_description(group).await
+        use crate::manager::group::IamSysGroupExt;
+        IamSysGroupExt::get_group_description(self, group).await
     }
 
     pub async fn list_groups_load(&self) -> Result<Vec<String>> {
-        self.store.update_groups().await
+        use crate::manager::group::IamSysGroupExt;
+        IamSysGroupExt::update_groups(self).await
     }
 
     pub async fn list_groups(&self) -> Result<Vec<String>> {
-        self.store.list_groups().await
+        use crate::manager::group::IamSysGroupExt;
+        IamSysGroupExt::list_groups(self).await
     }
 
     pub async fn policy_db_set(&self, name: &str, user_type: UserType, is_group: bool, policy: &str) -> Result<OffsetDateTime> {
-        let updated_at = self.store.policy_db_set(name, user_type, is_group, policy).await?;
+        use crate::manager::mapped_policy::IamSysMappedPolicyExt;
+        let updated_at = IamSysMappedPolicyExt::policy_db_set(self, name, user_type, is_group, policy).await?;
 
         if !self.has_watcher() {
             if let Some(notification_sys) = get_global_notification_sys() {
@@ -691,7 +716,8 @@ impl<T: Store> IamSys<T> {
     }
 
     pub async fn policy_db_get(&self, name: &str, groups: &Option<Vec<String>>) -> Result<Vec<String>> {
-        self.store.policy_db_get(name, groups).await
+        use crate::manager::mapped_policy::IamSysMappedPolicyExt;
+        IamSysMappedPolicyExt::policy_db_get(self, name, groups).await
     }
 
     pub async fn is_allowed_sts(&self, args: &Args<'_>, parent_user: &str) -> bool {
@@ -705,7 +731,8 @@ impl<T: Store> IamSys<T> {
 
                 MappedPolicy::new(self.roles_map.get(&arn).map_or_else(String::default, |v| v.clone()).as_str()).to_slice()
             } else {
-                let Ok(p) = self.policy_db_get(parent_user, args.groups).await else { return false };
+                use crate::manager::mapped_policy::IamSysMappedPolicyExt;
+        let Ok(p) = IamSysMappedPolicyExt::policy_db_get(self, parent_user, args.groups).await else { return false };
 
                 p
                 //TODO: FROM JWT
@@ -720,7 +747,8 @@ impl<T: Store> IamSys<T> {
             if is_owner {
                 Policy::default()
             } else {
-                let (a, c) = self.store.merge_policies(&policies.join(",")).await;
+                use crate::manager::policy::IamSysPolicyExt;
+                let (a, c) = IamSysPolicyExt::merge_policies(self, &policies.join(",")).await;
                 if a.is_empty() {
                     return false;
                 }
@@ -756,7 +784,8 @@ impl<T: Store> IamSys<T> {
                 let Ok(arn) = ARN::parse(role_arn.unwrap_or_default()) else { return false };
                 MappedPolicy::new(self.roles_map.get(&arn).map_or_else(String::default, |v| v.clone()).as_str()).to_slice()
             } else {
-                let Ok(p) = self.policy_db_get(parent_user, args.groups).await else { return false };
+                use crate::manager::mapped_policy::IamSysMappedPolicyExt;
+        let Ok(p) = IamSysMappedPolicyExt::policy_db_get(self, parent_user, args.groups).await else { return false };
                 p
             }
         };
@@ -769,7 +798,8 @@ impl<T: Store> IamSys<T> {
             if is_owner {
                 Policy::default()
             } else {
-                let (a, c) = self.store.merge_policies(&svc_policies.join(",")).await;
+                use crate::manager::policy::IamSysPolicyExt;
+                let (a, c) = IamSysPolicyExt::merge_policies(self, &svc_policies.join(",")).await;
                 if a.is_empty() {
                     return false;
                 }
@@ -801,7 +831,8 @@ impl<T: Store> IamSys<T> {
     }
 
     pub async fn get_combined_policy(&self, policies: &[String]) -> Policy {
-        self.store.merge_policies(&policies.join(",")).await.1
+        use crate::manager::policy::IamSysPolicyExt;
+        IamSysPolicyExt::merge_policies(self, &policies.join(",")).await.1
     }
 
     pub async fn is_allowed(&self, args: &Args<'_>) -> bool {
@@ -826,7 +857,8 @@ impl<T: Store> IamSys<T> {
             return self.is_allowed_service_account(args, &parent_user).await;
         }
 
-        let Ok(policies) = self.policy_db_get(args.account, args.groups).await else { return false };
+        use crate::manager::mapped_policy::IamSysMappedPolicyExt;
+        let Ok(policies) = IamSysMappedPolicyExt::policy_db_get(self, args.account, args.groups).await else { return false };
 
         if policies.is_empty() {
             return false;
