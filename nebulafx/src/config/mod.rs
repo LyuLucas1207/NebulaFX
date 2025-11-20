@@ -8,24 +8,36 @@ const SHORT_VERSION: &str = {
     if !build::TAG.is_empty() {
         build::TAG
     } else if !build::SHORT_COMMIT.is_empty() {
-        concat!("@", build::SHORT_COMMIT)
+        const_str::concat!("@", build::SHORT_COMMIT)
     } else {
         build::PKG_VERSION
     }
 };
 
-const LONG_VERSION: &str = concat!(
-    concat!(SHORT_VERSION, "\n"),
-    concat!("build time   : ", build::BUILD_TIME, "\n"),
-    concat!("build profile: ", build::BUILD_RUST_CHANNEL, "\n"),
-    concat!("build os     : ", build::BUILD_OS, "\n"),
-    concat!("rust version : ", build::RUST_VERSION, "\n"),
-    concat!("rust channel : ", build::RUST_CHANNEL, "\n"),
-    concat!("git branch   : ", build::BRANCH, "\n"),
-    concat!("git commit   : ", build::COMMIT_HASH, "\n"),
-    concat!("git tag      : ", build::TAG, "\n"),
-    concat!("git status   :\n", build::GIT_STATUS_FILE),
-);
+const LONG_VERSION: &str = {
+    // Inline version string to work around const_str::concat! limitations with const variables
+    const VERSION_STR: &str = {
+        if !build::TAG.is_empty() {
+            build::TAG
+        } else if !build::SHORT_COMMIT.is_empty() {
+            const_str::concat!("@", build::SHORT_COMMIT)
+        } else {
+            build::PKG_VERSION
+        }
+    };
+    const_str::concat!(
+        VERSION_STR, "\n",
+        "build time   : ", build::BUILD_TIME, "\n",
+        "build profile: ", build::BUILD_RUST_CHANNEL, "\n",
+        "build os     : ", build::BUILD_OS, "\n",
+        "rust version : ", build::RUST_VERSION, "\n",
+        "rust channel : ", build::RUST_CHANNEL, "\n",
+        "git branch   : ", build::BRANCH, "\n",
+        "git commit   : ", build::COMMIT_HASH, "\n",
+        "git tag      : ", build::TAG, "\n",
+        "git status   :\n", build::GIT_STATUS_FILE,
+    )
+};
 
 #[derive(Debug, Parser, Clone)]
 #[command(version = SHORT_VERSION, long_version = LONG_VERSION)]

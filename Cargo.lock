@@ -5170,6 +5170,7 @@ dependencies = [
  "nebulafx-s3select-api",
  "nebulafx-s3select-query",
  "nebulafx-targets",
+ "nebulafx-tomlx",
  "nebulafx-utils",
  "nebulafx-zip",
  "pin-project-lite",
@@ -5301,6 +5302,8 @@ name = "nebulafx-config"
 version = "0.0.5"
 dependencies = [
  "const-str",
+ "serde",
+ "toml",
 ]
 
 [[package]]
@@ -5729,6 +5732,15 @@ dependencies = [
  "url",
  "urlencoding",
  "uuid",
+]
+
+[[package]]
+name = "nebulafx-tomlx"
+version = "0.0.5"
+dependencies = [
+ "serde",
+ "thiserror 2.0.17",
+ "toml",
 ]
 
 [[package]]

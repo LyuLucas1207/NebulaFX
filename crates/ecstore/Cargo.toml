@@ -33,7 +33,7 @@ glob = { workspace = true }
 thiserror.workspace = true
 flatbuffers.workspace = true
 futures.workspace = true
-tracing.workspace = true
+tracing = { workspace = true, features = ["attributes"] }
 serde.workspace = true
 time.workspace = true
 bytesize.workspace = true

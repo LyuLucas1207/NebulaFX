@@ -30,6 +30,7 @@ members = [
     "crates/ahm", # Asynchronous Hash Map for concurrent data structures
     "crates/mcp", # MCP server for S3 operations
     "crates/kms", # Key Management Service
+    "crates/tomlx", # Generic TOML configuration loader
 ]
 resolver = "2"
 
@@ -64,6 +65,7 @@ nebulafx-ecstore = { path = "crates/ecstore", version = "0.0.5" }
 nebulafx-filemeta = { path = "crates/filemeta", version = "0.0.5" }
 nebulafx-iam = { path = "crates/iam", version = "0.0.5" }
 nebulafx-kms = { path = "crates/kms", version = "0.0.5" }
+nebulafx-tomlx = { path = "crates/tomlx", version = "0.0.5" }
 nebulafx-lock = { path = "crates/lock", version = "0.0.5" }
 nebulafx-madmin = { path = "crates/madmin", version = "0.0.5" }
 nebulafx-mcp = { path = "crates/mcp", version = "0.0.5" }
@@ -124,6 +126,7 @@ serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.145", features = ["raw_value"] }
 serde_urlencoded = "0.7.1"
 schemars = "1.1.0"
+toml = "0.8"
 
 # Cryptography and Security
 aes-gcm = { version = "0.11.0-rc.2", features = ["rand_core"] }

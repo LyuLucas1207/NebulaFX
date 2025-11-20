@@ -4,6 +4,7 @@ use std::time::SystemTime;
 
 use serde::{Deserialize, Serialize};
 use tokio::fs;
+use tracing::warn;
 
 use crate::data_usage::BucketUsageInfo;
 use crate::disk::NEUBULAFX_META_BUCKET;
@@ -112,13 +113,31 @@ pub fn snapshot_path(root: &Path, disk_id: &str) -> PathBuf {
 }
 
 /// Read a snapshot from disk if it exists.
+/// Returns None if the file doesn't exist or is corrupted/invalid, logging a warning in the latter case.
 pub async fn read_snapshot(root: &Path, disk_id: &str) -> Result<Option<LocalUsageSnapshot>> {
     let path = snapshot_path(root, disk_id);
     match fs::read(&path).await {
         Ok(content) => {
-            let snapshot = serde_json::from_slice::<LocalUsageSnapshot>(&content)
-                .map_err(|err| Error::other(format!("failed to deserialize snapshot {path:?}: {err}")))?;
-            Ok(Some(snapshot))
+            // Check if content is empty or whitespace-only
+            if content.is_empty() || content.iter().all(|&b| b.is_ascii_whitespace()) {
+                warn!(
+                    "Snapshot file {path:?} is empty or contains only whitespace, skipping",
+                    path = path
+                );
+                return Ok(None);
+            }
+            
+            match serde_json::from_slice::<LocalUsageSnapshot>(&content) {
+                Ok(snapshot) => Ok(Some(snapshot)),
+                Err(err) => {
+                    warn!(
+                        "Failed to deserialize snapshot {path:?}: {err}. The file may be corrupted or incomplete. Skipping this snapshot.",
+                        path = path,
+                        err = err
+                    );
+                    Ok(None)
+                }
+            }
         }
         Err(err) if err.kind() == std::io::ErrorKind::NotFound => Ok(None),
         Err(err) => Err(Error::other(err)),

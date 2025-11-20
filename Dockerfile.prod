@@ -1,14 +1,5 @@
-# syntax=docker/dockerfile:1.6
-# Multi-stage Dockerfile for NebulaFX - LOCAL DEVELOPMENT ONLY
-#
-# IMPORTANT: This Dockerfile builds NebulaFX from source for local development and testing.
-# CI/CD uses the production Dockerfile with prebuilt binaries instead.
-#
-# Example:
-#   docker build -f Dockerfile.source -t nebulafx:dev-local .
-#   docker run --rm -p 9000:9000 nebulafx:dev-local
-#
-# Supports cross-compilation for amd64 and arm64 via TARGETPLATFORM.
+# Production Dockerfile for NebulaFX
+# Multi-stage build for optimized production image
 
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
@@ -18,15 +9,12 @@ ARG BUILDPLATFORM
 # -----------------------------
 FROM rust:1.88-bookworm AS builder
 
-# Re-declare args after FROM
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
 
-# Debug: print platforms
 RUN echo "Build info -> BUILDPLATFORM=${BUILDPLATFORM}, TARGETPLATFORM=${TARGETPLATFORM}"
 
-# Install build toolchain and headers
-# Use distro packages for protoc/flatc to avoid host-arch mismatch
+# Install build dependencies
 RUN set -eux; \
     export DEBIAN_FRONTEND=noninteractive; \
     apt-get update; \
@@ -42,7 +30,7 @@ RUN set -eux; \
     flatbuffers-compiler; \
     rm -rf /var/lib/apt/lists/*
 
-# Optional: cross toolchain for aarch64 (only when targeting linux/arm64)
+# Optional: cross toolchain for aarch64
 RUN set -eux; \
     if [ "${TARGETPLATFORM:-linux/amd64}" = "linux/arm64" ]; then \
     export DEBIAN_FRONTEND=noninteractive; \
@@ -59,30 +47,28 @@ RUN set -eux; \
     *) echo "Unsupported TARGETPLATFORM=${TARGETPLATFORM}" >&2; exit 1 ;; \
     esac
 
-# Cross-compilation environment (used only when targeting aarch64)
+# Cross-compilation environment
 ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
 ENV CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
 ENV CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++
 
 WORKDIR /usr/src/nebulafx
 
-# Layered copy to maximize caching:
-# 1) top-level manifests
+# Copy manifests for dependency caching
 COPY Cargo.toml Cargo.lock ./
-# 2) workspace member manifests (adjust if workspace layout changes)
 COPY nebulafx/Cargo.toml nebulafx/Cargo.toml
 COPY crates/*/Cargo.toml crates/
 COPY cli/nebulafx-gui/Cargo.toml cli/nebulafx-gui/Cargo.toml
 
-# Pre-fetch dependencies for better caching
+# Pre-fetch dependencies
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     cargo fetch --locked || true
 
-# 3) copy full sources (this is the main cache invalidation point)
+# Copy full source code
 COPY . .
 
-# Cargo build configuration for lean release artifacts
+# Build configuration for optimized release
 ENV CARGO_NET_GIT_FETCH_WITH_CLI=true \
     CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse \
     CARGO_INCREMENTAL=0 \
@@ -90,25 +76,23 @@ ENV CARGO_NET_GIT_FETCH_WITH_CLI=true \
     CARGO_PROFILE_RELEASE_SPLIT_DEBUGINFO=off \
     CARGO_PROFILE_RELEASE_STRIP=symbols
 
-# Generate protobuf/flatbuffers code (uses protoc/flatc from distro)
+# Generate protobuf/flatbuffers code
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/src/nebulafx/target \
     cargo run --bin gproto
 
-# Build NebulaFX (target depends on TARGETPLATFORM)
+# Build NebulaFX
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/src/nebulafx/target \
     set -eux; \
     case "${TARGETPLATFORM:-linux/amd64}" in \
     linux/amd64) \
-    echo "Building for x86_64-unknown-linux-gnu"; \
     cargo build --release --locked --target x86_64-unknown-linux-gnu --bin nebulafx -j "$(nproc)"; \
     install -m 0755 target/x86_64-unknown-linux-gnu/release/nebulafx /usr/local/bin/nebulafx \
     ;; \
     linux/arm64) \
-    echo "Building for aarch64-unknown-linux-gnu"; \
     cargo build --release --locked --target aarch64-unknown-linux-gnu --bin nebulafx -j "$(nproc)"; \
     install -m 0755 target/aarch64-unknown-linux-gnu/release/nebulafx /usr/local/bin/nebulafx \
     ;; \
@@ -118,54 +102,51 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     esac
 
 # -----------------------------
-# Runtime stage (Ubuntu minimal)
+# Runtime stage
 # -----------------------------
 FROM ubuntu:22.04
 
 ARG BUILD_DATE
 ARG VCS_REF
 
-LABEL name="NebulaFX (dev-local)" \
+LABEL name="NebulaFX" \
     maintainer="NebulaFX Team" \
     build-date="${BUILD_DATE}" \
     vcs-ref="${VCS_REF}" \
-    description="NebulaFX - local development image built from source (NOT for production)."
+    description="NebulaFX - Production image"
 
-# Minimal runtime deps: certificates + tzdata + coreutils (for chroot --userspec)
+# Minimal runtime dependencies
 RUN set -eux; \
     export DEBIAN_FRONTEND=noninteractive; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
     ca-certificates \
     tzdata \
-    coreutils; \
+    coreutils \
+    curl; \
     rm -rf /var/lib/apt/lists/*
 
-# Create a conventional runtime user/group (final switch happens in entrypoint via chroot --userspec)
+# Create runtime user
 RUN set -eux; \
     groupadd -g 1000 nebulafx; \
     useradd -u 1000 -g nebulafx -M -s /usr/sbin/nologin nebulafx
 
 WORKDIR /app
 
-# Prepare data/log directories with sane defaults
+# Prepare data/log directories
 RUN set -eux; \
     mkdir -p /data /logs; \
     chown -R nebulafx:nebulafx /data /logs /app; \
     chmod 0750 /data /logs
 
-# Copy the freshly built binary and the entrypoint
+# Copy binary and entrypoint
 COPY --from=builder /usr/local/bin/nebulafx /usr/bin/nebulafx
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /usr/bin/nebulafx /entrypoint.sh
 
-# Default environment (override in docker run/compose as needed)
-ENV NEUBULAFX_ADDRESS=":9000" \
-    NEUBULAFX_ACCESS_KEY="nebulafxadmin" \
-    NEUBULAFX_SECRET_KEY="nebulafxadmin" \
-    NEUBULAFX_VOLUMES="/data" \
-    RUST_LOG="warn" \
-    NEUBULAFX_OBS_LOG_DIRECTORY="/logs" \
+# Default environment variables (only for direct docker run, docker-compose will override)
+# These are kept as fallback defaults when not using docker-compose
+ENV NEUBULAFX_OBS_LOG_DIRECTORY="/logs" \
     NEUBULAFX_USERNAME="nebulafx" \
     NEUBULAFX_GROUPNAME="nebulafx" \
     NEUBULAFX_UID="1000" \
@@ -174,6 +155,6 @@ ENV NEUBULAFX_ADDRESS=":9000" \
 EXPOSE 9000
 VOLUME ["/data", "/logs"]
 
-# Keep root here; entrypoint will drop privileges using chroot --userspec
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/usr/bin/nebulafx"]
+

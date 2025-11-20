@@ -47,6 +47,7 @@ nebulafx-s3select-query = { workspace = true }
 nebulafx-targets = { workspace = true }
 nebulafx-utils = { workspace = true, features = ["full"] }
 nebulafx-zip = { workspace = true }
+nebulafx-tomlx = { workspace = true }
 
 # Async Runtime and Networking
 async-trait = { workspace = true }

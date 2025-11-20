@@ -1,40 +1,33 @@
-
-
-version: "3.8"
-
 services:
-  # NebulaFX main service
   nebulafx:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: NebulaFX-Prod
+    restart: unless-stopped
     security_opt:
       - "no-new-privileges:true"
-    image: nebulafx/nebulafx:latest
-    container_name: nebulafx-server
-    build:
-      context: .
-      dockerfile: Dockerfile.source
-      args:
-        TARGETPLATFORM: linux/amd64
+    env_file:
+      - .env
     ports:
-      - "9000:9000" # S3 API port (Console API endpoints available at /nebulafx/console/*)
+      - "${NEUBULAFX_PORT:-9000}:9000" # S3 API port
     environment:
-      - NEUBULAFX_VOLUMES=/data/nebulafx{0..3}  # Define 4 storage volumes
+      - NEUBULAFX_VOLUMES=${NEUBULAFX_VOLUMES:-/deploy/data/pro/nebulafx{1...8}}
       - NEUBULAFX_ADDRESS=0.0.0.0:9000
-      # 已移除：NEUBULAFX_CONSOLE_ADDRESS 和 NEUBULAFX_CONSOLE_ENABLE（Console API 始终通过主服务器提供）
-      - NEUBULAFX_EXTERNAL_ADDRESS=:9000  # Same as internal since no port mapping
-      - NEUBULAFX_CORS_ALLOWED_ORIGINS=*
-      - NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS=*
-      - NEUBULAFX_ACCESS_KEY=nebulafxadmin
-      - NEUBULAFX_SECRET_KEY=nebulafxadmin
-      - NEUBULAFX_LOG_LEVEL=info
-      - NEUBULAFX_TLS_PATH=/opt/tls
-      - NEUBULAFX_OBS_ENDPOINT=http://otel-collector:4317
+      - NEUBULAFX_EXTERNAL_ADDRESS=${NEUBULAFX_EXTERNAL_ADDRESS:-:9000}
+      - NEUBULAFX_CORS_ALLOWED_ORIGINS=${NEUBULAFX_CORS_ALLOWED_ORIGINS:-*}
+      - NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS=${NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS:-*}
+      - NEUBULAFX_ACCESS_KEY=${NEUBULAFX_ACCESS_KEY:-nebulafxadmin}
+      - NEUBULAFX_SECRET_KEY=${NEUBULAFX_SECRET_KEY:-nebulafxadmin}
+      - NEUBULAFX_LOG_LEVEL=${NEUBULAFX_LOG_LEVEL:-info}
+      - RUST_LOG=${RUST_LOG:-info}
+      - NEUBULAFX_TLS_PATH=${NEUBULAFX_TLS_PATH:-/opt/tls}
     volumes:
-      - deploy/data/pro:/data
-      - deploy/logs:/app/logs
-      - deploy/data/certs/:/opt/tls # TLS configuration, you should create tls directory and put your tls files in it and then specify the path here
+      - ./deploy/data/pro:/deploy/data/pro
+      - ./deploy/logs:/app/logs
+      - ./deploy/data/certs:/opt/tls # TLS configuration
     networks:
-      - nebulafx-network
-    restart: unless-stopped
+      - resources
     healthcheck:
       test:
         [
@@ -46,179 +39,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    depends_on:
-      - otel-collector
-
-  # Development environment
-  nebulafx-dev:
-    image: nebulafx/nebulafx:devenv
-    container_name: nebulafx-dev
-    build:
-      context: .
-      dockerfile: Dockerfile.source
-      # Pure development environment
-    ports:
-      - "9010:9000" # S3 API port (Console API endpoints available at /nebulafx/console/*)
-    environment:
-      - NEUBULAFX_VOLUMES=/data/nebulafx{1..4}
-      - NEUBULAFX_ADDRESS=0.0.0.0:9000
-      # 已移除：NEUBULAFX_CONSOLE_ADDRESS 和 NEUBULAFX_CONSOLE_ENABLE（Console API 始终通过主服务器提供）
-      - NEUBULAFX_EXTERNAL_ADDRESS=:9010  # External port mapping 9010 -> 9000
-      - NEUBULAFX_CORS_ALLOWED_ORIGINS=*
-      - NEUBULAFX_CONSOLE_CORS_ALLOWED_ORIGINS=*
-      - NEUBULAFX_ACCESS_KEY=devadmin
-      - NEUBULAFX_SECRET_KEY=devadmin
-      - NEUBULAFX_LOG_LEVEL=debug
-    volumes:
-      - .:/app # Mount source code to /app for development
-      - deploy/data/dev:/data
-    networks:
-      - nebulafx-network
-    restart: unless-stopped
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "sh", "-c",
-          "curl -f http://localhost:9000/health && curl -f http://localhost:9000/nebulafx/console/health"
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    profiles:
-      - dev
-
-  # OpenTelemetry Collector
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
-    container_name: otel-collector
-    command:
-      - --config=/etc/otelcol-contrib/otel-collector.yml
-    volumes:
-      - ./.docker/observability/otel-collector-config.yaml:/etc/otelcol-contrib/otel-collector.yml:ro
-    ports:
-      - "4317:4317" # OTLP gRPC receiver
-      - "4318:4318" # OTLP HTTP receiver
-      - "8888:8888" # Prometheus metrics
-      - "8889:8889" # Prometheus exporter metrics
-    networks:
-      - nebulafx-network
-    restart: unless-stopped
-    profiles:
-      - observability
-
-  # Jaeger for tracing
-  jaeger:
-    image: jaegertracing/all-in-one:latest
-    container_name: jaeger
-    ports:
-      - "16686:16686" # Jaeger UI
-      - "14250:14250" # Jaeger gRPC
-    environment:
-      - COLLECTOR_OTLP_ENABLED=true
-    networks:
-      - nebulafx-network
-    restart: unless-stopped
-    profiles:
-      - observability
-
-  # Prometheus for metrics
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./.docker/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
-    command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
-      - "--web.console.libraries=/etc/prometheus/console_libraries"
-      - "--web.console.templates=/etc/prometheus/consoles"
-      - "--storage.tsdb.retention.time=200h"
-      - "--web.enable-lifecycle"
-    networks:
-      - nebulafx-network
-    restart: unless-stopped
-    profiles:
-      - observability
-
-  # Grafana for visualization
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./.docker/observability/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./.docker/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
-    networks:
-      - nebulafx-network
-    restart: unless-stopped
-    profiles:
-      - observability
-
-  # Redis for caching (optional)
-  redis:
-    image: redis:7-alpine
-    container_name: redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - nebulafx-network
-    restart: unless-stopped
-    profiles:
-      - cache
-
-  # NGINX reverse proxy (optional)
-  nginx:
-    image: nginx:alpine
-    container_name: nginx-proxy
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./.docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./.docker/nginx/ssl:/etc/nginx/ssl:ro
-    networks:
-      - nebulafx-network
-    restart: unless-stopped
-    profiles:
-      - proxy
-    depends_on:
-      - nebulafx
 
 networks:
-  nebulafx-network:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
+  resources:
+    external: true
 
-volumes:
-  nebulafx_data_0:
-    driver: local
-  nebulafx_data_1:
-    driver: local
-  nebulafx_data_2:
-    driver: local
-  nebulafx_data_3:
-    driver: local
-  nebulafx_dev_data:
-    driver: local
-  prometheus_data:
-    driver: local
-  grafana_data:
-    driver: local
-  redis_data:
-    driver: local
-  logs:
-    driver: local

@@ -1,0 +1,64 @@
+[server]
+    name = "NebulaFX-Dev"
+    host = "0.0.0.0"
+    port = 9000
+    server_domains = []
+    region = ""
+    volumes = "/deploy/data/dev{1...8}"
+    cors_allowed_origins = "*"
+    console_cors_allowed_origins = "*"
+    access_key = "devadmin"
+    secret_key = "devadmin"
+    root_user = "devadmin"
+    root_password = "devadmin"
+
+[database]
+    host = "postgres"
+    port = 5432
+    user = "postgres"
+    password = "Lucas127."
+    database = "nebulafx_dev"
+    charset = "utf8mb4"
+    parse_time = true
+    loc = "Local"
+    logger_level = "debug"
+    auto_migrate = true
+
+    [database.connection]
+        timeout = "5s"
+        max_retries = 5
+        retry_interval = "2s"
+        max_idle_connections = 5
+        max_open_connections = 50
+        conn_max_idle_time = "15m"
+        conn_max_lifetime = "1h"
+
+[storage]
+    base_path = "/deploy/data/dev"
+
+[tls]
+    path = "/opt/tls"
+    key_file = "nebulafx_key.pem"
+    cert_file = "nebulafx_cert.pem"
+
+[observability]
+    endpoint = ""
+    trace_endpoint = ""
+    metric_endpoint = ""
+    log_endpoint = ""
+    use_stdout = true
+    sample_ratio = 1.0
+    meter_interval = 30
+    service_name = "NebulaFX-Dev"
+    service_version = "0.0.5"
+    environment = "development"
+    logger_level = "error"
+    log_stdout_enabled = false
+    log_directory = "/app/logs"
+    log_filename = "nebulafx"
+    log_rotation_size_mb = 100
+    log_rotation_time = "hour"
+    log_keep_files = 30
+
+[license]
+    content = ""

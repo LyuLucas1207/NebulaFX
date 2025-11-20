@@ -214,7 +214,7 @@ impl From<StorageError> for ApiError {
             err.to_string()
         } else {
             ApiError::error_code_to_message(&code)
-        };
+        };  
         ApiError {
             code,
             message,
