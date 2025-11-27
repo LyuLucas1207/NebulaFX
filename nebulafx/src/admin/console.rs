@@ -370,7 +370,7 @@ async fn health_check() -> Json<serde_json::Value> {
     }
 
     // Check IAM system health
-    match nebulafx_iam::get() {
+    match nebulafx_iamx::get() {
         Ok(_) => {
             details["iam"] = json!({"status": "connected"});
         }

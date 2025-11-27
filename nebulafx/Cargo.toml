@@ -33,7 +33,7 @@ nebulafx-common = { workspace = true }
 nebulafx-config = { workspace = true, features = ["constants", "notify"] }
 nebulafx-ecstore = { workspace = true }
 nebulafx-filemeta.workspace = true
-nebulafx-iam = { workspace = true }
+nebulafx-iamx = { workspace = true }
 nebulafx-kms = { workspace = true }
 nebulafx-lock.workspace = true
 nebulafx-madmin = { workspace = true }

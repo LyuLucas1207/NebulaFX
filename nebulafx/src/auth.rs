@@ -1,9 +1,9 @@
 use http::HeaderMap;
 use http::Uri;
 use nebulafx_ecstore::global::get_global_action_cred;
-use nebulafx_iam::error::Error as IamError;
-use nebulafx_iam::sys::SESSION_POLICY_NAME;
-use nebulafx_iam::sys::get_claims_from_token_with_secret;
+use nebulafx_iamx::error::Error as IamError;
+use nebulafx_iamx::sys::SESSION_POLICY_NAME;
+use nebulafx_iamx::sys::get_claims_from_token_with_secret;
 use nebulafx_policy::auth;
 use nebulafx_utils::http::ip::get_source_ip_raw;
 use s3s::S3Error;
@@ -72,7 +72,7 @@ impl S3Auth for IAMAuth {
             return Ok(key);
         }
 
-        if let Ok(iam_store) = nebulafx_iam::get() {
+        if let Ok(iam_store) = nebulafx_iamx::get() {
             if let Some(id) = iam_store.get_user(access_key).await {
                 return Ok(SecretKey::from(id.credentials.secret_key.clone()));
             }
@@ -94,7 +94,7 @@ pub async fn check_key_valid(session_token: &str, access_key: &str) -> S3Result<
     let sys_cred = cred.clone();
 
     if cred.access_key != access_key {
-        let Ok(iam_store) = nebulafx_iam::get() else {
+        let Ok(iam_store) = nebulafx_iamx::get() else {
             return Err(S3Error::with_message(
                 S3ErrorCode::InternalError,
                 format!("check_key_valid {:?}", IamError::IamSysNotInitialized),

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use http::HeaderMap;
-use nebulafx_iam::sys::IamSys;
+use nebulafx_iamx::sys::IamSys;
 use nebulafx_policy::auth;
 use nebulafx_policy::policy::Args;
 use nebulafx_policy::policy::action::Action;
@@ -18,7 +18,7 @@ pub async fn validate_admin_request(
     deny_only: bool,
     actions: Vec<Action>,
 ) -> S3Result<()> {
-    let Ok(iam_store) = nebulafx_iam::get() else {
+    let Ok(iam_store) = nebulafx_iamx::get() else {
         return Err(s3_error!(InternalError, "iam not init"));
     };
     for action in actions {

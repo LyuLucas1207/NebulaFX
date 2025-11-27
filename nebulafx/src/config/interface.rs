@@ -1,10 +1,10 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 pub use nebulafx_postgresqlx::PostgreSQLConfig;
 pub use nebulafx_obs::ObservabilityConfig;
 pub use nebulafx_profilingx::ProfilingConfig;
 pub use nebulafx_tokiox::RuntimeConfig;
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Config {
     pub server: Option<ServerConfig>,
     pub database: Option<PostgreSQLConfig>,
@@ -15,7 +15,7 @@ pub struct Config {
     pub runtime: Option<RuntimeConfig>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ServerConfig {
     pub name: Option<String>,
     pub host: Option<String>,
@@ -31,12 +31,12 @@ pub struct ServerConfig {
     pub root_password: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct StorageConfig {
     pub base_path: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct TlsConfig {
     pub path: Option<String>,
     pub key_file: Option<String>,

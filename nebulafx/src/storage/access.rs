@@ -1,7 +1,7 @@
 use super::ecfs::FS;
 use crate::auth::{check_key_valid, get_condition_values, get_session_token};
 use nebulafx_ecstore::bucket::policy_sys::PolicySys;
-use nebulafx_iam::error::Error as IamError;
+use nebulafx_iamx::error::Error as IamError;
 use nebulafx_policy::auth;
 use nebulafx_policy::policy::action::{Action, S3Action};
 use nebulafx_policy::policy::{Args, BucketPolicyArgs};
@@ -25,7 +25,7 @@ pub async fn authorize_request<T>(req: &mut S3Request<T>, action: Action) -> S3R
     let req_info = req.extensions.get_mut::<ReqInfo>().expect("ReqInfo not found");
 
     if let Some(cred) = &req_info.cred {
-        let Ok(iam_store) = nebulafx_iam::get() else {
+        let Ok(iam_store) = nebulafx_iamx::get() else {
             return Err(S3Error::with_message(
                 S3ErrorCode::InternalError,
                 format!("authorize_request {:?}", IamError::IamSysNotInitialized),

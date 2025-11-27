@@ -29,7 +29,7 @@ use nebulafx_ecstore::store::is_valid_object_prefix;
 use nebulafx_ecstore::store_api::BucketOptions;
 use nebulafx_ecstore::store_api::StorageAPI;
 use nebulafx_ecstore::store_utils::is_reserved_or_invalid_bucket;
-use nebulafx_iam::store::MappedPolicy;
+use nebulafx_iamx::MappedPolicy;
 use nebulafx_madmin::metrics::RealtimeMetrics;
 use nebulafx_madmin::utils::parse_duration;
 use nebulafx_policy::policy::Args;
@@ -62,7 +62,7 @@ use url::Host;
 pub mod bucket;
 pub mod event;
 pub mod group;
-pub mod policies;
+pub mod policy;
 pub mod pools;
 pub mod profile;
 pub mod rebalance;
@@ -118,7 +118,7 @@ impl Operation for AccountInfoHandler {
         let (cred, owner) =
             check_key_valid(get_session_token(&req.uri, &req.headers).unwrap_or_default(), &input_cred.access_key).await?;
 
-        let Ok(iam_store) = nebulafx_iam::get() else {
+        let Ok(iam_store) = nebulafx_iamx::get() else {
             return Err(s3_error!(InvalidRequest, "iam not init"));
         };
 

@@ -12,8 +12,6 @@ use crate::server::{
     start_audit_system, start_http_server, stop_audit_system, wait_for_shutdown,
 };
 use crate::storage::ecfs::{process_lambda_configurations, process_queue_configurations, process_topic_configurations};
-use chrono::Datelike;
-use clap::Parser;
 use nebulafx_ahm::{
     Scanner, create_ahm_services_cancel_token, heal::storage::ECStoreHealStorage, init_heal_manager,
     scanner::data_scanner::ScannerConfig, shutdown_ahm_services,
@@ -36,7 +34,7 @@ use nebulafx_ecstore::{
     store::init_local_disks,
     update_erasure_type,
 };
-use nebulafx_iam::init_iam_sys;
+use nebulafx_iamx::init_iam_sys;
 use nebulafx_notify::notifier_global;
 use nebulafx_obs::init_obs;
 use nebulafx_targets::arn::TargetID;
@@ -49,7 +47,7 @@ use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info, instrument, warn};
 
-use config::{get_config, init_config, Config, Success};
+use config::{get_config, init_config, Config};
 use nebulafx_postgresqlx::PostgreSQLPool;
 use nebulafx_tokiox::get_tokio_runtime_builder;
 
@@ -107,13 +105,18 @@ async fn async_main() -> Result<()> {
         }
     
     // Initialize database schema and root user if database is configured
-    if let Some(_) = config.database.as_ref() {
-        use nebulafx_iam::init::{init_database, init_root_user};
+    if let Some(db_config) = config.database.as_ref() {
+        use nebulafx_iamx::init::{init_database, init_root_user};
+        
         let pool = PostgreSQLPool::get()
             .map_err(|e| Error::other(format!("Failed to get database pool: {}", e)))?;
         
-        // Initialize database tables
-        if let Err(e) = init_database(pool.inner()).await {
+        // Get database connection URL for migrations
+        let database_url = db_config.build_connection_url()
+            .map_err(|e| Error::other(format!("Failed to build database URL: {}", e)))?;
+        
+        // Initialize database tables using Refinery (pure refinery, no sqlx mixing)
+        if let Err(e) = init_database(&database_url).await {
             error!("Failed to initialize database tables: {}", e);
             return Err(Error::other(format!("Database initialization failed: {}", e)));
         }
@@ -141,7 +144,7 @@ async fn async_main() -> Result<()> {
         }
     }
     // Run with config
-    match run(config.as_ref()).await {
+    match run(config).await {
         Ok(_) => Ok(()),
         Err(e) => {
             error!("Server encountered an error and is shutting down: {}", e);
@@ -180,8 +183,10 @@ async fn run(config: &Config) -> Result<()> {
     set_global_addr(&address).await;
 
     // For RPC
-    let volumes = server_config.volumes.as_deref().unwrap_or("/deploy/data/dev{1...8}");
-    let (endpoint_pools, setup_type) = EndpointServerPools::from_volumes(server_address.clone().as_str(), volumes.to_string())
+    let volumes_str = server_config.volumes.as_deref().unwrap_or("/deploy/data/dev{1...8}");
+    // Split volumes string by whitespace into Vec<String>
+    let volumes: Vec<String> = volumes_str.split_whitespace().map(|s| s.to_string()).collect();
+    let (endpoint_pools, setup_type) = EndpointServerPools::from_volumes(server_address.clone().as_str(), volumes)
         .await
         .map_err(Error::other)?;
 

@@ -9,7 +9,7 @@ use handlers::{
     GetReplicationMetricsHandler, HealthCheckHandler, ListRemoteTargetHandler, RemoveRemoteTargetHandler, SetRemoteTargetHandler,
     bucket,
     event::{ListNotificationTargets, ListTargetsArns, NotificationTarget, RemoveNotificationTarget},
-    group, policies, pools,
+    group, policy, pools,
     profile::{TriggerProfileCPU, TriggerProfileMemory},
     rebalance,
     service_account::{AddServiceAccount, DeleteServiceAccount, InfoServiceAccount, ListServiceAccount, UpdateServiceAccount},
@@ -345,35 +345,35 @@ fn register_user_route(r: &mut S3Router<AdminOperation>) -> std::io::Result<()> 
     r.insert(
         Method::GET,
         format!("{}{}", ADMIN_PREFIX, "/v3/list-canned-policies").as_str(),
-        AdminOperation(&policies::ListCannedPolicies {}),
+        AdminOperation(&policy::ListCannedPolicies {}),
     )?;
 
     // info-canned-policy?name=xxx
     r.insert(
         Method::GET,
         format!("{}{}", ADMIN_PREFIX, "/v3/info-canned-policy").as_str(),
-        AdminOperation(&policies::InfoCannedPolicy {}),
+        AdminOperation(&policy::InfoCannedPolicy {}),
     )?;
 
     // add-canned-policy?name=xxx
     r.insert(
         Method::PUT,
         format!("{}{}", ADMIN_PREFIX, "/v3/add-canned-policy").as_str(),
-        AdminOperation(&policies::AddCannedPolicy {}),
+        AdminOperation(&policy::AddCannedPolicy {}),
     )?;
 
     // remove-canned-policy?name=xxx
     r.insert(
         Method::DELETE,
         format!("{}{}", ADMIN_PREFIX, "/v3/remove-canned-policy").as_str(),
-        AdminOperation(&policies::RemoveCannedPolicy {}),
+        AdminOperation(&policy::RemoveCannedPolicy {}),
     )?;
 
     // set-user-or-group-policy?policyName=xxx&userOrGroup=xxx&isGroup=xxx
     r.insert(
         Method::PUT,
         format!("{}{}", ADMIN_PREFIX, "/v3/set-user-or-group-policy").as_str(),
-        AdminOperation(&policies::SetPolicyForUserOrGroup {}),
+        AdminOperation(&policy::SetPolicyForUserOrGroup {}),
     )?;
 
     r.insert(

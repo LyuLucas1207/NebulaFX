@@ -1,7 +1,7 @@
 use http::StatusCode;
 use nebulafx_ecstore::global::get_global_action_cred;
-use nebulafx_iam::error::Error as IamError;
-use nebulafx_iam::manager::get_token_signing_key;
+use nebulafx_iamx::error::Error as IamError;
+use nebulafx_iamx::get_token_signing_key;
 use nebulafx_policy::auth::{get_new_credentials_with_metadata, Credentials};
 use s3s::{
     Body, S3Error, S3ErrorCode, S3Response, S3Result,
@@ -27,7 +27,7 @@ pub(super) async fn handle_key_login(access_key: &str, body: AssumeRoleRequest) 
     let claims = build_claims(cred.claims, &body.policy, body.duration_seconds, &cred.access_key)?;
 
     // Get IAM store
-    let iam_store = match nebulafx_iam::get() {
+    let iam_store = match nebulafx_iamx::get() {
         Ok(store) => store,
         Err(err) => {
             error!("KeyLogin get IAM store failed, err: {:?}", err);
@@ -77,7 +77,7 @@ async fn check_key_valid(access_key: &str) -> S3Result<Credentials> {
     };
 
     if cred.access_key != access_key {
-        let Ok(iam_store) = nebulafx_iam::get() else {
+        let Ok(iam_store) = nebulafx_iamx::get() else {
             return Err(S3Error::with_message(
                 S3ErrorCode::InternalError,
                 format!("check_key_valid {:?}", IamError::IamSysNotInitialized),

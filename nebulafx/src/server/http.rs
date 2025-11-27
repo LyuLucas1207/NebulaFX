@@ -94,10 +94,20 @@ fn get_cors_allowed_origins() -> String {
 }
 
 pub async fn start_http_server(
-    opt: &config::Opt,
+    config: &config::Config,
     worker_state_manager: ServiceStateManager,
 ) -> Result<tokio::sync::broadcast::Sender<()>> {
-    let server_addr = parse_and_resolve_address(opt.address.as_str()).map_err(Error::other)?;
+    // Build server address from config
+    let server_config = config.server.as_ref();
+    let host = server_config
+        .and_then(|s| s.host.as_deref())
+        .unwrap_or("0.0.0.0");
+    let port = server_config
+        .and_then(|s| s.port)
+        .unwrap_or(9000);
+    let address = format!("{}:{}", host, port);
+    
+    let server_addr = parse_and_resolve_address(&address).map_err(Error::other)?;
     let server_port = server_addr.port();
 
     // The listening address and port are obtained from the parameters
@@ -138,7 +148,10 @@ pub async fn start_http_server(
             local_addr.ip()
         }
     };
-    let tls_acceptor = setup_tls_acceptor(opt.tls_path.as_deref().unwrap_or_default()).await?;
+    let tls_path = config.tls.as_ref()
+        .and_then(|t| t.path.as_deref())
+        .unwrap_or_default();
+    let tls_acceptor = setup_tls_acceptor(tls_path).await?;
     let tls_enabled = tls_acceptor.is_some();
     let protocol = if tls_enabled { "https" } else { "http" };
     // Detailed endpoint information (showing all API endpoints)
@@ -156,7 +169,16 @@ pub async fn start_http_server(
     );
     println!("   Console API: {protocol}://{local_ip}:{server_port}/nebulafx/console/*");
     
-    if DEFAULT_ACCESS_KEY.eq(&opt.access_key) && DEFAULT_SECRET_KEY.eq(&opt.secret_key) {
+    // Get server config for credentials and domains
+    let server_config = config.server.as_ref();
+    let access_key = server_config
+        .and_then(|s| s.access_key.as_deref())
+        .unwrap_or(DEFAULT_ACCESS_KEY);
+    let secret_key = server_config
+        .and_then(|s| s.secret_key.as_deref())
+        .unwrap_or(DEFAULT_SECRET_KEY);
+    
+    if DEFAULT_ACCESS_KEY.eq(access_key) && DEFAULT_SECRET_KEY.eq(secret_key) {
         warn!(
             "Detected default credentials '{}:{}', we recommend that you change these values with 'NEUBULAFX_ACCESS_KEY' and 'NEUBULAFX_SECRET_KEY' environment variables",
             DEFAULT_ACCESS_KEY, DEFAULT_SECRET_KEY
@@ -171,30 +193,29 @@ pub async fn start_http_server(
         let store = storage::ecfs::FS::new();
         let mut b = S3ServiceBuilder::new(store.clone());
 
-        let access_key = opt.access_key.clone();
-        let secret_key = opt.secret_key.clone();
-
         b.set_auth(IAMAuth::new(access_key, secret_key));
         b.set_access(store.clone());
         // Console API 端点始终启用（通过主服务器提供）
         b.set_route(admin::make_admin_route(true)?);
 
-        if !opt.server_domains.is_empty() {
-            MultiDomain::new(&opt.server_domains).map_err(Error::other)?; // validate domains
+        if let Some(domains) = server_config.and_then(|s| s.server_domains.as_ref()) {
+            if !domains.is_empty() {
+                MultiDomain::new(domains).map_err(Error::other)?; // validate domains
 
-            // add the default port number to the given server domains
-            let mut domain_sets = std::collections::HashSet::new();
-            for domain in &opt.server_domains {
-                domain_sets.insert(domain.to_string());
-                if let Some((host, _)) = domain.split_once(':') {
-                    domain_sets.insert(format!("{host}:{server_port}"));
-                } else {
-                    domain_sets.insert(format!("{domain}:{server_port}"));
+                // add the default port number to the given server domains
+                let mut domain_sets = std::collections::HashSet::new();
+                for domain in domains {
+                    domain_sets.insert(domain.clone());
+                    if let Some((host, _)) = domain.split_once(':') {
+                        domain_sets.insert(format!("{host}:{server_port}"));
+                    } else {
+                        domain_sets.insert(format!("{domain}:{server_port}"));
+                    }
                 }
-            }
 
-            info!("virtual-hosted-style requests are enabled use domain_name {:?}", &domain_sets);
-            b.set_host(MultiDomain::new(domain_sets).map_err(Error::other)?);
+                info!("virtual-hosted-style requests are enabled use domain_name {:?}", &domain_sets);
+                b.set_host(MultiDomain::new(domain_sets).map_err(Error::other)?);
+            }
         }
 
         b.build()

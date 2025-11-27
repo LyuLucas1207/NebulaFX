@@ -1,6 +1,6 @@
 use http::StatusCode;
 use nebulafx_ecstore::bucket::utils::serialize;
-use nebulafx_iam::sys::SESSION_POLICY_NAME;
+use nebulafx_iamx::sys::SESSION_POLICY_NAME;
 use nebulafx_policy::{auth::Credentials as PolicyCredentials, policy::Policy};
 use s3s::{
     Body, S3Error, S3ErrorCode, S3Response, S3Result,

@@ -233,8 +233,8 @@ impl From<std::io::Error> for ApiError {
     }
 }
 
-impl From<nebulafx_iam::error::Error> for ApiError {
-    fn from(err: nebulafx_iam::error::Error) -> Self {
+impl From<nebulafx_iamx::error::Error> for ApiError {
+    fn from(err: nebulafx_iamx::error::Error) -> Self {
         let serr: StorageError = err.into();
         serr.into()
     }

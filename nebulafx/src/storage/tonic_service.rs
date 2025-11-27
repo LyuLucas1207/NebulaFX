@@ -17,7 +17,7 @@ use nebulafx_ecstore::{
     store_api::{BucketOptions, DeleteBucketOptions, MakeBucketOptions, StorageAPI},
 };
 use nebulafx_filemeta::{FileInfo, MetacacheReader};
-use nebulafx_iam::{get_global_iam_sys, store::UserType};
+use nebulafx_iamx::{get_global_iam_sys, UserType};
 use nebulafx_lock::{LockClient, LockRequest};
 use nebulafx_madmin::health::{
     get_cpus, get_mem_info, get_os_info, get_partitions, get_proc_info, get_sys_config, get_sys_errors, get_sys_services,
